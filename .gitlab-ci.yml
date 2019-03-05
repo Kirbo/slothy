@@ -9,4 +9,4 @@ pages:
     paths:
     - build
   only:
-  - master
+    - dev

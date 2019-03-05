@@ -3,6 +3,10 @@
   "description": "Changes your Slack status based on the SSID you're currently connected to.",
   "productName": "Sloth",
   "productUrl": "https://github.com/kirbo/sloth/releases",
+  "product": {
+    "GitLabRepository": "https://gitlab.com/kirbo/sloth",
+    "GitHubRepository": "https://github.com/kirbo/sloth"
+  },
   "author": "kirbownz@me.com",
   "version": "0.1.0",
   "private": true,
