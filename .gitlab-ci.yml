@@ -1,9 +1,10 @@
 image: node:8.11.2
 
-baseurl: "/sloth"
-
 pages:
   stage: deploy
+  cache:
+    paths:
+    - pages/node_modules/
   script:
     - cd pages
     - yarn install
