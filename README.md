@@ -4,7 +4,7 @@
 
 Set your Slack status based on the (B)SSID you're currently connected to.
 
-## Workflow
+## Contribution
 
 This repository is maintained in [GitLab](https://gitlab.com/kirbo/sloth), the [GitHub](https://github.com/kirbo/sloth)
 is just mirroring the Protected branches from GitLab and serves the releases.
