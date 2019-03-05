@@ -1,10 +1,12 @@
 image: node:8.11.2
 
+cache:
+  paths:
+  - node_modules/
+  - pages/node_modules/
+
 pages:
   stage: deploy
-  cache:
-    paths:
-    - pages/node_modules/
   script:
     - cd pages
     - yarn install
@@ -15,4 +17,4 @@ pages:
     paths:
     - public
   only:
-    - dev
+    - master
