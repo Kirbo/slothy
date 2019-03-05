@@ -1,5 +1,7 @@
 image: node:8.11.2
 
+baseurl: "/sloth"
+
 pages:
   stage: deploy
   script:
