@@ -6,8 +6,10 @@ pages:
     - cd pages
     - yarn install
     - yarn build
+    - rm -rf ../public
+    - mv build ../public
   artifacts:
     paths:
-    - pages/build
+    - public
   only:
     - dev
