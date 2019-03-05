@@ -1,8 +1,8 @@
-'use strict';
-
 const fs = require('fs');
 const path = require('path');
 const paths = require('./paths');
+
+const parentPackageJSON = require('../../package.json');
 
 // Make sure that including paths.js after env.js will read .env variables.
 delete require.cache[require.resolve('./paths')];
@@ -79,6 +79,8 @@ function getClientEnvironment(publicUrl) {
         PUBLIC_URL: publicUrl,
       }
     );
+
+  raw['REACT_APP_PRODUCT_NAME'] = parentPackageJSON.productName;
   // Stringify all values so we can feed into Webpack DefinePlugin
   const stringified = {
     'process.env': Object.keys(raw).reduce((env, key) => {
