@@ -6,11 +6,8 @@ pages:
     - cd pages
     - yarn install
     - yarn build
-    - ls -la
-    - ls -la build
-    - pwd
   artifacts:
     paths:
-    - build
+    - pages/build
   only:
     - dev
