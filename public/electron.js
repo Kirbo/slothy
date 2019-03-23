@@ -33,7 +33,44 @@ autoUpdater.logger.transports.file.level = 'info';
 const app = electron.app;
 const BrowserWindow = electron.BrowserWindow;
 
-app.setAsDefaultProtocolClient('sloth2');
+if (process.defaultApp) {
+  if (process.argv.length >= 2) {
+    app.setAsDefaultProtocolClient('sloth2', process.execPath, [path.resolve(process.argv[1])])
+  }
+} else {
+  app.setAsDefaultProtocolClient('sloth2')
+}
+
+const handleAuth = (uri) => {
+  const { hostname } = url.parse(uri);
+
+  if (hostname === 'auth') {
+    const code = getParameterByName(uri, 'code');
+    const options = {
+      uri: `https://slack.com/api/oauth.access?code=${code}&client_id=${process.env.CLIENT_ID}&client_secret=${process.env.CLIENT_SECRET}&redirect_uri=sloth2://auth`,
+      method: 'GET',
+    };
+
+    request(options, async (error, response, body) => {
+      const { ok, access_token } = JSON.parse(body);
+      if (!ok) {
+        mainWindow.webContents.send('error', 'Error in authentication!');
+      } else {
+        const profile = await getStatus({ token: access_token });
+        let instance;
+
+        if (profile) {
+          instance = await saveSlackInstance({
+            token: access_token,
+            profile,
+          });
+        }
+        mainWindow.webContents.send('slackInstances', await getSlackInstances());
+        mainWindow.webContents.send('newSlackInsatance', instance);
+      }
+    });
+  }
+}
 
 const createWindow = () => {
   if (process.env.NODE_ENV === 'development' && !BrowserWindow.getDevToolsExtensions().hasOwnProperty('React Developer Tools')) {
@@ -70,12 +107,24 @@ const createWindow = () => {
   })
 }
 
-app.on('ready', createWindow);
-// app.on('window-all-closed', () => {
-//   if (process.platform !== 'darwin') {
-//     app.quit();
-//   }
-// });
+const gotTheLock = app.requestSingleInstanceLock();
+
+if (!gotTheLock) {
+  app.quit();
+} else {
+  app.on('second-instance', (event, commandLine, workingDirectory) => {
+    event.preventDefault();
+    handleAuth(commandLine[2]);
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) {
+        mainWindow.restore();
+      }
+      mainWindow.focus();
+    }
+  })
+
+  app.on('ready', createWindow);
+}
 
 app.on('activate', () => {
   if (mainWindow === null) {
@@ -85,34 +134,7 @@ app.on('activate', () => {
 
 app.on('open-url', (event, uri) => {
   event.preventDefault();
-  const { hostname } = url.parse(uri);
-
-  if (hostname === 'auth') {
-    const code = getParameterByName(uri, 'code');
-    const options = {
-      uri: `https://slack.com/api/oauth.access?code=${code}&client_id=${process.env.CLIENT_ID}&client_secret=${process.env.CLIENT_SECRET}&redirect_uri=sloth2://auth`,
-      method: 'GET',
-    };
-
-    request(options, async (error, response, body) => {
-      const { ok, access_token } = JSON.parse(body);
-      if (!ok) {
-        mainWindow.webContents.send('error', 'Error in authentication!');
-      } else {
-        const profile = await getStatus({ token: access_token });
-        let instance;
-
-        if (profile) {
-          instance = await saveSlackInstance({
-            token: access_token,
-            profile,
-          });
-        }
-        mainWindow.webContents.send('slackInstances', await getSlackInstances());
-        mainWindow.webContents.send('newSlackInsatance', instance);
-      }
-    });
-  }
+  handleAuth(uri);
 });
 
 setInterval(async () => {
@@ -165,4 +187,4 @@ ipc
   .on('installUpdate', () => {
     autoUpdater.quitAndInstall();
   })
-  ;
+;

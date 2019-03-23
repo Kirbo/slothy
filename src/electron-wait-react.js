@@ -12,7 +12,13 @@ const tryConnection = () => client.connect({ port: port }, () => {
     console.log('starting electron');
     startedElectron = true;
     const spawn = require('child_process').spawn;
-    const child = spawn('yarn', ['electron-start']);
+    let child;
+    const { platform } = process;
+    if (platform === 'win32') {
+      child = spawn('yarn.cmd', ['electron-start']);
+    } else {
+      child = spawn('yarn', ['electron-start']);
+    }
 
     child.stdout.on('data', data => { process.stdout.write(data.toString()); });
     child.stderr.on('data', data => { process.stdout.write(data.toString()); });
