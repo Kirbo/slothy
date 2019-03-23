@@ -7,6 +7,11 @@ const ipc = require('electron').ipcMain;
 const { autoUpdater } = require('electron-updater');
 const log = require('electron-log');
 const request = require('request');
+const packageJSON = require('../package.json');
+
+const protocol = packageJSON.build.protocols[0].schemes[0];
+
+console.log('protocol', protocol);
 
 const {
   getSlackInstances,
@@ -37,10 +42,10 @@ const BrowserWindow = electron.BrowserWindow;
 
 if (process.defaultApp) {
   if (process.argv.length >= 2) {
-    app.setAsDefaultProtocolClient('sloth2', process.execPath, [path.resolve(process.argv[1])])
+    app.setAsDefaultProtocolClient(protocol, process.execPath, [path.resolve(process.argv[1])]);
   }
 } else {
-  app.setAsDefaultProtocolClient('sloth2')
+  app.setAsDefaultProtocolClient(protocol);
 }
 
 const handleAuth = (uri) => {
