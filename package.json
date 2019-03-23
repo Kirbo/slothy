@@ -30,7 +30,8 @@
     "asar": true,
     "files": [
       ".env",
-      "build"
+      "build",
+      "package.json"
     ],
     "mac": {
       "category": "public.app-category.utilities"
@@ -45,8 +46,7 @@
         "name": "sloth2",
         "role": "Viewer",
         "schemes": [
-          "sloth2",
-          "sloth2s"
+          "sloth2"
         ]
       }
     ]
