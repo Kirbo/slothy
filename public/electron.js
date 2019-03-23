@@ -18,6 +18,8 @@ const {
   getConnections,
   setStatus,
   getParameterByName,
+  fetchWorkspaces,
+  fetchWorkspacesInterval,
 } = require('./utils.js');
 
 require('dotenv').config({ path: path.join(__dirname, '/../.env') });
@@ -97,18 +99,26 @@ app.on('open-url', (event, uri) => {
       if (!ok) {
         mainWindow.webContents.send('error', 'Error in authentication!');
       } else {
-        const profile = await getStatus({ token: access_token});
+        const profile = await getStatus({ token: access_token });
+        let instance;
+
         if (profile) {
-          await saveSlackInstance({
+          instance = await saveSlackInstance({
             token: access_token,
             profile,
           });
         }
         mainWindow.webContents.send('slackInstances', await getSlackInstances());
+        mainWindow.webContents.send('newSlackInsatance', instance);
       }
     });
   }
 });
+
+setInterval(async () => {
+  const slackInstances = await fetchWorkspaces();
+  mainWindow.webContents.send('slackInstances', slackInstances);
+}, fetchWorkspacesInterval * 60 * 1000);
 
 ipc
   .on('initialize', () => (
@@ -155,4 +165,4 @@ ipc
   .on('installUpdate', () => {
     autoUpdater.quitAndInstall();
   })
-;
+  ;

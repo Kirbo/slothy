@@ -1,5 +1,5 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
+import { render as ReactDOMRender } from 'react-dom';
 import { createGlobalStyle } from 'styled-components';
 
 import AppProvider from './container/Context/AppProvider';
@@ -7,6 +7,16 @@ import { Consumer } from './container/Context/Context';
 
 import Home from './container/Home';
 import NotAuthorized from './container/NotAuthorized';
+
+const Application = () => (
+  <AppProvider>
+    <GlobalStyles />
+    <Consumer>
+      {({ slackInstances }) => slackInstances.length > 0 ? <Home /> : <NotAuthorized />}
+    </Consumer>
+  </AppProvider>
+);
+
 
 const GlobalStyles = createGlobalStyle`
   html, body {
@@ -25,13 +35,20 @@ const GlobalStyles = createGlobalStyle`
   }
 `;
 
-const Application = () => (
-  <AppProvider>
-    <GlobalStyles />
-    <Consumer>
-      {({ slackInstances }) => slackInstances.length > 0 ? <Home /> : <NotAuthorized />}
-    </Consumer>
-  </AppProvider>
-);
+const mount = document.getElementById('root');
 
-ReactDOM.render(<Application />, document.getElementById('root'));
+/**
+ * Render
+ * @param {Object} Component - Component to render.
+ */
+const render = Component => {
+  ReactDOMRender(<Component />, mount);
+};
+
+if (module.hot) {
+  module.hot.accept();
+}
+
+document.querySelector('.loading').classList.add('loaded');
+
+render(Application);

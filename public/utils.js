@@ -2,14 +2,11 @@ const storage = require('electron-json-storage');
 const slack = require('slack');
 const wifi = require('node-wifi');
 
-const dataPath = storage.getDataPath();
-console.log(dataPath);
-// const interval = storage.get('interval') || 5;
-
 wifi.init({
   iface: null,
 });
 
+const fetchWorkspacesInterval = storage.get('fetchWorkspacesInterval') || 5;
 
 const getSlackInstances = async () => (
   new Promise((resolve, reject) => {
@@ -17,7 +14,11 @@ const getSlackInstances = async () => (
       if (error) {
         reject(error);
       }
-      resolve(data);
+      let instances = [];
+      if (data.length) {
+        instances = data;
+      }
+      resolve(instances);
     });
   })
 );
@@ -45,22 +46,25 @@ const updateSlackInstance = async ({ instance, profile }) => (
 
 const saveSlackInstance = async (instance) => (
   new Promise(async (resolve, reject) => {
-    const workspace = await getWorkspace({token: instance.token});
+    const token = { token: instance.token };
+    const workspace = await getWorkspace(token);
     const newInstance = {
       ...instance,
       ...workspace,
-      emojis: [],
+      enabled: false,
+      emojis: await getWorkspaceEmojis(token),
       token: instance.token,
+      configs: [],
     };
 
     const slackInstances = await getSlackInstances();
     storage.set('slackInstances', [...slackInstances, newInstance], async (error, data) => {
-      resolve(getSlackInstances());
+      resolve(newInstance);
     });
   })
 );
 
-const removeSlackInstance = async ({token}) => (
+const removeSlackInstance = async ({ token }) => (
   new Promise(async (resolve, reject) => {
     const slackInstances = await getSlackInstances();
     storage.set('slackInstances', slackInstances.filter(instance => instance.token !== token), (error, data) => {
@@ -73,7 +77,7 @@ const removeSlackInstance = async ({token}) => (
   })
 );
 
-const getStatus = async ({token}) => (
+const getStatus = async ({ token }) => (
   new Promise(async (resolve, reject) => {
     slack.users.profile.get({ token }, (error, data) => {
       if (error) {
@@ -85,7 +89,7 @@ const getStatus = async ({token}) => (
   })
 );
 
-const getWorkspace = async ({token}) => (
+const getWorkspace = async ({ token }) => (
   new Promise(async (resolve, reject) => {
     slack.team.info({ token }, (error, data) => {
       if (error) {
@@ -93,6 +97,18 @@ const getWorkspace = async ({token}) => (
       }
       const { team } = data;
       resolve(team);
+    });
+  })
+);
+
+const getWorkspaceEmojis = async ({ token }) => (
+  new Promise(async (resolve, reject) => {
+    slack.emoji.list({ token }, (error, data) => {
+      if (error) {
+        reject(error);
+      }
+      const { emoji } = data;
+      resolve(emoji);
     });
   })
 );
@@ -151,7 +167,7 @@ const setStatus = async ({ status, emoji, token }) => (
         return;
       }
       const { profile } = data;
-      await updateSlackInstance({instance, profile});
+      await updateSlackInstance({ instance, profile });
       resolve(profile);
     });
   })
@@ -162,6 +178,33 @@ const getParameterByName = (uri, name) => {
   return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
 };
 
+const fetchWorkspaces = async () => (
+  new Promise(async (resolve, reject) => {
+    const oldSlackInstances = await getSlackInstances();
+    const promises = oldSlackInstances.map(instance => (
+      new Promise(async (res, rej) => {
+        const token = { token: instance.token };
+        const workspace = await getWorkspace(token);
+        const newInstance = {
+          ...instance,
+          ...workspace,
+          emojis: await getWorkspaceEmojis(token),
+          profile: await getStatus(token),
+        };
+
+        res(newInstance);
+      })
+    ));
+
+    return Promise
+      .all(promises)
+      .then(slackInstances => {
+        storage.set('slackInstances', slackInstances);
+        resolve(slackInstances);
+      });
+  })
+);
+
 module.exports = {
   getSlackInstances,
   updateSlackInstance,
@@ -169,7 +212,10 @@ module.exports = {
   removeSlackInstance,
   getStatus,
   getWorkspace,
+  getWorkspaceEmojis,
   getConnections,
   setStatus,
   getParameterByName,
+  fetchWorkspaces,
+  fetchWorkspacesInterval,
 };

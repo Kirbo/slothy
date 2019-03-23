@@ -5,6 +5,7 @@ const INITIAL_STATE = {
   iface: null,
   slackInstances: [],
   currentToken: null,
+  selectedInstance: null,
 };
 
 export default INITIAL_STATE;

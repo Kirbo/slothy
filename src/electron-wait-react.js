@@ -11,8 +11,15 @@ const tryConnection = () => client.connect({ port: port }, () => {
   if (!startedElectron) {
     console.log('starting electron');
     startedElectron = true;
-    const exec = require('child_process').exec;
-    exec('yarn electron-start');
+    const spawn = require('child_process').spawn;
+    const child = spawn('yarn', ['electron-start']);
+
+    child.stdout.on('data', data => { process.stdout.write(data.toString()); });
+    child.stderr.on('data', data => { process.stdout.write(data.toString()); });
+
+    child.on('close', code => {
+      console.log(`Finished with code: ${code}`);
+    });
   }
 }
 );

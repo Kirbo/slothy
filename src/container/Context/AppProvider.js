@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
-// import slack from 'slack';
 
 import INITIAL_STATE from './InitialState';
 import { Provider } from './Context';
+
+import { sortBy } from '../../assets/utils';
 
 const electron = window.require('electron');
 const { ipcRenderer } = electron;
@@ -23,6 +24,12 @@ class AppProvider extends Component {
     setStatus: ({ emoji, status, token }) => {
       ipcRenderer.send('setStatus', { emoji, status, token });
     },
+    selectInstance: ({ key }) => {
+      this.setState(prevState => ({
+        ...prevState,
+        selectedInstance: key,
+      }));
+    }
   };
 
   componentWillMount = () => {
@@ -38,11 +45,25 @@ class AppProvider extends Component {
     });
 
     ipcRenderer.on('slackInstances', (event, slackInstances) => {
+      let { selectedInstance } = this.state;
+
+      if (
+        (!selectedInstance && slackInstances.length)
+        || (selectedInstance && slackInstances.length && !slackInstances.find(({ id }) => id === this.state.selectedInstance))
+      ) {
+        selectedInstance = slackInstances.sort(sortBy('name'))[0].id;
+      }
+
       this.setState(prevState => ({
         ...prevState,
-        slackInstances,
         slackInstancesLoaded: true,
+        slackInstances,
+        selectedInstance,
       }));
+    });
+
+    ipcRenderer.on('newSlackInsatance', (event, slackInstance) => {
+      console.log('slackInstance', slackInstance);
     });
   };
 

@@ -1,36 +1,33 @@
 import React from 'react';
 import styled from 'styled-components';
-
-import EmojiElement from '../Emoji/EmojiElement';
+import { Menu } from 'antd';
 
 import { Consumer } from '../../container/Context/Context';
+import AddInstance from '../AddInstance';
 
-const Instance = styled.div`
-  display: flex;
-  justify-content: space-between;
-
-`;
-const InstanceName = styled.div`
-  font-weight: bold;
-`;
 const Instances = () => (
   <Consumer>
-    {({ slackInstances, removeSlackInstance }) => {
+    {({ slackInstances, removeSlackInstance, selectInstance, selectedInstance }) => {
       return (
         <React.Fragment>
-          {slackInstances.sort((a, b) => a.name > b.name).map(instance => (
-            <Instance key={instance.name}>
-              <img src={instance.icon.image_44} alt={instance.name} />
-              <InstanceName>{instance.name}</InstanceName>
-              <div>Emoji: <span><EmojiElement emoji={instance.profile.status_emoji} /></span></div>
-              <div>Status: <span>{instance.profile.status_text}</span></div>
-              <button onClick={() => removeSlackInstance(instance.token)}>Delete</button>
-            </Instance>
-          ))}
+          <Menu theme="dark" mode="inline" selectedKeys={[selectedInstance]} >
+            {slackInstances.sort((a, b) => a.name > b.name).map(instance => (
+              <Menu.Item key={instance.id} onClick={selectInstance}>
+                <img src={instance.icon.image_34} alt={instance.name} />
+                <InstanceName>{instance.name}</InstanceName>
+              </Menu.Item>
+            ))}
+          </Menu>
+          <AddInstance mode="text" text="Add new instance" />
         </React.Fragment>
       );
     }}
   </Consumer>
 );
+
+const InstanceName = styled.span`
+  font-weight: bold;
+  margin-left: 5px;
+`;
 
 export default Instances;
