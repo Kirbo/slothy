@@ -24,6 +24,8 @@ const {
 
 require('dotenv').config({ path: path.join(__dirname, '/../.env') });
 
+fetchWorkspaces();
+
 let mainWindow;
 
 autoUpdater.autoDownload = false;

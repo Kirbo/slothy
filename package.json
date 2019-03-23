@@ -73,7 +73,7 @@
     "less": "3.9.0",
     "less-loader": "4.1.0",
     "node-emoji": "1.10.0",
-    "node-wifi": "https://github.com/kirbo/node-wifi#master",
+    "node-wifi": "https://github.com/kirbo/node-wifi#testing",
     "nodemon": "1.18.10",
     "react": "16.8.4",
     "react-app-rewired": "2.1.0",

@@ -6645,9 +6645,9 @@ node-releases@^1.1.3, node-releases@^1.1.8:
   dependencies:
     semver "^5.3.0"
 
-"node-wifi@https://github.com/kirbo/node-wifi#master":
+"node-wifi@https://github.com/kirbo/node-wifi#testing":
   version "2.0.5"
-  resolved "https://github.com/kirbo/node-wifi#e96d92bf729ba5ac58fb2274fabb6905ba289bf0"
+  resolved "https://github.com/kirbo/node-wifi#0b02376f701a10e07b767f6bdd0511d4f58fdb25"
   dependencies:
     command-line-args "^3.0.1"
     command-line-usage "^5.0.5"
