@@ -92,7 +92,14 @@ const createWindow = () => {
     }
   }
 
-  mainWindow = new BrowserWindow({ width: 800, height: 600, icon: iconPath });
+  mainWindow = new BrowserWindow({
+    width: 800,
+    minWidth: 600,
+    height: 600,
+    minHeight: 300,
+    icon: iconPath,
+    autoHideMenuBar: true,
+  });
 
   let startUrl = process.env.ELECTRON_START_URL || url.format({
     pathname: path.join(__dirname, '/../build/index.html'),
