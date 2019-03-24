@@ -199,7 +199,7 @@ const fetchWorkspaces = async () => (
     return Promise
       .all(promises)
       .then(slackInstances => {
-        storage.set('slackInstances', slackInstances);
+        storage.set('slackInstances', [...slackInstances]);
         resolve(slackInstances);
       });
   })
