@@ -30,8 +30,7 @@
     "asar": true,
     "files": [
       ".env",
-      "build",
-      "package.json"
+      "build"
     ],
     "mac": {
       "category": "public.app-category.utilities"

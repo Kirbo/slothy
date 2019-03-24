@@ -7,11 +7,8 @@ const ipc = require('electron').ipcMain;
 const { autoUpdater } = require('electron-updater');
 const log = require('electron-log');
 const request = require('request');
-const packageJSON = require('../package.json');
 
-const protocol = packageJSON.build.protocols[0].schemes[0];
-
-console.log('protocol', protocol);
+const protocol = 'sloth2';
 
 const {
   getSlackInstances,
@@ -121,7 +118,7 @@ if (!gotTheLock) {
 } else {
   app.on('second-instance', (event, commandLine, workingDirectory) => {
     event.preventDefault();
-    handleAuth(commandLine[2]);
+    handleAuth(commandLine.slice(-1)[0]);
     if (mainWindow) {
       if (mainWindow.isMinimized()) {
         mainWindow.restore();
