@@ -29,13 +29,15 @@ require('dotenv').config({ path: path.join(__dirname, '/../.env') });
 fetchWorkspaces();
 
 let mainWindow;
+let tray = null;
 
 autoUpdater.autoDownload = false;
 autoUpdater.logger = log;
 autoUpdater.logger.transports.file.level = 'info';
 
-const app = electron.app;
-const BrowserWindow = electron.BrowserWindow;
+const { app, BrowserWindow, Menu, Tray, nativeImage } = electron;
+
+const iconPath = path.join(__dirname, 'favicon.ico');
 
 if (process.defaultApp) {
   if (process.argv.length >= 2) {
@@ -90,7 +92,7 @@ const createWindow = () => {
     }
   }
 
-  mainWindow = new BrowserWindow({ width: 800, height: 600 });
+  mainWindow = new BrowserWindow({ width: 800, height: 600, icon: iconPath });
 
   let startUrl = process.env.ELECTRON_START_URL || url.format({
     pathname: path.join(__dirname, '/../build/index.html'),
@@ -106,9 +108,48 @@ const createWindow = () => {
 
   getConnections();
 
-  mainWindow.on('closed', () => {
+  tray = new Tray(nativeImage.createFromPath(iconPath));
+
+  const contextMenu = Menu.buildFromTemplate([
+    {
+      label: 'Show App', click: function () {
+        window.show();
+      }
+    },
+    {
+      label: 'Quit', click: function () {
+        app.quit();
+      }
+    }
+  ]);
+  tray.setToolTip('This is my application.');
+  tray.setContextMenu(contextMenu);
+  tray.on('click', () => {
+    mainWindow.isVisible() ? mainWindow.hide() : mainWindow.show();
+  });
+
+  mainWindow.on('show', () => {
+    tray.setHighlightMode('always');
+  });
+
+  mainWindow.on('hide', () => {
+    tray.setHighlightMode('never');
+  });
+
+  mainWindow.on('minimize', event => {
+    event.preventDefault();
+    mainWindow.hide();
+  });
+
+  mainWindow.on('close', event => {
+    if (mainWindow) {
+      mainWindow.hide();
+    }
+
     mainWindow = null;
-  })
+
+    return false;
+  });
 }
 
 const gotTheLock = app.requestSingleInstanceLock();
@@ -138,6 +179,9 @@ if (!gotTheLock) {
 app.on('activate', () => {
   if (mainWindow === null) {
     createWindow();
+  } else {
+    mainWindow.restore();
+    mainWindow.focus();
   }
 });
 
@@ -196,4 +240,4 @@ ipc
   .on('installUpdate', () => {
     autoUpdater.quitAndInstall();
   })
-;
+  ;
