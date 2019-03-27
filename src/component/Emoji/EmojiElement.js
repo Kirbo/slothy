@@ -3,8 +3,7 @@ import PropTypes from 'prop-types';
 import emoji from 'node-emoji';
 import styled from 'styled-components';
 
-const Img = styled.img``;
-const Span = styled.span``;
+import { FONT_SIZE, DIMENSION } from '../../assets/css';
 
 const EmojiElement = (props) => {
   if (props.emojis && props.emojis !== null) {
@@ -20,17 +19,28 @@ const EmojiElement = (props) => {
 
     if (source) {
       return (
-        <Img src={source} alt="" />
+        <Img src={source} alt="" size={props.size} />
       );
     }
   }
 
-  return <Span>{emoji.get(props.emoji)}</Span>;
+  return <Span size={props.size}>{emoji.get(props.emoji)}</Span>;
 };
 
 EmojiElement.propTypes = {
   emojis: PropTypes.instanceOf(Object),
   emoji: PropTypes.string.isRequired,
+  size: PropTypes.oneOf(Object.keys(FONT_SIZE)),
 };
+
+EmojiElement.defaultProps = {
+  size: 'medium',
+};
+
+const Img = styled.img``;
+const Span = styled.span`
+  font-size: ${({ size }) => FONT_SIZE[size]};
+  margin-right: ${DIMENSION['0.5x']};
+`;
 
 export default EmojiElement;

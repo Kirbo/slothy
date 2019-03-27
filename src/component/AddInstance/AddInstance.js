@@ -8,6 +8,8 @@ import { fab } from '@fortawesome/free-brands-svg-icons';
 
 import { Consumer } from '../../container/Context/Context';
 
+import { DIMENSION } from '../../assets/css';
+
 const { shell } = window.require('electron');
 
 library.add(fas);
@@ -45,7 +47,7 @@ const AddInstance = (props) => (
 );
 
 AddInstance.propTypes = {
-  mode: PropTypes.oneOfType([
+  mode: PropTypes.oneOf([
     'text',
     'image',
   ]),
@@ -77,12 +79,12 @@ const Button = styled.button`
 const StyledText = styled.div`
   display: flex;
   width: 100%;
-  padding: 10px 5px;
+  padding: ${DIMENSION['0.75x']} ${DIMENSION['0.5x']};
   align-items: center;
   justify-content: center;
 
   & svg {
-    margin-right: 5px;
+    margin-right: ${DIMENSION['0.5x']};
   }
 `;
 

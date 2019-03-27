@@ -5,6 +5,8 @@ import { Layout } from 'antd';
 import EmojiElement from '../Emoji/EmojiElement';
 import { Consumer } from '../../container/Context/Context';
 
+import { FONT_WEIGHT, BORDER, DIMENSION, COLORS } from '../../assets/css';
+
 const {
   Header, Content, Footer,
 } = Layout;
@@ -18,15 +20,19 @@ const Instance = () => (
       return (
         <StyledInstance>
           <Header style={{ background: '#fff', padding: 0 }}>
-            <Image><img src={instance.icon.image_44} alt={instance.name} /></Image>
-            <InstanceName>{instance.name}</InstanceName>
+            <Column className="end">
+              <Image className="round"><img src={instance.profile.image_48} alt={instance.profile.real_name_normalized} /></Image>
+              <div>{instance.profile.real_name_normalized}</div>
+            </Column>
+            <Column className="start">
+              <EmojiElement emoji={instance.profile.status_emoji} size="large" />
+              <div>{instance.profile.status_text}</div>
+            </Column>
           </Header>
-          <Content style={{ margin: '24px 16px 0', overflow: 'initial' }}>
+          <Content style={{ margin: '1.5rem 1rem 0', overflow: 'initial' }}>
             <button onClick={() => setStatus({ emoji: ':zany_face:', status: '', token })}>Set status zany</button>
             <button onClick={() => setStatus({ emoji: ':house:', status: 'Kotona', token })}>Set status home</button>
             <button onClick={() => getConnections()} disabled={!ssidsLoaded}>Get Connections</button>
-            <div>Emoji: <span><EmojiElement emoji={instance.profile.status_emoji} /></span></div>
-            <div>Status: <span>{instance.profile.status_text}</span></div>
             <button onClick={() => removeSlackInstance(instance.token)}>Delete</button>
             <Ssids>
               <h1>SSIDS:{!ssidsLoaded && ' (Loading...)'}</h1>
@@ -40,7 +46,7 @@ const Instance = () => (
             </Ssids>
           </Content>
           <Footer style={{ textAlign: 'center' }}>
-            Footer
+            Kimmo Saari © 2019
           </Footer>
         </StyledInstance>
       );
@@ -54,11 +60,15 @@ const StyledInstance = styled.div`
 
   & .ant-layout-header {
     display: flex;
+    justify-content: space-between;
   }
 `;
 const Image = styled.div`
-`;
-const InstanceName = styled.div`
+  &.round img {
+    border: ${BORDER['thin']} solid ${COLORS['border']};
+    border-radius: 100%;
+    margin-right: ${DIMENSION['0.5x']};
+  }
 `;
 const Ssids = styled.div``;
 const Ssid = styled.div`
@@ -67,11 +77,27 @@ const Ssid = styled.div`
 `;
 const SsidName = styled.div`
   width: 33%;
-  font-weight: bold;
+  font-weight: ${FONT_WEIGHT['bold']};
 
   ${props => props.current && css`
     color: red;
   `}
+`;
+const Column = styled.div`
+  display: flex;
+  flex: 1 1 100%;
+  padding: 0 ${DIMENSION['0.75x']};
+
+
+  &.start {
+    justify-content: flex-start;
+  }
+  &.center {
+    justify-content: center;
+  }
+  &.end {
+    justify-content: flex-end;
+  }
 `;
 
 export default Instance;

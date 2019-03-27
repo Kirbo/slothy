@@ -5,6 +5,8 @@ import { Menu } from 'antd';
 import { Consumer } from '../../container/Context/Context';
 import AddInstance from '../AddInstance';
 
+import { FONT_WEIGHT, DIMENSION } from '../../assets/css';
+
 const Instances = () => (
   <Consumer>
     {({ slackInstances, removeSlackInstance, selectInstance, selectedInstance }) => {
@@ -26,8 +28,8 @@ const Instances = () => (
 );
 
 const InstanceName = styled.span`
-  font-weight: bold;
-  margin-left: 5px;
+  font-weight: ${FONT_WEIGHT['bold']};
+  margin-left: ${DIMENSION['0.5x']};
 `;
 
 export default Instances;

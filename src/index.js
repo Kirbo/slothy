@@ -1,54 +1,29 @@
 import React from 'react';
 import { render as ReactDOMRender } from 'react-dom';
-import { createGlobalStyle } from 'styled-components';
 
+import { GlobalStyles } from './assets/css';
 import AppProvider from './container/Context/AppProvider';
-import { Consumer } from './container/Context/Context';
 
-import Home from './container/Home';
-import NotAuthorized from './container/NotAuthorized';
+import App from './container/App';
 
-const Application = () => (
-  <AppProvider>
-    <GlobalStyles />
-    <Consumer>
-      {({ slackInstances }) => slackInstances.length > 0 ? <Home /> : <NotAuthorized />}
-    </Consumer>
-  </AppProvider>
-);
-
-
-const GlobalStyles = createGlobalStyle`
-  html, body {
-    width: 100%;
-    height: 100%;
-    margin: 0;
-    padding: 0;
-  }
-
-  #root {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-`;
+import theme from './assets/theme';
 
 const mount = document.getElementById('root');
 
-/**
- * Render
- * @param {Object} Component - Component to render.
- */
-const render = Component => {
-  ReactDOMRender(<Component />, mount);
+const render = (Component, target) => {
+  ReactDOMRender(
+    <AppProvider theme={theme}>
+      <GlobalStyles />
+      <Component />
+    </AppProvider>,
+    mount
+  );
 };
 
 if (module.hot) {
   module.hot.accept();
+  const NextApp = require('./container/App').default;
+  render(NextApp);
 }
 
-document.querySelector('.loading').classList.add('loaded');
-
-render(Application);
+render(App);

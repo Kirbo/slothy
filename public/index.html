@@ -21,7 +21,7 @@
       }
 
       #root {
-        font-size: 14px;
+        font-size: 1rem;
         color: #000;
         font-family: arial;
         display: flex;
@@ -30,42 +30,7 @@
         justify-content: center;
         background: radial-gradient(#00142a, #000);
       }
-
-      .container {
-        position: relative;
-      }
-
-      .loading {
-        color: #999;
-        padding: 12px;
-        opacity: 1;
-        transition: all 0.25s ease;
-        position: absolute;
-        bottom: -40px;
-      }
-
-      .loading.hidden {
-        opacity: 0;
-        bottom: -20px;
-      }
-
-      .loading.loaded {
-        opacity: 0;
-        bottom: -60px;
-      }
     </style>
-    <script>
-      setTimeout(function () {
-        if (document.querySelector('.loading')) {
-          document.querySelector('.loading').classList.remove('hidden');
-        }
-      }, 1500);
-    </script>
-    <div class="container">
-      <div class="loading hidden">
-        Loading, please standby...
-      </div>
-    </div>
   </div>
 </body>
 

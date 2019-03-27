@@ -1,4 +1,6 @@
 const INITIAL_STATE = {
+  showLoading: true,
+  hideLoading: false,
   slackInstancesLoaded: false,
   ssidsLoaded: false,
   ssids: [],

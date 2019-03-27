@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 
 import INITIAL_STATE from './InitialState';
 import { Provider } from './Context';
+import Loading from '../Loading';
 
 import { sortBy } from '../../assets/utils';
 
@@ -13,6 +14,12 @@ class AppProvider extends Component {
     ...INITIAL_STATE,
     removeSlackInstance: (token) => {
       ipcRenderer.send('removeSlackInstance', { token });
+    },
+    setProperty: (newState) => {
+      this.setState(prevState => ({
+        ...prevState,
+        ...newState,
+      }));
     },
     getConnections: () => {
       this.setState(prevState => ({
@@ -32,7 +39,7 @@ class AppProvider extends Component {
     }
   };
 
-  componentWillMount = () => {
+  componentDidMount = () => {
     ipcRenderer.send('initialize');
 
     ipcRenderer.on('connections', (event, { ssids, currentSsids }) => {
@@ -67,13 +74,12 @@ class AppProvider extends Component {
     });
   };
 
-  render = () => {
-    if (!this.state.slackInstancesLoaded) {
-      return <React.Fragment>Loading...</React.Fragment>;
-    }
-
-    return <Provider value={this.state}>{this.props.children}</Provider>;
-  };
+  render = () => (
+    <React.Fragment>
+      {this.state.showLoading && <Loading slackInstancesLoaded={this.state.slackInstancesLoaded} hideLoading={this.state.hideLoading} setProperty={this.state.setProperty} />}
+      <Provider value={this.state}>{this.props.children}</Provider>
+    </React.Fragment>
+  )
 }
 
 export default AppProvider;

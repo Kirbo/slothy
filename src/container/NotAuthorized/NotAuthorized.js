@@ -6,16 +6,14 @@ import AddInstance from '../../component/AddInstance';
 
 const NotAuthorized = () => (
   <Consumer>
-    {(context) => {
-      return (
-        <Styled>
-          <h2>
-            You have not authorized Sloth in any of your Slack instances.
+    {() => (
+      <Styled>
+        <h2>
+          You have not authorized Sloth in any of your Slack instances.
           </h2>
-          <AddInstance />
-        </Styled>
-      )
-    }}
+        <AddInstance />
+      </Styled>
+    )}
   </Consumer>
 );
 

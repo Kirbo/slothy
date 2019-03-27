@@ -17,7 +17,7 @@ const Home = () => (
           <Sider style={{ overflow: 'auto', height: '100vh', position: 'fixed', left: 0 }}>
             <Logo>
               Sloth
-              </Logo>
+            </Logo>
             <Instances />
           </Sider>
           <Layout style={{ marginLeft: 200 }}>
