@@ -13,7 +13,7 @@ class Loading extends Component {
     }, 250);
   }
 
-  static getDerivedStateFromProps = (props, state) => {
+  componentWillReceiveProps = (props, state) => {
     if (props.slackInstancesLoaded) {
       document.querySelector('.loading').classList.add('loaded');
       setTimeout(() => {
@@ -53,7 +53,7 @@ const Styled = styled.div`
   width: 100%;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(#00142a, #000);
+  background: radial-gradient(${COLORS['darkBlue']}, ${COLORS['black']});
   transition: all 0.25s ease;
   opacity: ${({ hideLoading }) => hideLoading ? 0 : 1};
 `;
@@ -71,8 +71,9 @@ const Layout = styled.div`
 
   & .loading {
     color: ${COLORS['lightGray']};
-    padding: ${DIMENSION['0.75x']};
     opacity: 1;
+    height: ${DIMENSION['1.5x']};
+    top: calc(50% - ${DIMENSION['1.5x']}/2);
     transition: all 0.25s ease;
     position: absolute;
     margin-left: 0;
