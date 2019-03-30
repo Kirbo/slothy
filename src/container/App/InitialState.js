@@ -1,4 +1,5 @@
 const INITIAL_STATE = {
+  wifiEnabled: false,
   showLoading: true,
   hideLoading: false,
   slackInstancesLoaded: false,
@@ -8,7 +9,7 @@ const INITIAL_STATE = {
   slackInstances: [],
   currentToken: null,
   viewType: 'view',
-  selectedView: 'Statuses',
+  selectedView: 'Configuration',
 };
 
 export default INITIAL_STATE;

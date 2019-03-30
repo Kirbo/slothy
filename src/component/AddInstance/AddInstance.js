@@ -1,19 +1,14 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
-import { FontAwesomeIcon as FAIcon } from '@fortawesome/react-fontawesome';
-import { library } from '@fortawesome/fontawesome-svg-core';
-import { fas } from '@fortawesome/free-solid-svg-icons';
-import { fab } from '@fortawesome/free-brands-svg-icons';
 
 import { Consumer } from '../../container/App/Context';
 
-import { DIMENSION } from '../../assets/css';
+import Icon from '../Icon';
+
+import { COLOR, DIMENSION } from '../../assets/css';
 
 const { shell } = window.require('electron');
-
-library.add(fas);
-library.add(fab);
 
 const handleClick = () => shell.openExternal("https://slack.com/oauth/authorize?client_id=328708589652.565337016417&scope=emoji:read,users.profile:read,users.profile:write,team:read");
 
@@ -22,7 +17,7 @@ const content = ({ mode, text, icon }) => {
     case 'text': {
       return (
         <StyledText onClick={handleClick}>
-          <FAIcon icon={icon} /> {text}
+          <Icon icon={icon} /> {text}
         </StyledText>
       );
     }
@@ -65,7 +60,13 @@ const Styled = styled.div`
   border: none;
   padding: 0;
   margin: 0;
-  color: #fff;
+  transition: all 0.25s;
+  color: ${COLOR['lightGray']};
+
+  &:hover {
+    color: ${COLOR['white']};
+  }
+
   & > * {
     cursor: pointer;
   }

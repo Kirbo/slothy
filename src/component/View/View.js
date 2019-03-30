@@ -27,10 +27,8 @@ const AppView = () => (
 );
 
 const StyledView = styled.div`
-  & .ant-layout {
-    margin-left: 200px;
-    width: 100%;
-  }
+  display: flex;
+  flex: 1 1 100%;
 `;
 
 export default AppView;

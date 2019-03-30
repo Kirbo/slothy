@@ -2,7 +2,7 @@ import React from 'react';
 
 import { Consumer } from '../../container/App/Context';
 
-const Statuses = () => (
+const Configuration = () => (
   <Consumer>
     {({ viewType, selectedView }) => (
       <div>
@@ -13,4 +13,4 @@ const Statuses = () => (
   </Consumer>
 );
 
-export default Statuses;
+export default Configuration;

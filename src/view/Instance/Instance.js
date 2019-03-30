@@ -11,7 +11,7 @@ const { Header, Content } = Layout;
 
 const Instance = () => (
   <Consumer>
-    {({ ssidsLoaded, currentSsids, ssids, slackInstances, setStatus, getConnections, selectedView, removeSlackInstance }) => {
+    {({ wifiEnabled, ssidsLoaded, currentSsids, ssids, slackInstances, setStatus, getConnections, selectedView, removeSlackInstance }) => {
       const instance = slackInstances.find(({ id }) => id === selectedView);
       const { token, profile } = instance;
 
@@ -32,20 +32,28 @@ const Instance = () => (
             )}
           </Header>
           <Content>
+            <button onClick={() => setStatus({ emoji: '', status: '', token })}>Empty status</button>
             <button onClick={() => setStatus({ emoji: ':zany_face:', status: '', token })}>Set status zany</button>
             <button onClick={() => setStatus({ emoji: ':house:', status: 'Kotona', token })}>Set status home</button>
             <button onClick={() => getConnections()} disabled={!ssidsLoaded}>Get Connections</button>
             <button onClick={() => removeSlackInstance(instance.token)}>Delete</button>
-            <Ssids>
-              <h1>SSIDS:{!ssidsLoaded && ' (Loading...)'}</h1>
-              {ssids.sort((a, b) => a.ssid > b.ssid || (a.ssid === b.ssid && a.bssid > b.bssid)).map(ssid => (
-                <Ssid key={ssid.bssid}>
-                  <SsidName current={currentSsids.find(cs => cs.bssid === ssid.bssid)}>{ssid.ssid}</SsidName>
-                  <div>{ssid.bssid}</div>
-                  <div>Signal level: <span>{ssid.signal_level}</span></div>
-                </Ssid>
-              ))}
-            </Ssids>
+            {wifiEnabled
+              ? (
+                <Ssids>
+                  <h1>SSIDS:{!ssidsLoaded && ' (Loading...)'}</h1>
+                  {ssids.sort((a, b) => a.ssid > b.ssid || (a.ssid === b.ssid && a.bssid > b.bssid)).map(ssid => (
+                    <Ssid key={ssid.bssid}>
+                      <SsidName current={currentSsids.find(cs => cs.bssid === ssid.bssid)}>{ssid.ssid}</SsidName>
+                      <div>{ssid.bssid}</div>
+                      <div>Signal level: <span>{ssid.signal_level}</span></div>
+                    </Ssid>
+                  ))}
+                </Ssids>
+              )
+              : (
+                <div>WiFi not enabled</div>
+              )
+            }
           </Content>
         </StyledInstance>
       );
@@ -71,7 +79,7 @@ const StyledInstance = styled.div`
 `;
 const Image = styled.div`
   &.round img {
-    border: ${BORDER['thin']} solid ${COLOR['border']};
+    border: ${BORDER['thin']} solid ${COLOR['borderLight']};
     border-radius: 100%;
     margin-right: ${DIMENSION['0.5x']};
   }

@@ -5,7 +5,8 @@ const COLOR = {
   red: '#e60004',
   darkBlue: '#00142a',
 
-  border: 'rgba(0,0,0, 0.1)',
+  borderLight: 'rgba(0,0,0, 0.1)',
+  borderDark: 'rgba(0,0,0, 0.5)',
 };
 
 

@@ -9,6 +9,8 @@ import { sortBy } from '../../assets/utils';
 const electron = window.require('electron');
 const { ipcRenderer } = electron;
 
+let connectionsTimeout;
+
 class AppProvider extends Component {
   state = {
     ...INITIAL_STATE,
@@ -22,10 +24,8 @@ class AppProvider extends Component {
       }));
     },
     getConnections: () => {
-      this.setState(prevState => ({
-        ...prevState,
-        ssidsLoaded: false,
-      }));
+      clearTimeout(connectionsTimeout);
+      this.state.setProperty({ ssidsLoaded: false });
       ipcRenderer.send('getConnections');
     },
     setStatus: ({ emoji, status, token }) => {
@@ -33,24 +33,31 @@ class AppProvider extends Component {
     },
     selectView: ({ key, item }) => {
       const { type } = item.props;
-      this.setState(prevState => ({
-        ...prevState,
+      this.state.setProperty({
         viewType: type,
         selectedView: key,
-      }));
+      });
     },
   };
 
   componentDidMount = () => {
     ipcRenderer.send('initialize');
 
+    const setConnectionsTimeout = () => {
+      clearTimeout(connectionsTimeout);
+      connectionsTimeout = setTimeout(() => {
+        this.state.getConnections();
+      }, 60 * 1000);
+    }
+
     ipcRenderer.on('connections', (event, { ssids, currentSsids }) => {
-      this.setState(prevState => ({
-        ...prevState,
-        ssids,
+      setConnectionsTimeout();
+      this.state.setProperty({
+        ssids: !!this.state.ssids.length && !ssids.length ? this.state.ssids : ssids,
         currentSsids,
+        wifiEnabled: !!ssids.length || !!currentSsids.length,
         ssidsLoaded: true,
-      }));
+      });
     });
 
     ipcRenderer.on('slackInstances', (event, slackInstances) => {
@@ -63,12 +70,11 @@ class AppProvider extends Component {
         selectedView = slackInstances.sort(sortBy('name'))[0].id;
       }
 
-      this.setState(prevState => ({
-        ...prevState,
+      this.state.setProperty({
         slackInstancesLoaded: true,
         slackInstances,
         selectedView,
-      }));
+      });
     });
 
     ipcRenderer.on('newSlackInsatance', (event, slackInstance) => {
@@ -77,10 +83,13 @@ class AppProvider extends Component {
   };
 
   componentWillUnmount = () => {
+    clearTimeout(connectionsTimeout);
+
     [
       'connections',
       'slackInstances',
       'newSlackInsatance',
+      'wifiStatus',
     ].forEach(channel => {
       ipcRenderer.removeAllListeners(channel);
     });
@@ -93,6 +102,7 @@ class AppProvider extends Component {
           slackInstancesLoaded={this.state.slackInstancesLoaded}
           hideLoading={this.state.hideLoading}
           setProperty={this.state.setProperty}
+          connected={this.state.connected}
         />
       )}
       <Provider value={this.state}>{this.props.children}</Provider>
