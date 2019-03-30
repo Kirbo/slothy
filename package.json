@@ -5,7 +5,8 @@
   "productUrl": "https://github.com/kirbo/sloth/releases",
   "product": {
     "GitLabRepository": "https://gitlab.com/kirbo/sloth",
-    "GitHubRepository": "https://github.com/kirbo/sloth"
+    "GitHubRepository": "https://github.com/kirbo/sloth",
+    "Pages": "https://kirbo.gitlab.io/sloth/"
   },
   "author": "kirbownz@me.com",
   "version": "0.1.0",

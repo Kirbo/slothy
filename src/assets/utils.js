@@ -1,3 +1,5 @@
+const { shell } = window.require('electron');
+
 export const sortBy = (property = null) => (a, b) => {
   const leftCompare = property ? a[property] : a;
   const rightCompare = property ? b[property] : b;
@@ -9,4 +11,8 @@ export const sortBy = (property = null) => (a, b) => {
   }
 
   return 0;
+};
+
+export const openExternal = url => {
+  shell.openExternal(url);
 };

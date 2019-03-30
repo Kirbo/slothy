@@ -3,11 +3,15 @@ import styled from 'styled-components';
 import { Layout } from 'antd';
 
 import { Consumer } from '../../container/App/Context';
+
+import A from '../A';
 import Menu from '../Menu';
 import AddInstance from '../AddInstance';
 
 import { BORDER, COLOR, DIMENSION } from '../../assets/css';
 import { COPYRIGHT_YEAR } from '../../assets/constants';
+
+import packageJSON from '../../../package.json';
 
 const { Sider, Footer } = Layout;
 
@@ -23,7 +27,7 @@ const AppSider = () => (
             <AddInstance mode="text" text="Add new instance" />
           </Scrollable>
           <Footer>
-            Kirbo © {COPYRIGHT_YEAR}
+            <A href={packageJSON.product.Pages} external>Sloth © {COPYRIGHT_YEAR}</A>
           </Footer>
         </Sider>
       )}
@@ -80,14 +84,23 @@ const StyledSider = styled.div`
   }
 
   & .ant-layout-footer {
-    padding: ${DIMENSION['0.5x']} 0;
+    padding: 0;
     margin: 0 ${DIMENSION['0.5x']};
     background: ${COLOR['darkBlue']};
     color: ${COLOR['lightGray']};
     border-top: ${BORDER['thin']} solid ${COLOR['borderDark']};
     justify-content: center;
-    flex: 0 0 ${DIMENSION['3x']};
+    flex: 0 0 ${DIMENSION['2.25x']};
     display: flex;
+    align-items: center;
+
+    & a {
+      color: ${COLOR['lightGray']};
+
+      &:hover {
+        color: ${COLOR['red']};
+      }
+    }
   }
 `;
 

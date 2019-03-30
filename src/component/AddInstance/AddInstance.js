@@ -2,15 +2,14 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
 
-import { Consumer } from '../../container/App/Context';
-
 import Icon from '../Icon';
 
+import { openExternal } from '../../assets/utils';
 import { COLOR, DIMENSION } from '../../assets/css';
 
-const { shell } = window.require('electron');
-
-const handleClick = () => shell.openExternal("https://slack.com/oauth/authorize?client_id=328708589652.565337016417&scope=emoji:read,users.profile:read,users.profile:write,team:read");
+const handleClick = () => {
+  openExternal('https://slack.com/oauth/authorize?client_id=328708589652.565337016417&scope=emoji:read,users.profile:read,users.profile:write,team:read');
+};
 
 const content = ({ mode, text, icon }) => {
   switch (mode) {
@@ -32,13 +31,9 @@ const content = ({ mode, text, icon }) => {
 }
 
 const AddInstance = (props) => (
-  <Consumer>
-    {() => (
-      <Styled>
-        {content(props)}
-      </Styled>
-    )}
-  </Consumer>
+  <Styled>
+    {content(props)}
+  </Styled>
 );
 
 AddInstance.propTypes = {
