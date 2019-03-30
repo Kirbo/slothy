@@ -1,6 +1,7 @@
 const storage = require('electron-json-storage');
 const slack = require('slack');
 const wifi = require('node-wifi');
+const uuid = require('uuid/v4');
 
 wifi.init({
   iface: null,
@@ -73,7 +74,6 @@ const removeSlackInstance = async ({ token }) => (
       }
       resolve(getSlackInstances());
     });
-
   })
 );
 
@@ -205,6 +205,44 @@ const fetchWorkspaces = async () => (
   })
 );
 
+const getConfigurations = async () => (
+  new Promise((resolve, reject) => {
+    storage.get('configurations', (error, data) => {
+      if (error) {
+        reject(error);
+      }
+      let configurations = [];
+      if (data.length) {
+        configurations = data;
+      }
+      resolve(configurations);
+    });
+  })
+);
+
+const saveConfiguration = async (configuration) => (
+  new Promise(async (resolve, reject) => {
+    const configurations = await getConfigurations();
+    storage.set('configurations', [...configurations, configuration], async (error, data) => {
+      resolve(configuration);
+    });
+  })
+);
+
+const removeConfiguration = async ({ id }) => (
+  new Promise(async (resolve, reject) => {
+    const configurations = await getConfigurations();
+    storage.set('configurations', configurations.filter(configuration => configuration.id !== id), (error, data) => {
+      if (error) {
+        reject(error);
+      }
+      resolve(getConfigurations());
+    });
+
+  })
+);
+
+
 module.exports = {
   getSlackInstances,
   updateSlackInstance,
@@ -218,4 +256,7 @@ module.exports = {
   getParameterByName,
   fetchWorkspaces,
   fetchWorkspacesInterval,
+  getConfigurations,
+  saveConfiguration,
+  removeConfiguration,
 };

@@ -60,6 +60,10 @@ class AppProvider extends Component {
       });
     });
 
+    ipcRenderer.on('configurations', (event, configurations) => {
+      this.state.setProperty({ configurations });
+    });
+
     ipcRenderer.on('slackInstances', (event, slackInstances) => {
       let { viewType, selectedView } = this.state;
 
@@ -87,6 +91,7 @@ class AppProvider extends Component {
 
     [
       'connections',
+      'configurations',
       'slackInstances',
       'newSlackInsatance',
       'wifiStatus',

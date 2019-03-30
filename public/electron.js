@@ -22,6 +22,9 @@ const {
   getParameterByName,
   fetchWorkspaces,
   fetchWorkspacesInterval,
+  getConfigurations,
+  saveConfiguration,
+  removeConfiguration,
 } = require('./utils.js');
 
 require('dotenv').config({ path: path.join(__dirname, '/../.env') });
@@ -45,6 +48,12 @@ if (process.defaultApp) {
   }
 } else {
   app.setAsDefaultProtocolClient(protocol);
+}
+
+const sendIfMainWindow = async (event, func, data = null) => {
+  if (mainWindow) {
+    mainWindow.webContents.send(event, await func(data));
+  }
 }
 
 const handleAuth = (uri) => {
@@ -206,26 +215,23 @@ ipc
   .on('initialize', () => (
     Promise
       .all([
+        getConfigurations(),
         getConnections(),
         getSlackInstances(),
       ])
-      .then(([connections, slackInstances]) => {
+      .then(([configurations, connections, slackInstances]) => {
         if (mainWindow) {
+          mainWindow.webContents.send('configurations', configurations);
           mainWindow.webContents.send('connections', connections);
           mainWindow.webContents.send('slackInstances', slackInstances);
         }
       })
   ))
-  .on('getConnections', async () => {
-    if (mainWindow) {
-      mainWindow.webContents.send('connections', await getConnections());
-    }
-  })
-  .on('removeSlackInstance', async (event, data) => {
-    if (mainWindow) {
-      mainWindow.webContents.send('slackInstances', await removeSlackInstance(data));
-    }
-  })
+  .on('getConnections', async (event, data) => sendIfMainWindow('connections', getConnections))
+  .on('removeSlackInstance', async (event, data) => sendIfMainWindow('slackInstances', removeSlackInstance, data))
+  .on('getConfigurations', async (event, data) => sendIfMainWindow('configurations', getConfigurations))
+  .on('saveConfiguration', async (event, data) => sendIfMainWindow('configurations', saveConfiguration, data))
+  .on('removeConfiguration', async (event, data) => sendIfMainWindow('configurations', removeConfiguration, data))
   .on('setStatus', async (event, data) => {
     if (mainWindow) {
       await setStatus(data);

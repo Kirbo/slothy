@@ -7,6 +7,7 @@ const INITIAL_STATE = {
   ssids: [],
   iface: null,
   slackInstances: [],
+  configurations: [],
   currentToken: null,
   viewType: 'view',
   selectedView: 'Configuration',

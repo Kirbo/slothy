@@ -4,10 +4,11 @@ import { Consumer } from '../../container/App/Context';
 
 const Configuration = () => (
   <Consumer>
-    {({ viewType, selectedView }) => (
+    {({ configurations, viewType, selectedView }) => (
       <div>
         <p>viewType: {viewType}</p>
         <p>selectedView: {selectedView}</p>
+        <p>configurations: <pre>{JSON.stringify(configurations)}</pre></p>
       </div>
     )}
   </Consumer>

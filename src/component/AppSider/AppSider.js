@@ -2,36 +2,29 @@ import React from 'react';
 import styled from 'styled-components';
 import { Layout } from 'antd';
 
-import { Consumer } from '../../container/App/Context';
-
 import A from '../A';
 import Menu from '../Menu';
 import AddInstance from '../AddInstance';
 
-import { BORDER, COLOR, DIMENSION } from '../../assets/css';
-import { COPYRIGHT_YEAR } from '../../assets/constants';
+import { BORDER, COLOR, DIMENSION, FONT_SIZE } from '../../assets/css';
+import { COPYRIGHT } from '../../assets/constants';
 
 import packageJSON from '../../../package.json';
 
 const { Sider, Footer } = Layout;
 
-
 const AppSider = () => (
   <StyledSider>
-    <Consumer>
-      {({ slackInstances, removeSlackInstance, selectInstance, selectedView }) => (
-        <Sider>
-          <Logo>Sloth</Logo>
-          <Scrollable>
-            <Menu />
-            <AddInstance mode="text" text="Add new instance" />
-          </Scrollable>
-          <Footer>
-            <A href={packageJSON.product.Pages} external>Sloth © {COPYRIGHT_YEAR}</A>
-          </Footer>
-        </Sider>
-      )}
-    </Consumer>
+    <Sider>
+      <Logo>Sloth</Logo>
+      <Scrollable>
+        <Menu />
+        <AddInstance mode="text" text="Add new instance" />
+      </Scrollable>
+      <Footer>
+        <A href={packageJSON.product.Pages} name="copyright link" external>{COPYRIGHT}</A>
+      </Footer>
+    </Sider>
   </StyledSider>
 );
 
@@ -93,6 +86,7 @@ const StyledSider = styled.div`
     flex: 0 0 ${DIMENSION['2.25x']};
     display: flex;
     align-items: center;
+    font-size: ${FONT_SIZE['regular']};
 
     & a {
       color: ${COLOR['lightGray']};

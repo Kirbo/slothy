@@ -25,6 +25,7 @@ const A = ({ href, name, children, external }) => (
 
 A.propTypes = {
   href: PropTypes.string.isRequired,
+  name: PropTypes.string,
   external: PropTypes.bool,
   children: PropTypes.oneOfType([
     PropTypes.arrayOf(PropTypes.node),
@@ -34,6 +35,7 @@ A.propTypes = {
 
 A.defaultProps = {
   external: false,
+  name: 'link',
 };
 
 export default A;
