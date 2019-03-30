@@ -7,7 +7,8 @@ const INITIAL_STATE = {
   iface: null,
   slackInstances: [],
   currentToken: null,
-  selectedInstance: null,
+  viewType: 'view',
+  selectedView: 'Statuses',
 };
 
 export default INITIAL_STATE;

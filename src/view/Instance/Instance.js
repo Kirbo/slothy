@@ -2,34 +2,36 @@ import React from 'react';
 import styled, { css } from 'styled-components';
 import { Layout } from 'antd';
 
-import EmojiElement from '../Emoji/EmojiElement';
-import { Consumer } from '../../container/Context/Context';
+import Emoji from '../../component/Emoji';
+import { Consumer } from '../../container/App/Context';
 
-import { FONT_WEIGHT, BORDER, DIMENSION, COLORS } from '../../assets/css';
+import { FONT_WEIGHT, BORDER, DIMENSION, COLOR } from '../../assets/css';
 
-const {
-  Header, Content, Footer,
-} = Layout;
+const { Header, Content } = Layout;
 
 const Instance = () => (
   <Consumer>
-    {({ ssidsLoaded, currentSsids, ssids, slackInstances, setStatus, getConnections, selectedInstance, removeSlackInstance }) => {
-      const instance = slackInstances.find(({ id }) => id === selectedInstance);
-      const token = instance.token;
+    {({ ssidsLoaded, currentSsids, ssids, slackInstances, setStatus, getConnections, selectedView, removeSlackInstance }) => {
+      const instance = slackInstances.find(({ id }) => id === selectedView);
+      const { token, profile } = instance;
+
+      const statusSet = (profile.status_emoji || profile.status_text);
 
       return (
         <StyledInstance>
-          <Header style={{ background: '#fff', padding: 0 }}>
-            <Column className="end">
-              <Image className="round"><img src={instance.profile.image_48} alt={instance.profile.real_name_normalized} /></Image>
-              <div>{instance.profile.real_name_normalized}</div>
+          <Header>
+            <Column className={statusSet ? 'end' : 'center'}>
+              <Image className="round"><img src={profile.image_48} alt={profile.real_name_normalized} /></Image>
+              <div>{profile.real_name_normalized}</div>
             </Column>
-            <Column className="start">
-              <EmojiElement emoji={instance.profile.status_emoji} size="large" />
-              <div>{instance.profile.status_text}</div>
-            </Column>
+            {statusSet && (
+              <Column className="start">
+                <Emoji emoji={profile.status_emoji} size="large" />
+                <div>{profile.status_text}</div>
+              </Column>
+            )}
           </Header>
-          <Content style={{ margin: '1.5rem 1rem 0', overflow: 'initial' }}>
+          <Content>
             <button onClick={() => setStatus({ emoji: ':zany_face:', status: '', token })}>Set status zany</button>
             <button onClick={() => setStatus({ emoji: ':house:', status: 'Kotona', token })}>Set status home</button>
             <button onClick={() => getConnections()} disabled={!ssidsLoaded}>Get Connections</button>
@@ -45,9 +47,6 @@ const Instance = () => (
               ))}
             </Ssids>
           </Content>
-          <Footer style={{ textAlign: 'center' }}>
-            Kimmo Saari © 2019
-          </Footer>
         </StyledInstance>
       );
     }}
@@ -61,11 +60,18 @@ const StyledInstance = styled.div`
   & .ant-layout-header {
     display: flex;
     justify-content: space-between;
+    background: ${COLOR['white']};
+    padding: 0;
+  }
+
+  & .ant-layout-content {
+    margin: ${DIMENSION['1.5x']} ${DIMENSION['1x']} 0;
+    overflow: initial;
   }
 `;
 const Image = styled.div`
   &.round img {
-    border: ${BORDER['thin']} solid ${COLORS['border']};
+    border: ${BORDER['thin']} solid ${COLOR['border']};
     border-radius: 100%;
     margin-right: ${DIMENSION['0.5x']};
   }

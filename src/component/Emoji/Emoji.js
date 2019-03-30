@@ -3,14 +3,14 @@ import PropTypes from 'prop-types';
 
 import EmojiElement from './EmojiElement';
 
-import { Consumer } from '../../container/Context/Context';
+import { Consumer } from '../../container/App/Context';
 
-const Emoji = ({emoji}) => (
+const Emoji = ({ emoji, size = 'medium' }) => (
   <Consumer>
-    {({ slackInstances, currentToken }) => {
-      const { emojis } = slackInstances.find(instance => instance.token === currentToken);
+    {({ slackInstances, selectedView }) => {
+      const { emojis } = slackInstances.find(({ id }) => id === selectedView);
       return (
-        <EmojiElement emojis={emojis} emoji={emoji} />
+        <EmojiElement emojis={emojis} emoji={emoji} size={size} />
       );
     }}
   </Consumer>

@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import styled from 'styled-components';
 
 import { GlobalStyles, FONT_SIZE } from '../../assets/css';
-import { DIMENSION, COLORS } from '../../assets/css';
+import { DIMENSION, COLOR } from '../../assets/css';
 
 class Loading extends Component {
   state = {};
@@ -46,14 +46,14 @@ const Styled = styled.div`
   position: absolute;
   z-index: 100;
   font-size: ${FONT_SIZE['medium']};
-  color: ${COLORS['black']};
+  color: ${COLOR['black']};
   font-family: arial;
   display: flex;
   height: 100%;
   width: 100%;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(${COLORS['darkBlue']}, ${COLORS['black']});
+  background: radial-gradient(${COLOR['darkBlue']}, ${COLOR['black']});
   transition: all 0.25s ease;
   opacity: ${({ hideLoading }) => hideLoading ? 0 : 1};
 `;
@@ -70,7 +70,7 @@ const Layout = styled.div`
   }
 
   & .loading {
-    color: ${COLORS['lightGray']};
+    color: ${COLOR['lightGray']};
     opacity: 1;
     height: ${DIMENSION['1.5x']};
     top: calc(50% - ${DIMENSION['1.5x']}/2);

@@ -1,6 +1,6 @@
 {
-  "name": "Context",
+  "name": "Menu",
   "version": "1.0.0",
-  "main": "Context.js",
+  "main": "Menu.js",
   "license": "MIT"
 }

@@ -31,12 +31,14 @@ class AppProvider extends Component {
     setStatus: ({ emoji, status, token }) => {
       ipcRenderer.send('setStatus', { emoji, status, token });
     },
-    selectInstance: ({ key }) => {
+    selectView: ({ key, item }) => {
+      const { type } = item.props;
       this.setState(prevState => ({
         ...prevState,
-        selectedInstance: key,
+        viewType: type,
+        selectedView: key,
       }));
-    }
+    },
   };
 
   componentDidMount = () => {
@@ -52,20 +54,20 @@ class AppProvider extends Component {
     });
 
     ipcRenderer.on('slackInstances', (event, slackInstances) => {
-      let { selectedInstance } = this.state;
+      let { viewType, selectedView } = this.state;
 
       if (
-        (!selectedInstance && slackInstances.length)
-        || (selectedInstance && slackInstances.length && !slackInstances.find(({ id }) => id === this.state.selectedInstance))
+        (viewType === 'instance' && !selectedView && slackInstances.length)
+        || (viewType === 'instance' && selectedView && slackInstances.length && !slackInstances.find(({ id }) => id === this.state.selectedView))
       ) {
-        selectedInstance = slackInstances.sort(sortBy('name'))[0].id;
+        selectedView = slackInstances.sort(sortBy('name'))[0].id;
       }
 
       this.setState(prevState => ({
         ...prevState,
         slackInstancesLoaded: true,
         slackInstances,
-        selectedInstance,
+        selectedView,
       }));
     });
 
@@ -74,9 +76,25 @@ class AppProvider extends Component {
     });
   };
 
+  componentWillUnmount = () => {
+    [
+      'connections',
+      'slackInstances',
+      'newSlackInsatance',
+    ].forEach(channel => {
+      ipcRenderer.removeAllListeners(channel);
+    });
+  }
+
   render = () => (
     <React.Fragment>
-      {this.state.showLoading && <Loading slackInstancesLoaded={this.state.slackInstancesLoaded} hideLoading={this.state.hideLoading} setProperty={this.state.setProperty} />}
+      {this.state.showLoading && (
+        <Loading
+          slackInstancesLoaded={this.state.slackInstancesLoaded}
+          hideLoading={this.state.hideLoading}
+          setProperty={this.state.setProperty}
+        />
+      )}
       <Provider value={this.state}>{this.props.children}</Provider>
     </React.Fragment>
   )

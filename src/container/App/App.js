@@ -1,15 +1,37 @@
 import React from 'react';
+import styled from 'styled-components';
+import { Layout } from 'antd';
 
-import { Consumer } from '../Context/Context';
+import { Consumer } from './Context';
 
-import Home from '../Home';
 import NotAuthorized from '../NotAuthorized';
 
+import AppSider from '../../component/AppSider';
+import View from '../../component/View';
+
+const Authorized = () => (
+  <Styled>
+    <Layout>
+      <AppSider />
+      <View />
+    </Layout>
+  </Styled>
+);
 
 const App = () => (
   <Consumer>
-    {({ slackInstances }) => slackInstances.length > 0 ? <Home /> : <NotAuthorized />}
+    {({ slackInstances }) => slackInstances.length > 0 ? <Authorized /> : <NotAuthorized />}
   </Consumer>
 );
+
+const Styled = styled.div`
+  width: 100%;
+  height: 100%;
+
+  & .ant-layout {
+    height: 100%;
+  }
+`;
+
 
 export default App;

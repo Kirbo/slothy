@@ -1,6 +1,6 @@
 {
-  "name": "Home",
+  "name": "View",
   "version": "1.0.0",
-  "main": "Home.js",
+  "main": "View.js",
   "license": "MIT"
 }

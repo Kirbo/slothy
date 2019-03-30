@@ -2,7 +2,7 @@ import React from 'react';
 import { render as ReactDOMRender } from 'react-dom';
 
 import { GlobalStyles } from './assets/css';
-import AppProvider from './container/Context/AppProvider';
+import AppProvider from './container/App/AppProvider';
 
 import App from './container/App';
 

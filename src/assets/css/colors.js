@@ -1,4 +1,4 @@
-const COLORS = {
+const COLOR = {
   white: '#fff',
   black: '#000',
   lightGray: '#999',
@@ -10,5 +10,5 @@ const COLORS = {
 
 
 module.exports = {
-  COLORS,
+  COLOR,
 };
