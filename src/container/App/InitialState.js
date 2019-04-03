@@ -1,3 +1,7 @@
+import { findFirstRoute } from '../../assets/utils';
+
+const { name, type } = findFirstRoute();
+
 const INITIAL_STATE = {
   wifiEnabled: false,
   showLoading: true,
@@ -9,8 +13,8 @@ const INITIAL_STATE = {
   slackInstances: [],
   configurations: [],
   currentToken: null,
-  viewType: 'view',
-  selectedView: 'Configuration',
+  viewType: type,
+  selectedView: name,
 };
 
 export default INITIAL_STATE;

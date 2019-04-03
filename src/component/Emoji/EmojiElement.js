@@ -15,12 +15,12 @@ const EmojiElement = (props) => {
 
     if (matches) {
       source = props.emojis[matches[1]];
-    }
 
-    if (source) {
-      return (
-        <Img src={source} alt="" size={props.size} />
-      );
+      if (source) {
+        return (
+          <Img src={source} alt="" size={props.size} />
+        );
+      }
     }
   }
 
@@ -28,12 +28,13 @@ const EmojiElement = (props) => {
 };
 
 EmojiElement.propTypes = {
-  emojis: PropTypes.instanceOf(Object),
   emoji: PropTypes.string.isRequired,
+  emojis: PropTypes.instanceOf(Object),
   size: PropTypes.oneOf(Object.keys(FONT_SIZE)),
 };
 
 EmojiElement.defaultProps = {
+  emojis: [],
   size: 'medium',
 };
 

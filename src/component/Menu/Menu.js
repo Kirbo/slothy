@@ -8,15 +8,19 @@ import Icon from '../Icon';
 
 import { FONT_WEIGHT, DIMENSION } from '../../assets/css';
 
+import Routes from '../../assets/routes';
+
 const AppMenu = () => (
   <Styled>
     <Consumer>
       {({ slackInstances, selectView, selectedView }) => (
         <Menu theme="dark" mode="inline" selectedKeys={[selectedView]}>
-          <Menu.Item key="Configuration" onClick={selectView} type="view">
-            <Icon icon="cogs" size="2x" />
-            <MenuItemName>Configuration</MenuItemName>
-          </Menu.Item>
+          {Routes.filter(({ enabled }) => enabled).map(({ name, type, icon }) => (
+            <Menu.Item key={name} onClick={selectView} type={type}>
+              <Icon icon={icon} size="2x" />
+              <MenuItemName>{name}</MenuItemName>
+            </Menu.Item>
+          ))}
           {slackInstances.sort((a, b) => a.name > b.name).map(instance => (
             <Menu.Item key={instance.id} onClick={selectView} type="instance">
               <img src={instance.icon.image_34} alt={instance.name} />

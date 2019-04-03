@@ -21,7 +21,7 @@ class Loading extends Component {
       }, 400);
       setTimeout(() => {
         props.setProperty({ showLoading: false });
-      }, 1000);
+      }, 1500);
     }
     return state;
   }
@@ -49,12 +49,14 @@ const Styled = styled.div`
   color: ${COLOR['black']};
   font-family: arial;
   display: flex;
-  height: 100%;
-  width: 100%;
+  height: 100vh;
+  width: 100vw;
+  top: 0;
+  left: 0;
   align-items: center;
   justify-content: center;
   background: radial-gradient(${COLOR['darkBlue']}, ${COLOR['black']});
-  transition: all 0.25s ease;
+  transition: all 0.5s ease;
   opacity: ${({ hideLoading }) => hideLoading ? 0 : 1};
 `;
 

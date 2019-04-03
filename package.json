@@ -15,7 +15,7 @@
   "scripts": {
     "build": "yarn react-build && yarn dist",
     "build-all": "yarn react-build && yarn dist-all",
-    "dev": "nf start",
+    "start": "nf start",
     "dist": "electron-builder",
     "dist-all": "electron-builder -mwl",
     "electron-start": "electron .",

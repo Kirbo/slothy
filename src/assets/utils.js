@@ -1,3 +1,5 @@
+import Routes from './routes';
+
 const { shell } = window.require('electron');
 
 export const sortBy = (property = null) => (a, b) => {
@@ -16,3 +18,10 @@ export const sortBy = (property = null) => (a, b) => {
 export const openExternal = url => {
   shell.openExternal(url);
 };
+
+export const findFirstRoute = () => (
+  Routes.filter(({ enabled }) => enabled)[0] || {
+    name: null,
+    type: 'instance',
+  }
+);

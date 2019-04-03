@@ -29,6 +29,11 @@ const AppView = () => (
 const StyledView = styled.div`
   display: flex;
   flex: 1 1 100%;
+  max-width: calc(100vw - 200px);
+
+  & .ant-layout {
+    max-width: 100%;
+  }
 `;
 
 export default AppView;

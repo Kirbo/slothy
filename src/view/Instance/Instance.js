@@ -32,28 +32,35 @@ const Instance = () => (
             )}
           </Header>
           <Content>
-            <button onClick={() => setStatus({ emoji: '', status: '', token })}>Empty status</button>
-            <button onClick={() => setStatus({ emoji: ':zany_face:', status: '', token })}>Set status zany</button>
-            <button onClick={() => setStatus({ emoji: ':house:', status: 'Kotona', token })}>Set status home</button>
-            <button onClick={() => getConnections()} disabled={!ssidsLoaded}>Get Connections</button>
-            <button onClick={() => removeSlackInstance(instance.token)}>Delete</button>
-            {wifiEnabled
-              ? (
-                <Ssids>
-                  <h1>SSIDS:{!ssidsLoaded && ' (Loading...)'}</h1>
-                  {ssids.sort((a, b) => a.ssid > b.ssid || (a.ssid === b.ssid && a.bssid > b.bssid)).map(ssid => (
-                    <Ssid key={ssid.bssid}>
-                      <SsidName current={currentSsids.find(cs => cs.bssid === ssid.bssid)}>{ssid.ssid}</SsidName>
-                      <div>{ssid.bssid}</div>
-                      <div>Signal level: <span>{ssid.signal_level}</span></div>
-                    </Ssid>
-                  ))}
-                </Ssids>
-              )
-              : (
-                <div>WiFi not enabled</div>
-              )
-            }
+
+            <div style={{ display: 'none' }}>
+              <button onClick={() => setStatus({ emoji: '', status: '', token })}>Empty status</button>
+              <button onClick={() => setStatus({ emoji: ':zany_face:', status: '', token })}>Set status zany</button>
+              <button onClick={() => setStatus({ emoji: ':house:', status: 'Kotona', token })}>Set status home</button>
+              <button onClick={() => getConnections()} disabled={!ssidsLoaded}>Get Connections</button>
+              <button onClick={() => removeSlackInstance(instance.token)}>Delete</button>
+              {wifiEnabled
+                ? (
+                  <Ssids>
+                    <h1>SSIDS:{!ssidsLoaded && ' (Loading...)'}</h1>
+                    {ssids.sort((a, b) => a.ssid > b.ssid || (a.ssid === b.ssid && a.bssid > b.bssid)).map(ssid => (
+                      <Ssid key={ssid.bssid}>
+                        <SsidName current={currentSsids.find(cs => cs.bssid === ssid.bssid)}>{ssid.ssid}</SsidName>
+                        <div>{ssid.bssid}</div>
+                        <div>Signal level: <span>{ssid.signal_level}</span></div>
+                      </Ssid>
+                    ))}
+                  </Ssids>
+                )
+                : (
+                  <div>WiFi not enabled</div>
+                )
+              }
+            </div>
+
+            <pre>
+              {JSON.stringify(instance, null, 2)}
+            </pre>
           </Content>
         </StyledInstance>
       );
@@ -63,7 +70,7 @@ const Instance = () => (
 
 const StyledInstance = styled.div`
   width: 100%;
-  height: 100%;
+  min-height: 100%;
 
   & .ant-layout-header {
     display: flex;
