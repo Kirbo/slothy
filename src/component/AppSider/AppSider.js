@@ -53,6 +53,7 @@ const Scrollable = styled.div`
 const StyledSider = styled.div`
   display: flex;
   flex: 0 0 200px;
+  z-index: 100;
 
   & .ant-layout-sider {
     overflow: hidden;

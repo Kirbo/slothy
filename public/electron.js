@@ -8,6 +8,8 @@ const { autoUpdater } = require('electron-updater');
 const log = require('electron-log');
 const request = require('request');
 
+const packageJson = require('../package.json');
+
 const protocol = 'sloth2';
 
 const {
@@ -48,12 +50,6 @@ if (process.defaultApp) {
   }
 } else {
   app.setAsDefaultProtocolClient(protocol);
-}
-
-const sendIfMainWindow = async (event, func, data = null) => {
-  if (mainWindow) {
-    mainWindow.webContents.send(event, await func(data));
-  }
 }
 
 const handleAuth = (uri) => {
@@ -129,7 +125,15 @@ const createWindow = () => {
   const contextMenu = Menu.buildFromTemplate([
     {
       label: 'Show App', click: function () {
-        window.show();
+        if (mainWindow) {
+          if (mainWindow.isMinimized()) {
+            mainWindow.restore();
+          }
+          mainWindow.show();
+          mainWindow.focus();
+        } else {
+          createWindow();
+        }
       }
     },
     {
@@ -138,34 +142,32 @@ const createWindow = () => {
       }
     }
   ]);
-  tray.setToolTip('This is my application.');
+  tray.setToolTip(packageJson.productName);
   tray.setContextMenu(contextMenu);
   tray.on('click', () => {
     mainWindow.isVisible() ? mainWindow.hide() : mainWindow.show();
   });
 
-  mainWindow.on('show', () => {
-    tray.setHighlightMode('always');
-  });
-
-  mainWindow.on('hide', () => {
-    tray.setHighlightMode('never');
-  });
-
-  mainWindow.on('minimize', event => {
-    event.preventDefault();
-    mainWindow.hide();
-  });
-
-  mainWindow.on('close', event => {
-    if (mainWindow) {
+  mainWindow
+    .on('show', () => {
+      tray.setHighlightMode('always');
+    })
+    .on('hide', () => {
+      tray.setHighlightMode('never');
+    })
+    .on('minimize', event => {
+      event.preventDefault();
       mainWindow.hide();
-    }
+    })
+    .on('close', event => {
+      if (mainWindow) {
+        mainWindow.hide();
+      }
 
-    mainWindow = null;
+      mainWindow = null;
 
-    return false;
-  });
+      return false;
+    });
 }
 
 const gotTheLock = app.requestSingleInstanceLock();
@@ -173,43 +175,44 @@ const gotTheLock = app.requestSingleInstanceLock();
 if (!gotTheLock) {
   app.quit();
 } else {
-  app.on('second-instance', (event, commandLine, workingDirectory) => {
-    event.preventDefault();
-    handleAuth(commandLine.slice(-1)[0]);
-    if (mainWindow) {
-      if (mainWindow.isMinimized()) {
-        mainWindow.restore();
+  app
+    .on('second-instance', (event, commandLine, workingDirectory) => {
+      event.preventDefault();
+      handleAuth(commandLine.slice(-1)[0]);
+      if (mainWindow) {
+        if (mainWindow.isMinimized()) {
+          mainWindow.restore();
+        }
+        mainWindow.focus();
       }
+    })
+    .on('ready', createWindow)
+    .on('window-all-closed', () => {
+      if (process.platform !== 'darwin') {
+        app.quit();
+      }
+    });
+}
+
+app
+  .on('activate', () => {
+    if (mainWindow === null) {
+      createWindow();
+    } else {
+      mainWindow.restore();
       mainWindow.focus();
     }
   })
-
-  app.on('ready', createWindow);
-  app.on('window-all-closed', () => {
-    if (process.platform !== 'darwin') {
-      app.quit();
-    }
+  .on('open-url', (event, uri) => {
+    event.preventDefault();
+    handleAuth(uri);
   });
-}
 
-app.on('activate', () => {
-  if (mainWindow === null) {
-    createWindow();
-  } else {
-    mainWindow.restore();
-    mainWindow.focus();
+const sendIfMainWindow = async (event, func, data = null) => {
+  if (mainWindow) {
+    mainWindow.webContents.send(event, await func(data));
   }
-});
-
-app.on('open-url', (event, uri) => {
-  event.preventDefault();
-  handleAuth(uri);
-});
-
-setInterval(async () => {
-  const slackInstances = await fetchWorkspaces();
-  mainWindow.webContents.send('slackInstances', slackInstances);
-}, fetchWorkspacesInterval * 60 * 1000);
+}
 
 ipc
   .on('initialize', () => (
@@ -252,5 +255,9 @@ ipc
   })
   .on('installUpdate', () => {
     autoUpdater.quitAndInstall();
-  })
-  ;
+  });
+
+
+setInterval(async () => {
+  mainWindow.webContents.send('slackInstances', await fetchWorkspaces());
+}, fetchWorkspacesInterval * 60 * 1000);

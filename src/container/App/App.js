@@ -27,6 +27,7 @@ const App = () => (
 const Styled = styled.div`
   width: 100%;
   min-height: 100vh;
+  overflow: hidden;
 
   & .ant-layout {
     min-height: 100vh;
