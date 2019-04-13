@@ -6,7 +6,6 @@ const os = require('os');
 const ipc = require('electron').ipcMain;
 const { autoUpdater } = require('electron-updater');
 const log = require('electron-log');
-const request = require('request');
 
 const packageJson = require('../package.json');
 
@@ -15,18 +14,19 @@ const protocol = 'sloth2';
 const {
   getSlackInstances,
   // updateSlackInstance,
-  saveSlackInstance,
+  // saveSlackInstance,
   removeSlackInstance,
-  getStatus,
+  // getStatus,
   // getWorkspace,
   getConnections,
   setStatus,
-  getParameterByName,
+  // getParameterByName,
   fetchWorkspaces,
   fetchWorkspacesInterval,
   getConfigurations,
   saveConfiguration,
   removeConfiguration,
+  handleAuth,
 } = require('./utils.js');
 
 require('dotenv').config({ path: path.join(__dirname, '/../.env') });
@@ -52,36 +52,6 @@ if (process.defaultApp) {
   app.setAsDefaultProtocolClient(protocol);
 }
 
-const handleAuth = (uri) => {
-  const { hostname } = url.parse(uri);
-
-  if (hostname === 'auth') {
-    const code = getParameterByName(uri, 'code');
-    const options = {
-      uri: `https://slack.com/api/oauth.access?code=${code}&client_id=${process.env.CLIENT_ID}&client_secret=${process.env.CLIENT_SECRET}&redirect_uri=sloth2://auth`,
-      method: 'GET',
-    };
-
-    request(options, async (error, response, body) => {
-      const { ok, access_token } = JSON.parse(body);
-      if (!ok) {
-        mainWindow.webContents.send('error', 'Error in authentication!');
-      } else {
-        const profile = await getStatus({ token: access_token });
-        let instance;
-
-        if (profile) {
-          instance = await saveSlackInstance({
-            token: access_token,
-            profile,
-          });
-        }
-        mainWindow.webContents.send('slackInstances', await getSlackInstances());
-        mainWindow.webContents.send('newSlackInsatance', instance);
-      }
-    });
-  }
-}
 
 const createWindow = () => {
   if (process.env.NODE_ENV === 'development' && !BrowserWindow.getDevToolsExtensions().hasOwnProperty('React Developer Tools')) {
@@ -170,15 +140,13 @@ const createWindow = () => {
     });
 }
 
-const gotTheLock = app.requestSingleInstanceLock();
-
-if (!gotTheLock) {
+if (!app.requestSingleInstanceLock()) {
   app.quit();
 } else {
   app
     .on('second-instance', (event, commandLine, workingDirectory) => {
       event.preventDefault();
-      handleAuth(commandLine.slice(-1)[0]);
+      handleAuth(mainWindow, commandLine.slice(-1)[0]);
       if (mainWindow) {
         if (mainWindow.isMinimized()) {
           mainWindow.restore();
@@ -205,7 +173,7 @@ app
   })
   .on('open-url', (event, uri) => {
     event.preventDefault();
-    handleAuth(uri);
+    handleAuth(mainWindow, uri);
   });
 
 const sendIfMainWindow = async (event, func, data = null) => {
@@ -259,5 +227,7 @@ ipc
 
 
 setInterval(async () => {
-  mainWindow.webContents.send('slackInstances', await fetchWorkspaces());
+  if (mainWindow) {
+    mainWindow.webContents.send('slackInstances', await fetchWorkspaces());
+  }
 }, fetchWorkspacesInterval * 60 * 1000);

@@ -37,9 +37,6 @@ const Styled = styled.div`
   & li.ant-menu-item {
     display: flex;
     align-items: center;
-
-    & svg {
-    }
   }
 `;
 const MenuItemName = styled.span`

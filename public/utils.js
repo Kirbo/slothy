@@ -2,6 +2,8 @@ const storage = require('electron-json-storage');
 const slack = require('slack');
 const wifi = require('node-wifi');
 const uuid = require('uuid/v4');
+const url = require('url');
+const request = require('request');
 
 wifi.init({
   iface: null,
@@ -137,9 +139,54 @@ const getConnections = () => (
     return Promise
       .all(promises)
       .then(([currentSsids, ssids]) => {
+        const connectedSsids = currentSsids.map(({ bssid }) => bssid);
+        const connections = ssids
+          .map(connection => ({
+            ...connection,
+            connected: connectedSsids.includes(connection.bssid)
+          }))
+          .sort((a, b) => {
+            if (!a.connected && b.connected) {
+              return 1;
+            } else if (a.connected && !b.connected) {
+              return -1;
+            }
+            return 0;
+          })
+          .reduce((result, item) => {
+            const group = result.find(connection => connection.ssid === item.ssid);
+            if (group) {
+              return result.map(connection => {
+                if (connection.ssid !== group.ssid) {
+                  return connection;
+                }
+
+                return {
+                  ...connection,
+                  accessPoints: [
+                    ...(connection.accessPoints || []),
+                    {
+                      ...item,
+                      key: `bssid-${item.bssid}`,
+                    }
+                  ]
+                };
+              })
+            } else {
+              return [...result, {
+                ...item,
+                bssid: null,
+                key: `group-${item.ssid}`,
+                accessPoints: [{
+                  ...item,
+                  key: `bssid-${item.bssid}`,
+                }]
+              } ];
+            }
+          }, []);
         resolve({
           currentSsids,
-          ssids,
+          ssids: connections,
         });
       });
   })
@@ -242,6 +289,54 @@ const removeConfiguration = async ({ id }) => (
   })
 );
 
+const handleAuth = (mainWindow, uri) => {
+  const { hostname } = url.parse(uri);
+
+  if (hostname === 'auth') {
+    const code = getParameterByName(uri, 'code');
+    const options = {
+      uri: `https://slack.com/api/oauth.access?code=${code}&client_id=${process.env.CLIENT_ID}&client_secret=${process.env.CLIENT_SECRET}&redirect_uri=sloth2://auth`,
+      method: 'GET',
+    };
+
+    request(options, async (error, response, body) => {
+      const { ok, access_token } = JSON.parse(body);
+      if (!ok) {
+        mainWindow.webContents.send('error', 'Error in authentication!');
+      } else {
+        const profile = await getStatus({ token: access_token });
+        let instance;
+
+        if (profile) {
+          instance = await saveSlackInstance({
+            token: access_token,
+            profile,
+          });
+        }
+        mainWindow.webContents.send('slackInstances', await getSlackInstances());
+        mainWindow.webContents.send('newSlackInsatance', instance);
+      }
+    });
+  }
+}
+
+const sortBy = (property = null) => (a, b) => {
+  const leftCompare = property ? a[property] : a;
+  const rightCompare = property ? b[property] : b;
+
+  if (leftCompare > rightCompare) {
+    return 1;
+  } else if (leftCompare < rightCompare) {
+    return -1;
+  }
+
+  return 0;
+};
+
+const uniqueArray = a => (
+  [...new Set(a.map(o => JSON.stringify(o)))].map(s => JSON.parse(s))
+)
+
 
 module.exports = {
   getSlackInstances,
@@ -259,4 +354,7 @@ module.exports = {
   getConfigurations,
   saveConfiguration,
   removeConfiguration,
+  handleAuth,
+  sortBy,
+  uniqueArray,
 };

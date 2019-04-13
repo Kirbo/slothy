@@ -38,6 +38,20 @@ class AppProvider extends Component {
         selectedView: key,
       });
     },
+    handleExpand: (expanded, record) => {
+      if (expanded) {
+        this.state.setProperty({
+          expandedRowKeys: [
+            ...this.state.expandedRowKeys,
+            record.key,
+          ],
+        });
+      } else {
+        this.state.setProperty({
+          expandedRowKeys: this.state.expandedRowKeys.filter(key => key !== record.key),
+        });
+      }
+    },
   };
 
   componentDidMount = () => {
@@ -47,7 +61,7 @@ class AppProvider extends Component {
       clearTimeout(connectionsTimeout);
       connectionsTimeout = setTimeout(() => {
         this.state.getConnections();
-      }, 60 * 1000);
+      }, 30 * 1000);
     }
 
     ipcRenderer.on('connections', (event, { ssids, currentSsids }) => {

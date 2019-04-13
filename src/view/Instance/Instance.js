@@ -1,62 +1,53 @@
 import React from 'react';
-import styled, { css } from 'styled-components';
+import styled from 'styled-components';
 import { Layout, Table } from 'antd';
 
 import Emoji from '../../component/Emoji';
+import NoConnections from '../../component/NoConnections';
 import { Consumer } from '../../container/App/Context';
 
-import { FONT_SIZE, FONT_WEIGHT, BORDER, DIMENSION, COLOR } from '../../assets/css';
+import { columns, nestedColumns, tableConfig } from './InstanceConfig';
+
+import { FONT_SIZE, BORDER, DIMENSION, COLOR } from '../../assets/css';
 
 const { Header, Content } = Layout;
 
-const columns = [
-  {
-    title: 'SSID',
-    dataIndex: 'ssid',
-    render: (text, { bssid, current }, index) => (
-      <SsidName current={current}>{text}</SsidName>
-    )
-  },
-  {
-    title: 'BSSID',
-    dataIndex: 'bssid',
-  },
-  {
-    title: 'Emoji',
-    dataIndex: 'emoji',
-    render: (text, { emoji }, index) => emoji && <Emoji emoji={emoji} />
-  },
-  {
-    title: 'Status',
-    dataIndex: 'status',
-  },
-  {
-    title: 'Enabled',
-    dataIndex: 'enabled',
-    render: (text, record, index) => (!!record.enabled).toString(),
-  },
-];
-
-const tableConfig = {
-  rowKey: 'bssid',
-  pagination: false,
-};
-
 const Instance = () => (
   <Consumer>
-    {({ wifiEnabled, ssidsLoaded, currentSsids, ssids, slackInstances, setStatus, getConnections, selectedView, removeSlackInstance, configurations }) => {
+    {({ wifiEnabled, ssidsLoaded, currentSsids, ssids, slackInstances, setStatus, getConnections, selectedView, removeSlackInstance, configurations, expandedRowKeys, handleExpand }) => {
       const instance = slackInstances.find(({ id }) => id === selectedView);
       const { profile } = instance;
 
       const statusSet = (profile.status_emoji || profile.status_text);
 
-      const data = ssids
-        .map(ssid => ({
-          ...ssid,
-          ...configurations.find(config => config.instanceId === instance.id && config.bssid === ssid.bssid),
-          current: currentSsids.find(cs => cs.bssid === ssid.bssid),
-        }))
-        .sort((a, b) => a.ssid > b.ssid || (a.ssid === b.ssid && a.bssid > b.bssid));
+      const sortAndFindConfig = (array, findConfigBy) => (
+        array
+          .map(ssid => ({
+            ...(configurations
+              .filter(config => !!config[findConfigBy])
+              .find(config =>
+                config.instanceId.toUpperCase() === instance.id.toUpperCase()
+                && ssid[findConfigBy]
+                && config[findConfigBy].toUpperCase() === ssid[findConfigBy].toUpperCase()
+              ) || {}),
+            ...ssid,
+            ...((ssid.accessPoints && { accessPoints: sortAndFindConfig(ssid.accessPoints, 'bssid') }) || {}),
+          })
+          )
+          .sort((a, b) => a.ssid > b.ssid || (a.ssid === b.ssid && a.bssid > b.bssid))
+      )
+
+      const data = sortAndFindConfig(ssids, 'ssid');
+
+      const expandedRowRender = (record, index, indent, expanded) => {
+        return (
+          <Table
+            {...tableConfig}
+            columns={nestedColumns}
+            dataSource={record.accessPoints}
+          />
+        );
+      };
 
       return (
         <StyledInstance>
@@ -77,10 +68,13 @@ const Instance = () => (
               {...tableConfig}
               columns={columns}
               dataSource={data}
+              expandedRowKeys={expandedRowKeys}
+              onExpand={handleExpand}
+              expandedRowRender={expandedRowRender}
+              locale={{
+                emptyText: <NoConnections />
+              }}
             />
-            <pre style={{ display: 'none' }}>
-              {JSON.stringify(instance, null, 2)}
-            </pre>
           </Content>
         </StyledInstance>
       );
@@ -100,18 +94,52 @@ const StyledInstance = styled.div`
     position: fixed;
     width: calc(100% - 200px);
     z-index: 100;
-    box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 ${DIMENSION['0.125x']} ${DIMENSION['0.75x']} rgba(0, 0, 0, 0.25);
   }
 
   & .ant-layout-content {
     margin: ${DIMENSION['1.5x']} ${DIMENSION['1x']} 0;
     overflow: initial;
-    margin-top: 70px;
+    margin-top: ${DIMENSION['4.5x']};
     font-size: ${FONT_SIZE['regular']};
   }
 
   & .ant-table {
     font-size: ${FONT_SIZE['regular']};
+
+    & .bssid {
+      text-transform: uppercase;
+    }
+    & tr {
+      & td {
+        height: ${DIMENSION['4x']};
+      }
+      & td.emoji {
+        width: ${DIMENSION['5x']};
+        max-width: ${DIMENSION['5x']};
+        min-width: ${DIMENSION['5x']};
+        text-align: center;
+      }
+      & td.status {
+        width: ${DIMENSION['10x']};
+        max-width: ${DIMENSION['10x']};
+        min-width: ${DIMENSION['10x']};
+      }
+      & td.enabled {
+        width: ${DIMENSION['6x']};
+        max-width: ${DIMENSION['6x']};
+        min-width: ${DIMENSION['6x']};
+        text-align: center;
+      }
+
+      &.config-enabled td.enabled svg {
+        color: ${COLOR['enabled']};
+      }
+
+      &.config-disabled td.enabled svg {
+        color: ${COLOR['disabled']};
+      }
+    }
   }
 `;
 const Image = styled.div`
@@ -121,17 +149,7 @@ const Image = styled.div`
     margin-right: ${DIMENSION['0.5x']};
   }
 `;
-const SsidName = styled.div`
-  font-weight: ${FONT_WEIGHT['bold']};
-  width: 100%;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 
-  ${props => props.current && css`
-    color: red;
-  `}
-`;
 const Column = styled.div`
   display: flex;
   flex: 1 1 100%;

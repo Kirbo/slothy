@@ -12,6 +12,7 @@ const INITIAL_STATE = {
   iface: null,
   slackInstances: [],
   configurations: [],
+  expandedRowKeys: [],
   currentToken: null,
   viewType: type,
   selectedView: name,
