@@ -52,6 +52,11 @@ class AppProvider extends Component {
         });
       }
     },
+    modifyConfiguration: (record) => {
+      this.state.setProperty({
+        drawerConfig: record,
+      });
+    },
   };
 
   componentDidMount = () => {

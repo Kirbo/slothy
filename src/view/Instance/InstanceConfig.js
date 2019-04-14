@@ -2,27 +2,23 @@ import React from 'react';
 import styled, { css } from 'styled-components';
 
 import Emoji from '../../component/Emoji';
+import ModifyButton from '../../component/ModifyButton';
 import Icon from '../../component/Icon';
 
 import { FONT_WEIGHT } from '../../assets/css';
 
-export const columns = [
-  {
-    title: 'SSID',
-    dataIndex: 'ssid',
-    render: (text, { connected }) => <SsidName connected={connected}>{text}</SsidName>
-  },
+const sharedColumns = [
   {
     title: 'Emoji',
     dataIndex: 'emoji',
     className: 'emoji',
-    render: (text, { emoji }) => emoji && <Emoji emoji={emoji} />
+    render: (text, { config }) => config && config.emoji && <Emoji emoji={config.emoji} />
   },
   {
     title: 'Status',
     dataIndex: 'status',
     className: 'status',
-    render: text => <Ellipsis>{text}</Ellipsis>
+    render: (text, { config }) => config && config.status && <Ellipsis>{config.status}</Ellipsis>
   },
   {
     title: 'Enabled',
@@ -30,6 +26,20 @@ export const columns = [
     className: 'enabled',
     render: (text, { enabled }) => enabled ? <Icon icon="check" /> : <Icon icon="times" />,
   },
+  {
+    title: 'Config',
+    className: 'setup',
+    render: (text, record) => <ModifyButton record={record} />,
+  },
+]
+
+export const columns = [
+  {
+    title: 'SSID',
+    dataIndex: 'ssid',
+    render: (text, { connected }) => <SsidName connected={connected}>{text}</SsidName>
+  },
+  ...sharedColumns,
 ];
 
 export const nestedColumns = [
@@ -39,24 +49,7 @@ export const nestedColumns = [
     className: 'bssid',
     render: (text, { bssid, connected }, index) => <BssidName connected={connected}>{text}</BssidName>
   },
-  {
-    title: 'Emoji',
-    dataIndex: 'emoji',
-    className: 'emoji',
-    render: (text, { emoji }) => emoji && <Emoji emoji={emoji} />
-  },
-  {
-    title: 'Status',
-    dataIndex: 'status',
-    className: 'status',
-    render: text => <Ellipsis>{text}</Ellipsis>
-  },
-  {
-    title: 'Enabled',
-    dataIndex: 'enabled',
-    className: 'enabled',
-    render: (text, { enabled }) => enabled ? <Icon icon="check" /> : <Icon icon="times" />,
-  },
+  ...sharedColumns,
 ];
 
 export const tableConfig = {

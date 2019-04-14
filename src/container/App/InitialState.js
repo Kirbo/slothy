@@ -16,6 +16,9 @@ const INITIAL_STATE = {
   currentToken: null,
   viewType: type,
   selectedView: name,
+  drawerConfig: null,
+  searchEmoji: '',
+  emojiLimit: 100,
 };
 
 export default INITIAL_STATE;

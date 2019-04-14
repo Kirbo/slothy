@@ -1,7 +1,8 @@
 import React from 'react';
 import styled from 'styled-components';
-import { Layout, Table } from 'antd';
+import { Layout, Table, Button } from 'antd';
 
+import ModifyConfiguration from '../../component/ModifyConfiguration';
 import Emoji from '../../component/Emoji';
 import NoConnections from '../../component/NoConnections';
 import { Consumer } from '../../container/App/Context';
@@ -23,18 +24,31 @@ const Instance = () => (
       const sortAndFindConfig = (array, findConfigBy) => (
         array
           .map(ssid => ({
-            ...(configurations
+            config: (configurations
               .filter(config => !!config[findConfigBy])
               .find(config =>
                 config.instanceId.toUpperCase() === instance.id.toUpperCase()
                 && ssid[findConfigBy]
                 && config[findConfigBy].toUpperCase() === ssid[findConfigBy].toUpperCase()
-              ) || {}),
+              ) || null),
             ...ssid,
             ...((ssid.accessPoints && { accessPoints: sortAndFindConfig(ssid.accessPoints, 'bssid') }) || {}),
           })
           )
-          .sort((a, b) => a.ssid > b.ssid || (a.ssid === b.ssid && a.bssid > b.bssid))
+          .sort((a, b) => {
+            if (a.connected > b.connected) {
+              return -1;
+            } else if (a.ssid < b.ssid) {
+              return -1;
+            } else if (a.ssid > b.ssid) {
+              return 1;
+            } else if (a.ssid === b.ssid && a.bssid > b.bssid) {
+              return 1;
+            } else if (a.ssid === b.ssid && a.bssid < b.bssid) {
+              return -1;
+            }
+            return 0;
+          })
       )
 
       const data = sortAndFindConfig(ssids, 'ssid');
@@ -58,7 +72,7 @@ const Instance = () => (
             </Column>
             {statusSet && (
               <Column className="start">
-                <Emoji emoji={profile.status_emoji} size="large" />
+                <Emoji emoji={profile.status_emoji} size="xl" />
                 <div>{profile.status_text}</div>
               </Column>
             )}
@@ -75,6 +89,17 @@ const Instance = () => (
                 emptyText: <NoConnections />
               }}
             />
+            <Centered>
+              <Button
+                onClick={getConnections}
+                loading={!ssidsLoaded}
+                disabled={!ssidsLoaded}
+                icon="reload"
+              >
+                Reload
+              </Button>
+            </Centered>
+            <ModifyConfiguration />
           </Content>
         </StyledInstance>
       );
@@ -100,7 +125,7 @@ const StyledInstance = styled.div`
   & .ant-layout-content {
     margin: ${DIMENSION['1.5x']} ${DIMENSION['1x']} 0;
     overflow: initial;
-    margin-top: ${DIMENSION['4.5x']};
+    margin-top: ${DIMENSION['5x']};
     font-size: ${FONT_SIZE['regular']};
   }
 
@@ -114,18 +139,28 @@ const StyledInstance = styled.div`
       & td {
         height: ${DIMENSION['4x']};
       }
-      & td.emoji {
+      & .emoji {
         width: ${DIMENSION['5x']};
         max-width: ${DIMENSION['5x']};
         min-width: ${DIMENSION['5x']};
         text-align: center;
+
+        & span {
+          margin: 0;
+        }
       }
-      & td.status {
+      & .status {
         width: ${DIMENSION['10x']};
         max-width: ${DIMENSION['10x']};
         min-width: ${DIMENSION['10x']};
       }
-      & td.enabled {
+      & .enabled {
+        width: ${DIMENSION['6x']};
+        max-width: ${DIMENSION['6x']};
+        min-width: ${DIMENSION['6x']};
+        text-align: center;
+      }
+      & .setup {
         width: ${DIMENSION['6x']};
         max-width: ${DIMENSION['6x']};
         min-width: ${DIMENSION['6x']};
@@ -141,6 +176,15 @@ const StyledInstance = styled.div`
       }
     }
   }
+`;
+
+const Centered = styled.div`
+  display: flex;
+  flex: 1 1 100%;
+  justify-content: center;
+  margin: ${DIMENSION['1x']} 0;
+  width: calc(100vw - 200px);
+  position: absolute;
 `;
 const Image = styled.div`
   &.round img {

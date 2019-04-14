@@ -6,25 +6,34 @@ import styled from 'styled-components';
 import { FONT_SIZE, DIMENSION } from '../../assets/css';
 
 const EmojiElement = (props) => {
-  if (props.emojis && props.emojis !== null) {
-    const strippedEmoji = props.emoji.replace(/:/g, '');
-    let source = props.emojis[strippedEmoji];
+  const strippedEmoji = props.emoji.replace(/:/g, '');
+  let source = props.emojis[strippedEmoji];
 
-    const regex = new RegExp(/^alias:(.*)/i);
-    const matches = regex.exec(source);
+  const regex = new RegExp(/^alias:(.*)/i);
+  const matches = regex.exec(source);
 
-    if (matches) {
-      source = props.emojis[matches[1]];
+  let findAlias;
+  if (matches && matches[1]) {
+    findAlias = matches[1];
+  }
 
-      if (source) {
-        return (
-          <Img src={source} alt="" size={props.size} />
-        );
-      }
+  if (emoji.hasEmoji(props.emoji)) {
+    return <Span size={props.size}>{emoji.get(props.emoji)}</Span>;
+  } else if (findAlias && emoji.hasEmoji(findAlias)) {
+    return <Span size={props.size}>{emoji.get(findAlias)}</Span>;
+  } else if (matches) {
+    source = props.emojis[matches[1]];
+
+    if (source) {
+      return (
+        <Img src={source} alt="" size={props.size} />
+      );
     }
   }
 
-  return <Span size={props.size}>{emoji.get(props.emoji)}</Span>;
+  return (
+    <Img src={source} alt="" size={props.size} />
+  );
 };
 
 EmojiElement.propTypes = {
@@ -35,10 +44,12 @@ EmojiElement.propTypes = {
 
 EmojiElement.defaultProps = {
   emojis: [],
-  size: 'medium',
+  size: 'm',
 };
 
-const Img = styled.img``;
+const Img = styled.img`
+  width: ${({ size }) => FONT_SIZE[size]};
+`;
 const Span = styled.span`
   font-size: ${({ size }) => FONT_SIZE[size]};
   margin-right: ${DIMENSION['0.5x']};

@@ -6,6 +6,7 @@ const os = require('os');
 const ipc = require('electron').ipcMain;
 const { autoUpdater } = require('electron-updater');
 const log = require('electron-log');
+const storage = require('electron-json-storage');
 
 const packageJson = require('../package.json');
 
@@ -36,6 +37,12 @@ fetchWorkspaces();
 let mainWindow;
 let tray = null;
 
+const cached = {
+  configurations: null,
+  connections: null,
+  slackInstances: null,
+};
+
 autoUpdater.autoDownload = false;
 autoUpdater.logger = log;
 autoUpdater.logger.transports.file.level = 'info';
@@ -53,7 +60,7 @@ if (process.defaultApp) {
 }
 
 
-const createWindow = () => {
+const createWindow = async () => {
   if (process.env.NODE_ENV === 'development' && !BrowserWindow.getDevToolsExtensions().hasOwnProperty('React Developer Tools')) {
     let extensionPath;
     if (process.platform === 'darwin') {
@@ -67,13 +74,27 @@ const createWindow = () => {
     }
   }
 
+  const windowSettings = await new Promise((resolve, reject) => {
+    storage.get('windowSettings', (error, data) => {
+      if (error) {
+        reject(error);
+      }
+      resolve(data);
+    });
+  });
+  const [x, y] = windowSettings.position || [null, null];
+  const [width, height] = windowSettings.size || [900, 600];
+
   mainWindow = new BrowserWindow({
-    width: 800,
     minWidth: 600,
-    height: 600,
     minHeight: 300,
     icon: iconPath,
     autoHideMenuBar: true,
+    show: false,
+    width,
+    height,
+    x,
+    y,
   });
 
   let startUrl = process.env.ELECTRON_START_URL || url.format({
@@ -90,37 +111,64 @@ const createWindow = () => {
 
   getConnections();
 
-  tray = new Tray(nativeImage.createFromPath(iconPath));
+  if (!tray) {
+    tray = new Tray(nativeImage.createFromPath(iconPath));
 
-  const contextMenu = Menu.buildFromTemplate([
-    {
-      label: 'Show App', click: function () {
-        if (mainWindow) {
-          if (mainWindow.isMinimized()) {
-            mainWindow.restore();
+    const contextMenu = Menu.buildFromTemplate([
+      {
+        label: 'Show App', click: function () {
+          if (mainWindow) {
+            if (mainWindow.isMinimized()) {
+              mainWindow.restore();
+            }
+            mainWindow.show();
+            mainWindow.focus();
+          } else {
+            createWindow();
           }
-          mainWindow.show();
-          mainWindow.focus();
-        } else {
-          createWindow();
+        }
+      },
+      {
+        label: 'Quit', click: function () {
+          app.quit();
         }
       }
-    },
-    {
-      label: 'Quit', click: function () {
-        app.quit();
-      }
-    }
-  ]);
-  tray.setToolTip(packageJson.productName);
-  tray.setContextMenu(contextMenu);
-  tray.on('click', () => {
-    mainWindow.isVisible() ? mainWindow.hide() : mainWindow.show();
-  });
+    ]);
+    tray.setToolTip(packageJson.productName);
+    tray.setContextMenu(contextMenu);
+    tray.on('click', () => {
+      mainWindow.isVisible() ? mainWindow.hide() : mainWindow.show();
+    });
+  }
+
+  app.dock.show();
 
   mainWindow
+    .once('ready-to-show', () => {
+      mainWindow.show();
+    })
+    .on('move', () => {
+      storage.get('windowSettings', (error, data) => {
+        const position = mainWindow.getPosition();
+
+        storage.set('windowSettings', {
+          ...data,
+          position,
+        });
+      });
+    })
+    .on('resize', () => {
+      storage.get('windowSettings', (error, data) => {
+        const size = mainWindow.getSize();
+
+        storage.set('windowSettings', {
+          ...data,
+          size,
+        });
+      });
+    })
     .on('show', () => {
-      tray.setHighlightMode('always');
+      tray.setHighlightMode('selection');
     })
     .on('hide', () => {
       tray.setHighlightMode('never');
@@ -132,6 +180,7 @@ const createWindow = () => {
     .on('close', event => {
       if (mainWindow) {
         mainWindow.hide();
+        app.dock.hide();
       }
 
       mainWindow = null;
@@ -156,9 +205,10 @@ if (!app.requestSingleInstanceLock()) {
     })
     .on('ready', createWindow)
     .on('window-all-closed', () => {
-      if (process.platform !== 'darwin') {
-        app.quit();
-      }
+      // if (process.platform !== 'darwin') {
+      //   app.quit();
+      // }
+      app.dock.hide();
     });
 }
 
@@ -177,38 +227,37 @@ app
   });
 
 const sendIfMainWindow = async (event, func, data = null) => {
+  const functionName = event;
+  cached[functionName] = await func(data);
   if (mainWindow) {
-    mainWindow.webContents.send(event, await func(data));
+    try {
+      mainWindow.webContents.send(event, cached[functionName]);
+    } catch (error) {
+      throw new Error(error);
+    }
   }
 }
 
 ipc
-  .on('initialize', () => (
-    Promise
-      .all([
-        getConfigurations(),
-        getConnections(),
-        getSlackInstances(),
-      ])
-      .then(([configurations, connections, slackInstances]) => {
-        if (mainWindow) {
-          mainWindow.webContents.send('configurations', configurations);
-          mainWindow.webContents.send('connections', connections);
-          mainWindow.webContents.send('slackInstances', slackInstances);
-        }
-      })
-  ))
+  .on('initialize', async () => {
+    if (mainWindow && cached.configurations && cached.connections && cached.slackInstances) {
+      sendIfMainWindow('configurations', () => cached.configurations);
+      sendIfMainWindow('connections', () => cached.connections);
+      sendIfMainWindow('slackInstances', () => cached.slackInstances);
+    } else {
+      await sendIfMainWindow('configurations', getConfigurations);
+      await sendIfMainWindow('connections', getConnections);
+      await sendIfMainWindow('slackInstances', getSlackInstances);
+    }
+  })
   .on('getConnections', async (event, data) => sendIfMainWindow('connections', getConnections))
   .on('removeSlackInstance', async (event, data) => sendIfMainWindow('slackInstances', removeSlackInstance, data))
   .on('getConfigurations', async (event, data) => sendIfMainWindow('configurations', getConfigurations))
   .on('saveConfiguration', async (event, data) => sendIfMainWindow('configurations', saveConfiguration, data))
   .on('removeConfiguration', async (event, data) => sendIfMainWindow('configurations', removeConfiguration, data))
   .on('setStatus', async (event, data) => {
-    if (mainWindow) {
-      await setStatus(data);
-      const slackInstances = await getSlackInstances();
-      mainWindow.webContents.send('slackInstances', slackInstances);
-    }
+    await setStatus(data);
+    sendIfMainWindow('slackInstances', getSlackInstances);
   })
   .on('checkUpdates', () => {
     if (mainWindow) {
@@ -227,7 +276,8 @@ ipc
 
 
 setInterval(async () => {
+  cached.slackInstances = await fetchWorkspaces();
   if (mainWindow) {
-    mainWindow.webContents.send('slackInstances', await fetchWorkspaces());
+    mainWindow.webContents.send('slackInstances', cached.slackInstances);
   }
 }, fetchWorkspacesInterval * 60 * 1000);

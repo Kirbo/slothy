@@ -6,10 +6,12 @@ export const FONT_WEIGHT = {
 };
 
 export const FONT_SIZE = {
-  extra_small: '0.5rem',
-  small: '0.75rem',
+  xs: '0.5rem',
+  s: '0.75rem',
   regular: '0.875rem',
-  medium: '1rem',
-  large: '2rem',
-  extra_large: '3rem',
+  m: '1rem',
+  l: '1.5rem',
+  xl: '2rem',
+  xxl: '3rem',
+  xxxl: '4rem',
 };

@@ -9,7 +9,7 @@ const Configuration = () => (
         <p>viewType: {viewType}</p>
         <p>selectedView: {selectedView}</p>
         <p>configurations:</p>
-        <pre>{JSON.stringify(configurations)}</pre>
+        <pre>{JSON.stringify(configurations, null, 2)}</pre>
       </div>
     )}
   </Consumer>

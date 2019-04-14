@@ -7647,7 +7647,7 @@ node-releases@^1.1.13, node-releases@^1.1.3:
 
 "node-wifi@https://github.com/kirbo/node-wifi#testing":
   version "2.0.5"
-  resolved "https://github.com/kirbo/node-wifi#0b02376f701a10e07b767f6bdd0511d4f58fdb25"
+  resolved "https://github.com/kirbo/node-wifi#846a0a054b2ab602d2d0effffc1810a20606631b"
   dependencies:
     command-line-args "^3.0.1"
     command-line-usage "^5.0.5"

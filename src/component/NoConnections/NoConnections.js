@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
-import { Empty, Button } from 'antd';
+import { Empty } from 'antd';
 
 import { Consumer } from '../../container/App/Context';
 
@@ -17,13 +17,6 @@ const NoConnections = () => (
               Is Wi-Fi enabled?
             </span>
           }>
-          <Button
-            onClick={getConnections}
-            loading={!ssidsLoaded}
-            disabled={!ssidsLoaded}
-          >
-            Reload
-          </Button>
         </Empty>
       </Styled>
     )}

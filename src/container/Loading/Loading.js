@@ -45,7 +45,7 @@ class Loading extends Component {
 const Styled = styled.div`
   position: absolute;
   z-index: 1000;
-  font-size: ${FONT_SIZE['medium']};
+  font-size: ${FONT_SIZE['m']};
   color: ${COLOR['black']};
   font-family: arial;
   display: flex;

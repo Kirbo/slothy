@@ -5,14 +5,20 @@ import EmojiElement from './EmojiElement';
 
 import { Consumer } from '../../container/App/Context';
 
-const Emoji = ({ emoji, size = 'medium' }) => (
+const Emoji = ({ emoji, size = 'm', slackInstanceId = null }) => (
   <Consumer>
-    {({ slackInstances, selectedView }) => {
-      const { emojis } = slackInstances.find(({ id }) => id === selectedView);
-      return (
-        <EmojiElement emojis={emojis} emoji={emoji} size={size} />
-      );
-    }}
+    {({ slackInstances, selectedView }) => (
+      <EmojiElement
+        emojis={
+          slackInstances.find(({ id }) => (
+            (slackInstanceId && id === slackInstanceId)
+            || (selectedView && id === selectedView)
+          )).emojis
+        }
+        emoji={emoji}
+        size={size}
+      />
+    )}
   </Consumer>
 );
 

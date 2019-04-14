@@ -97,8 +97,12 @@ const getWorkspace = async ({ token }) => (
       if (error) {
         reject(error);
       }
-      const { team } = data;
-      resolve(team);
+      if (data) {
+        const { team } = data;
+        resolve(team);
+      }
+
+      resolve({})
     });
   })
 );
@@ -121,6 +125,7 @@ const getConnections = () => (
       new Promise((res, rej) => {
         wifi.getCurrentConnections((error, connections) => {
           if (error) {
+            console.error('error', error);
             rej(error);
           }
           res(connections);
@@ -129,6 +134,7 @@ const getConnections = () => (
       new Promise((res, rej) => {
         wifi.scan((error, connections) => {
           if (error) {
+            console.error('error', error);
             rej(error);
           }
           res(connections);
