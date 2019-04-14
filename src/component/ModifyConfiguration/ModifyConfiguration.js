@@ -5,6 +5,7 @@ import emoji from 'node-emoji';
 
 import { Consumer } from '../../container/App/Context';
 import Emoji from '../../component/Emoji';
+import { sortBy } from '../../assets/utils';
 
 const { Option } = Select;
 
@@ -25,32 +26,22 @@ class ModifyConfiguration extends Component {
 
           const handleClose = () => modifyConfiguration(null);
 
-          const defaultEmojis = emoji.search('');
-
           const allEmojis = [
-            ...Object.keys(emojis).map(key => ({
-              key,
-              value: emojis[key],
-            })),
-            ...defaultEmojis,
+            ...Object.keys(emojis).map(key => ({ key, value: emojis[key] })).sort(sortBy('key')),
+            ...emoji.search('').sort(sortBy('key')),
           ];
 
-          let filteredEmojis = allEmojis.filter(({ key, value }) => key.includes(searchEmoji)).slice(0, emojiLimit);
+          let searchedEmojis = allEmojis.filter(({ key, value }) => key.includes(searchEmoji));
+          if (searchEmoji) {
+            searchedEmojis.sort(sortBy('key'));
+          }
+          let filteredEmojis = searchedEmojis.slice(0, emojiLimit);
           const selected = allEmojis.find(({ key, value }) => key === selectedEmoji);
           if (selectedEmoji && selected) {
             filteredEmojis = filteredEmojis.filter(({ key }) => key !== selectedEmoji);
             filteredEmojis.unshift(selected);
             filteredEmojis = filteredEmojis.slice(0, emojiLimit);
           }
-
-          const tooManyResults = filteredEmojis.length > emojiLimit && (
-            <React.Fragment>
-              <Divider style={{ margin: '4px 0' }} />
-              <div style={{ padding: '8px' }}>
-                Too many results, showing first {emojiLimit}.
-              </div>
-            </React.Fragment>
-          );
 
           return (
             <Styled>
@@ -106,7 +97,14 @@ class ModifyConfiguration extends Component {
                             dropdownRender={menu => (
                               <div>
                                 {menu}
-                                {tooManyResults}
+                                {searchedEmojis.length > emojiLimit && (
+                                  <React.Fragment>
+                                    <Divider style={{ margin: '4px 0' }} />
+                                    <div style={{ padding: '8px' }}>
+                                      Too many results, showing first {emojiLimit}.
+                                    </div>
+                                  </React.Fragment>
+                                )}
                               </div>
                             )}
                           >
