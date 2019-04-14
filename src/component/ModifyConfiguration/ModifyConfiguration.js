@@ -25,7 +25,7 @@ class ModifyConfiguration extends Component {
 
           const handleClose = () => modifyConfiguration(null);
 
-          const defaultEmojis = emoji.search(searchEmoji);
+          const defaultEmojis = emoji.search('');
 
           const allEmojis = [
             ...Object.keys(emojis).map(key => ({
@@ -43,7 +43,7 @@ class ModifyConfiguration extends Component {
             filteredEmojis = filteredEmojis.slice(0, emojiLimit);
           }
 
-          const tooManyResults = allEmojis.length > emojiLimit && (
+          const tooManyResults = filteredEmojis.length > emojiLimit && (
             <React.Fragment>
               <Divider style={{ margin: '4px 0' }} />
               <div style={{ padding: '8px' }}>
@@ -94,9 +94,6 @@ class ModifyConfiguration extends Component {
                             allowClear
                             showSearch
                             placeholder="Select an emoji"
-                            filterOption={(input, option) => (
-                              option.props.value.toLowerCase().indexOf(input.toLowerCase()) >= 0
-                            )}
                             onSearch={value => {
                               setProperty({ searchEmoji: value });
                             }}
