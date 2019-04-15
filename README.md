@@ -1,4 +1,4 @@
-# Sloth
+# Slacky
 
 ## Description
 
@@ -6,9 +6,9 @@ Set your Slack status based on the (B)SSID you're currently connected to.
 
 ## Contribution
 
-This repository is maintained in [GitLab](https://gitlab.com/kirbo/sloth), the [GitHub](https://github.com/kirbo/sloth)
+This repository is maintained in [GitLab](https://gitlab.com/kirbo/slacky), the [GitHub](https://github.com/kirbo/slacky)
 is just mirroring the Protected branches from GitLab and serves the releases.
-In case you want to contribute for this project, do it [here](https://gitlab.com/kirbo/sloth).
+In case you want to contribute for this project, do it [here](https://gitlab.com/kirbo/slacky).
 
 
 ## License

@@ -184,7 +184,6 @@ const Centered = styled.div`
   justify-content: center;
   margin: ${DIMENSION['1x']} 0;
   width: calc(100vw - 200px);
-  position: absolute;
 `;
 const Image = styled.div`
   &.round img {

@@ -10,7 +10,7 @@ const storage = require('electron-json-storage');
 
 const packageJson = require('../package.json');
 
-const protocol = 'sloth2';
+const protocol = 'slacky';
 
 const {
   getSlackInstances,

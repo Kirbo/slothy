@@ -16,7 +16,7 @@ const { Sider, Footer } = Layout;
 const AppSider = () => (
   <StyledSider>
     <Sider>
-      <Logo>Sloth</Logo>
+      <Logo>Slacky</Logo>
       <Scrollable>
         <Menu />
         <AddInstance mode="text" text="Add new instance" />

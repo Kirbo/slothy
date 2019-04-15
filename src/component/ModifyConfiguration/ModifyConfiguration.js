@@ -7,8 +7,9 @@ import { Consumer } from '../../container/App/Context';
 import Emoji from '../../component/Emoji';
 import { sortBy } from '../../assets/utils';
 
-const { Option } = Select;
+import { DIMENSION } from '../../assets/css';
 
+const { Option } = Select;
 
 class ModifyConfiguration extends Component {
   state = {
@@ -78,32 +79,24 @@ class ModifyConfiguration extends Component {
                   <Row gutter={16}>
                     <Col span={12}>
                       <Form.Item label="Emoji">
-                        {getFieldDecorator('emoji', {
-                          rules: [{ required: true, message: 'Select an emoji' }],
-                        })(
+                        {getFieldDecorator('emoji')(
                           <Select
                             allowClear
                             showSearch
                             placeholder="Select an emoji"
-                            onSearch={value => {
-                              setProperty({ searchEmoji: value });
-                            }}
-                            onSelect={value => {
-                              setProperty({
-                                searchEmoji: '',
-                                selectedEmoji: value,
-                              });
-                            }}
+                            onSearch={value => setProperty({ searchEmoji: value })}
+                            onBlur={() => setProperty({ searchEmoji: '' })}
+                            onChange={value => setProperty({ searchEmoji: '', selectedEmoji: value })}
                             dropdownRender={menu => (
                               <div>
                                 {menu}
                                 {searchedEmojis.length > emojiLimit && (
-                                  <React.Fragment>
-                                    <Divider style={{ margin: '4px 0' }} />
-                                    <div style={{ padding: '8px' }}>
-                                      Too many results, showing first {emojiLimit}.
+                                  <TooManyResults>
+                                    <Divider />
+                                    <div className="text">
+                                      Too many results, showing {emojiLimit} first.
                                     </div>
-                                  </React.Fragment>
+                                  </TooManyResults>
                                 )}
                               </div>
                             )}
@@ -200,5 +193,14 @@ class ModifyConfiguration extends Component {
 }
 
 const Styled = styled.div``;
+const TooManyResults = styled.div`
+  & .ant-divider {
+    margin: 4px 0;
+  }
+
+  & div.text {
+    padding: ${DIMENSION['0.5x']};
+  }
+`;
 
 export default Form.create()(ModifyConfiguration);

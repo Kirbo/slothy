@@ -1,12 +1,12 @@
 {
-  "name": "sloth",
+  "name": "slacky",
   "description": "Changes your Slack status based on the SSID you're currently connected to.",
-  "productName": "Sloth",
-  "productUrl": "https://github.com/kirbo/sloth/releases",
+  "productName": "Slacky",
+  "productUrl": "https://github.com/kirbo/slacky/releases",
   "product": {
-    "GitLabRepository": "https://gitlab.com/kirbo/sloth",
-    "GitHubRepository": "https://github.com/kirbo/sloth",
-    "Pages": "https://kirbo.gitlab.io/sloth/"
+    "GitLabRepository": "https://gitlab.com/kirbo/slacky",
+    "GitHubRepository": "https://github.com/kirbo/slacky",
+    "Pages": "https://kirbo.gitlab.io/slacky/"
   },
   "author": "kirbownz@me.com",
   "version": "0.1.0",
@@ -27,7 +27,7 @@
     "react-eject": "react-scripts eject"
   },
   "build": {
-    "appId": "com.github.kirbo.sloth",
+    "appId": "com.github.kirbo.slacky",
     "asar": true,
     "files": [
       ".env",
@@ -43,10 +43,10 @@
     },
     "protocols": [
       {
-        "name": "sloth2",
+        "name": "slacky",
         "role": "Viewer",
         "schemes": [
-          "sloth2"
+          "slacky"
         ]
       }
     ]

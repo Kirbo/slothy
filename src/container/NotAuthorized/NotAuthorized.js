@@ -9,7 +9,7 @@ const NotAuthorized = () => (
     {() => (
       <Styled>
         <h2>
-          You have not authorized Sloth in any of your Slack instances, yet.
+          You have not authorized Slacky in any of your Slack instances, yet.
         </h2>
         <AddInstance />
       </Styled>
