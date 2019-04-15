@@ -6,7 +6,8 @@
   "product": {
     "GitLabRepository": "https://gitlab.com/kirbo/slothy",
     "GitHubRepository": "https://github.com/kirbo/slothy",
-    "Pages": "https://kirbo.gitlab.io/slothy/"
+    "Pages": "https://kirbo.gitlab.io/slothy/",
+    "Protocol": "slothy"
   },
   "author": "kirbownz@me.com",
   "version": "0.1.0",

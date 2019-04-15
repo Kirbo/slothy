@@ -100,7 +100,7 @@ class AppProvider extends Component {
       });
     });
 
-    ipcRenderer.on('newSlackInsatance', (event, slackInstance) => {
+    ipcRenderer.on('newSlackInstance', (event, slackInstance) => {
       console.log('slackInstance', slackInstance);
     });
   };
@@ -112,7 +112,7 @@ class AppProvider extends Component {
       'connections',
       'configurations',
       'slackInstances',
-      'newSlackInsatance',
+      'newSlackInstance',
       'wifiStatus',
     ].forEach(channel => {
       ipcRenderer.removeAllListeners(channel);

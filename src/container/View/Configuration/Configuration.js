@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Consumer } from '../../container/App/Context';
+import { Consumer } from '../../App/Context';
 
 const Configuration = () => (
   <Consumer>

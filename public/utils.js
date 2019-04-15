@@ -4,6 +4,9 @@ const wifi = require('node-wifi');
 const uuid = require('uuid/v4');
 const url = require('url');
 const request = require('request');
+const packageJson = require('../package.json');
+
+const protocol = packageJson.product.Protocol;
 
 wifi.init({
   iface: null,
@@ -295,20 +298,20 @@ const removeConfiguration = async ({ id }) => (
   })
 );
 
-const handleAuth = (mainWindow, uri) => {
+const handleAuth = (sendIfMainWindow, uri) => {
   const { hostname } = url.parse(uri);
 
   if (hostname === 'auth') {
     const code = getParameterByName(uri, 'code');
     const options = {
-      uri: `https://slack.com/api/oauth.access?code=${code}&client_id=${process.env.CLIENT_ID}&client_secret=${process.env.CLIENT_SECRET}&redirect_uri=slothy://auth`,
+      uri: `https://slack.com/api/oauth.access?code=${code}&client_id=${process.env.CLIENT_ID}&client_secret=${process.env.CLIENT_SECRET}&redirect_uri=${protocol}://auth`,
       method: 'GET',
     };
 
     request(options, async (error, response, body) => {
       const { ok, access_token } = JSON.parse(body);
       if (!ok) {
-        mainWindow.webContents.send('error', 'Error in authentication!');
+        sendIfMainWindow('error', () => 'Error in authentication!');
       } else {
         const profile = await getStatus({ token: access_token });
         let instance;
@@ -319,8 +322,8 @@ const handleAuth = (mainWindow, uri) => {
             profile,
           });
         }
-        mainWindow.webContents.send('slackInstances', await getSlackInstances());
-        mainWindow.webContents.send('newSlackInsatance', instance);
+        sendIfMainWindow('slackInstances', getSlackInstances);
+        sendIfMainWindow('newSlackInstance', () => instance);
       }
     });
   }

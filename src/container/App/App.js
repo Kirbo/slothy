@@ -7,7 +7,7 @@ import { Consumer } from './Context';
 import NotAuthorized from '../NotAuthorized';
 
 import AppSider from '../../component/AppSider';
-import View from '../../component/View';
+import View from '../../container/View';
 
 const Authorized = () => (
   <Styled>

@@ -2,9 +2,9 @@ import React from 'react';
 import styled from 'styled-components';
 import { Layout } from 'antd';
 
-import { Consumer } from '../../container/App/Context';
+import { Consumer } from '../App/Context';
 
-import Instance from '../../view/Instance';
+import Instance from './Instance';
 
 const AppView = () => (
   <Consumer>
@@ -12,7 +12,7 @@ const AppView = () => (
       let View = Instance;
 
       if (viewType === 'view') {
-        View = require(`../../view/${selectedView}/${selectedView}.js`).default;
+        View = require(`./${selectedView}/${selectedView}.js`).default;
       }
 
       return (

@@ -10,7 +10,7 @@ const storage = require('electron-json-storage');
 
 const packageJson = require('../package.json');
 
-const protocol = 'slothy';
+const protocol = packageJson.product.Protocol;
 
 const {
   getSlackInstances,
@@ -191,7 +191,7 @@ if (!app.requestSingleInstanceLock()) {
   app
     .on('second-instance', (event, commandLine, workingDirectory) => {
       event.preventDefault();
-      handleAuth(mainWindow, commandLine.slice(-1)[0]);
+      handleAuth(sendIfMainWindow, commandLine.slice(-1)[0]);
       if (mainWindow) {
         if (mainWindow.isMinimized()) {
           mainWindow.restore();
@@ -222,15 +222,20 @@ app
   })
   .on('open-url', (event, uri) => {
     event.preventDefault();
-    handleAuth(mainWindow, uri);
+    handleAuth(sendIfMainWindow, uri);
   });
 
-const sendIfMainWindow = async (event, func, data = null) => {
-  const functionName = event;
-  cached[functionName] = await func(data);
+const sendIfMainWindow = async (event, callback, data = null) => {
+  const cachedEvent = event;
+  const value = await callback(data);
+
+  if (cached[cachedEvent]) {
+    cached[cachedEvent] = value;
+  }
+
   if (mainWindow) {
     try {
-      mainWindow.webContents.send(event, cached[functionName]);
+      mainWindow.webContents.send(event, value);
     } catch (error) {
       throw new Error(error);
     }

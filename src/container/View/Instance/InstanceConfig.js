@@ -1,11 +1,11 @@
 import React from 'react';
 import styled, { css } from 'styled-components';
 
-import Emoji from '../../component/Emoji';
-import ModifyButton from '../../component/ModifyButton';
-import Icon from '../../component/Icon';
+import Emoji from '../../../component/Emoji';
+import ModifyButton from '../../../component/ModifyButton';
+import Icon from '../../../component/Icon';
 
-import { FONT_WEIGHT } from '../../assets/css';
+import { FONT_WEIGHT } from '../../../assets/css';
 
 const sharedColumns = [
   {

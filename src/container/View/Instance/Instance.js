@@ -2,14 +2,14 @@ import React from 'react';
 import styled from 'styled-components';
 import { Layout, Table, Button } from 'antd';
 
-import ModifyConfiguration from '../../component/ModifyConfiguration';
-import Emoji from '../../component/Emoji';
-import NoConnections from '../../component/NoConnections';
-import { Consumer } from '../../container/App/Context';
+import { Consumer } from '../../App/Context';
+
+import ModifyConfiguration from '../../../component/ModifyConfiguration';
+import Emoji from '../../../component/Emoji';
+import NoConnections from '../../../component/NoConnections';
+import { FONT_SIZE, BORDER, DIMENSION, COLOR } from '../../../assets/css';
 
 import { columns, nestedColumns, tableConfig } from './InstanceConfig';
-
-import { FONT_SIZE, BORDER, DIMENSION, COLOR } from '../../assets/css';
 
 const { Header, Content } = Layout;
 
