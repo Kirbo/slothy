@@ -2,7 +2,7 @@
   "name": "pages",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://kirbo.gitlab.io/slacky",
+  "homepage": "https://kirbo.gitlab.io/slothy",
   "dependencies": {
     "@babel/core": "7.2.2",
     "@svgr/webpack": "4.1.0",
@@ -110,8 +110,8 @@
       "node"
     ],
     "watchPlugins": [
-      "/Users/kirbo/Projects/slacky/pages/node_modules/jest-watch-typeahead/filename.js",
-      "/Users/kirbo/Projects/slacky/pages/node_modules/jest-watch-typeahead/testname.js"
+      "/Users/kirbo/Projects/slothy/pages/node_modules/jest-watch-typeahead/filename.js",
+      "/Users/kirbo/Projects/slothy/pages/node_modules/jest-watch-typeahead/testname.js"
     ]
   },
   "devDependencies": {

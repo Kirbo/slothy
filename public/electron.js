@@ -10,7 +10,7 @@ const storage = require('electron-json-storage');
 
 const packageJson = require('../package.json');
 
-const protocol = 'slacky';
+const protocol = 'slothy';
 
 const {
   getSlackInstances,
@@ -36,6 +36,7 @@ fetchWorkspaces();
 
 let mainWindow;
 let tray = null;
+let quit = false;
 
 const cached = {
   configurations: null,
@@ -58,7 +59,6 @@ if (process.defaultApp) {
 } else {
   app.setAsDefaultProtocolClient(protocol);
 }
-
 
 const createWindow = async () => {
   if (process.env.NODE_ENV === 'development' && !BrowserWindow.getDevToolsExtensions().hasOwnProperty('React Developer Tools')) {
@@ -91,6 +91,7 @@ const createWindow = async () => {
     icon: iconPath,
     autoHideMenuBar: true,
     show: false,
+    title: packageJson.productName,
     width,
     height,
     x,
@@ -116,7 +117,7 @@ const createWindow = async () => {
 
     const contextMenu = Menu.buildFromTemplate([
       {
-        label: 'Show App', click: function () {
+        label: 'Show App', click: () => {
           if (mainWindow) {
             if (mainWindow.isMinimized()) {
               mainWindow.restore();
@@ -129,7 +130,8 @@ const createWindow = async () => {
         }
       },
       {
-        label: 'Quit', click: function () {
+        label: 'Quit', click: () => {
+          quit = true;
           app.quit();
         }
       }
@@ -167,12 +169,6 @@ const createWindow = async () => {
         });
       });
     })
-    .on('show', () => {
-      tray.setHighlightMode('selection');
-    })
-    .on('hide', () => {
-      tray.setHighlightMode('never');
-    })
     .on('minimize', event => {
       event.preventDefault();
       mainWindow.hide();
@@ -205,9 +201,12 @@ if (!app.requestSingleInstanceLock()) {
     })
     .on('ready', createWindow)
     .on('window-all-closed', () => {
-      // if (process.platform !== 'darwin') {
-      //   app.quit();
-      // }
+      app.dock.hide();
+    })
+    .on('will-quit', event => {
+      if (!quit) {
+        event.preventDefault();
+      }
       app.dock.hide();
     });
 }
