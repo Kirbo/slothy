@@ -55,6 +55,12 @@ const Styled = styled.div`
       align-items: center;
       width: 100%;
       padding-left: ${DIMENSION['1.5x']};
+
+      & svg {
+        width: 2.429rem;
+        padding: 0.25rem;
+        height: 2.429rem;
+      }
     }
   }
 `;

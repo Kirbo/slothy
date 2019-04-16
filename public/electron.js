@@ -12,6 +12,16 @@ const packageJson = require('../package.json');
 
 const protocol = packageJson.product.Protocol;
 
+const { app, BrowserWindow, Menu, Tray, nativeImage, systemPreferences } = electron;
+
+const getIcon = () => (
+  path.join(__dirname, (process.env.NODE_ENV === 'development' ? '../src/assets' : ''), 'icons', (systemPreferences.isDarkMode() ? 'white' : 'black'), 'icon_16x16.png')
+)
+
+systemPreferences.subscribeNotification('AppleInterfaceThemeChangedNotification', () => {
+  tray.setImage(getIcon());
+});
+
 const {
   getSlackInstances,
   // updateSlackInstance,
@@ -37,6 +47,7 @@ fetchWorkspaces();
 let mainWindow;
 let tray = null;
 let quit = false;
+let computerRunning = true;
 
 const cached = {
   configurations: null,
@@ -48,9 +59,7 @@ autoUpdater.autoDownload = false;
 autoUpdater.logger = log;
 autoUpdater.logger.transports.file.level = 'info';
 
-const { app, BrowserWindow, Menu, Tray, nativeImage } = electron;
-
-const iconPath = path.join(__dirname, 'favicon.ico');
+const iconPath = getIcon();
 
 if (process.defaultApp) {
   if (process.argv.length >= 2) {
@@ -110,14 +119,12 @@ const createWindow = async () => {
     mainWindow.webContents.openDevTools();
   }
 
-  getConnections();
-
   if (!tray) {
     tray = new Tray(nativeImage.createFromPath(iconPath));
 
     const contextMenu = Menu.buildFromTemplate([
       {
-        label: 'Show App', click: () => {
+        label: `Open ${packageJson.productName}`, click: () => {
           if (mainWindow) {
             if (mainWindow.isMinimized()) {
               mainWindow.restore();
@@ -174,13 +181,19 @@ const createWindow = async () => {
       mainWindow.hide();
     })
     .on('close', event => {
+      event.preventDefault();
       if (mainWindow) {
         mainWindow.hide();
         app.dock.hide();
+
+        if (process.env.NODE_ENV === 'development') {
+          mainWindow.webContents.closeDevTools();
+        }
       }
-
+    })
+    .on('closed', event => {
+      event.preventDefault();
       mainWindow = null;
-
       return false;
     });
 }
@@ -197,17 +210,9 @@ if (!app.requestSingleInstanceLock()) {
           mainWindow.restore();
         }
         mainWindow.focus();
+      } else {
+        createWindow();
       }
-    })
-    .on('ready', createWindow)
-    .on('window-all-closed', () => {
-      app.dock.hide();
-    })
-    .on('will-quit', event => {
-      if (!quit) {
-        event.preventDefault();
-      }
-      app.dock.hide();
     });
 }
 
@@ -216,20 +221,56 @@ app
     if (mainWindow === null) {
       createWindow();
     } else {
-      mainWindow.restore();
+      mainWindow.show();
       mainWindow.focus();
     }
+  })
+  .on('ready', () => {
+    createWindow();
+    electron.powerMonitor
+      .on('suspend', () => {
+        console.log('system going to suspend');
+        computerRunning = false;
+      })
+      .on('resume', () => {
+        console.log('system resuming');
+        computerRunning = true;
+      })
+      .on('shutdown', () => {
+        console.log('system going to shutdown');
+        app.quit();
+      });
   })
   .on('open-url', (event, uri) => {
     event.preventDefault();
     handleAuth(sendIfMainWindow, uri);
+  })
+  .on('window-all-closed', () => {
+    app.dock.hide();
+  })
+  .on('will-quit', event => {
+    if (!quit) {
+      event.preventDefault();
+
+      if (mainWindow) {
+        mainWindow.hide();
+        app.dock.hide();
+
+        if (process.env.NODE_ENV === 'development') {
+          mainWindow.webContents.closeDevTools();
+        }
+
+        mainWindow = null;
+        return false;
+      }
+    }
   });
 
 const sendIfMainWindow = async (event, callback, data = null) => {
   const cachedEvent = event;
   const value = await callback(data);
 
-  if (cached[cachedEvent]) {
+  if (cached.hasOwnProperty(cachedEvent)) {
     cached[cachedEvent] = value;
   }
 
@@ -244,7 +285,7 @@ const sendIfMainWindow = async (event, callback, data = null) => {
 
 ipc
   .on('initialize', async () => {
-    if (mainWindow && cached.configurations && cached.connections && cached.slackInstances) {
+    if (cached.configurations && cached.connections && cached.slackInstances) {
       sendIfMainWindow('configurations', () => cached.configurations);
       sendIfMainWindow('connections', () => cached.connections);
       sendIfMainWindow('slackInstances', () => cached.slackInstances);
@@ -257,8 +298,14 @@ ipc
   .on('getConnections', async (event, data) => sendIfMainWindow('connections', getConnections))
   .on('removeSlackInstance', async (event, data) => sendIfMainWindow('slackInstances', removeSlackInstance, data))
   .on('getConfigurations', async (event, data) => sendIfMainWindow('configurations', getConfigurations))
-  .on('saveConfiguration', async (event, data) => sendIfMainWindow('configurations', saveConfiguration, data))
-  .on('removeConfiguration', async (event, data) => sendIfMainWindow('configurations', removeConfiguration, data))
+  .on('saveConfiguration', async (event, data) => {
+    await sendIfMainWindow('configurations', saveConfiguration, data);
+    await sendIfMainWindow('savedConfiguration', data => data, false);
+  })
+  .on('removeConfiguration', async (event, data) => {
+    await sendIfMainWindow('configurations', removeConfiguration, data);
+    await sendIfMainWindow('removedConfiguration', data => data, false);
+  })
   .on('setStatus', async (event, data) => {
     await setStatus(data);
     sendIfMainWindow('slackInstances', getSlackInstances);
@@ -279,9 +326,12 @@ ipc
   });
 
 
+
 setInterval(async () => {
-  cached.slackInstances = await fetchWorkspaces();
-  if (mainWindow) {
-    mainWindow.webContents.send('slackInstances', cached.slackInstances);
+  if (computerRunning) {
+    cached.slackInstances = await fetchWorkspaces();
+    if (mainWindow) {
+      mainWindow.webContents.send('slackInstances', cached.slackInstances);
+    }
   }
 }, fetchWorkspacesInterval * 60 * 1000);

@@ -24,7 +24,7 @@ const sharedColumns = [
     title: 'Enabled',
     dataIndex: 'enabled',
     className: 'enabled',
-    render: (text, { enabled }) => enabled ? <Icon icon="check" /> : <Icon icon="times" />,
+    render: (text, { config }) => config && config.enabled === true ? <Icon icon="check" /> : <Icon icon="times" />,
   },
   {
     title: 'Config',
@@ -44,7 +44,7 @@ export const columns = [
 
 export const nestedColumns = [
   {
-    title: 'BSSID',
+    title: 'Access Point',
     dataIndex: 'bssid',
     className: 'bssid',
     render: (text, { bssid, connected }, index) => <BssidName connected={connected}>{text}</BssidName>
@@ -55,7 +55,7 @@ export const nestedColumns = [
 export const tableConfig = {
   rowKey: 'key',
   pagination: false,
-  rowClassName: (record, index) => `config-${record.enabled ? 'enabled' : 'disabled'}`,
+  rowClassName: ({ config }, index) => `config-${config && !!config.enabled ? 'enabled' : 'disabled'}`,
 };
 
 export const SsidName = styled.div`

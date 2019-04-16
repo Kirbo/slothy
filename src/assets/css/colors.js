@@ -1,7 +1,10 @@
 const COLOR = {
   white: '#fff',
-  black: '#000',
   lightGray: '#999',
+  darkGray: '#555',
+  darkerGray: '#333',
+  black: '#000',
+
   red: '#e60004',
   darkBlue: '#00142a',
 

@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import styled from 'styled-components';
-import { Drawer, Form, Button, Col, Row, Input, Select, DatePicker, Divider } from 'antd';
+import uuid from 'uuid/v4';
+import { Drawer, Form, Button, Col, Row, Input, Select, Radio, Divider } from 'antd';
 import emoji from 'node-emoji';
 
 import { Consumer } from '../../container/App/Context';
@@ -12,30 +13,64 @@ import { DIMENSION } from '../../assets/css';
 const { Option } = Select;
 
 class ModifyConfiguration extends Component {
-  state = {
-    selectedEmoji: null,
-  };
-
   render() {
     const { getFieldDecorator } = this.props.form;
 
     return (
       <Consumer>
-        {({ modifyConfiguration, drawerConfig, slackInstances, selectedView, searchEmoji, selectedEmoji, setProperty, emojiLimit }) => {
+        {({ modifyConfiguration, drawerVisible, drawerConfig, slackInstances, selectedView, searchEmoji, setProperty, emojiLimit, saveConfiguration, removeConfiguration, savingConfiguration, removingConfiguration }) => {
           const instance = slackInstances.find(({ id }) => id === selectedView);
           const { emojis } = instance;
 
-          const handleClose = () => modifyConfiguration(null);
+          if (!drawerVisible && !drawerConfig) {
+            return null;
+          } else if (!drawerVisible && drawerConfig) {
+            this.props.form.resetFields();
+          }
+
+          const handleDelete = () => {
+            setProperty({ removingConfiguration: true });
+            removeConfiguration(drawerConfig.config.id);
+          }
+
+          const handleClose = () => {
+            setProperty({ drawerVisible: false });
+          }
+
+          const handleSubmit = event => {
+            event.preventDefault();
+            this.props.form.validateFields((err, values) => {
+              if (!err) {
+                setProperty({
+                  savingConfiguration: true,
+                  searchEmoji: '',
+                });
+                saveConfiguration({
+                  ...values,
+                  id: drawerConfig.config.id || uuid(),
+                  emoji: `:${values.emoji}:`,
+                });
+              }
+            });
+          }
 
           const allEmojis = [
             ...Object.keys(emojis).map(key => ({ key, value: emojis[key] })).sort(sortBy('key')),
             ...emoji.search('').sort(sortBy('key')),
           ];
 
+          const selectedEmoji = drawerConfig
+            && drawerConfig.config
+            && drawerConfig.config.emoji
+            ? drawerConfig.config.emoji.replace(/:/g, '')
+            : null;
+
           let searchedEmojis = allEmojis.filter(({ key, value }) => key.includes(searchEmoji));
           if (searchEmoji) {
             searchedEmojis.sort(sortBy('key'));
           }
+          // let filteredEmojis = searchedEmojis;
+          /**/
           let filteredEmojis = searchedEmojis.slice(0, emojiLimit);
           const selected = allEmojis.find(({ key, value }) => key === selectedEmoji);
           if (selectedEmoji && selected) {
@@ -43,6 +78,9 @@ class ModifyConfiguration extends Component {
             filteredEmojis.unshift(selected);
             filteredEmojis = filteredEmojis.slice(0, emojiLimit);
           }
+          /**/
+
+          const isGroup = !!drawerConfig.accessPoints;
 
           return (
             <Styled>
@@ -50,36 +88,44 @@ class ModifyConfiguration extends Component {
                 title="Create a new account"
                 width="calc(100% - 300px)"
                 onClose={handleClose}
-                visible={!!drawerConfig}
+                visible={drawerVisible}
               >
-                <Form layout="vertical" hideRequiredMark>
+                <Form layout="vertical" hideRequiredMark onSubmit={handleSubmit}>
+                  <Form.Item>
+                    {getFieldDecorator('instanceId', {
+                      initialValue: drawerConfig.instanceId
+                    })(<span />)}
+                  </Form.Item>
                   <Row gutter={16}>
                     <Col span={12}>
-                      <Form.Item label="Name">
-                        {getFieldDecorator('name', {
-                          rules: [{ required: true, message: 'Please enter user name' }],
-                        })(<Input placeholder="Please enter user name" />)}
+                      <Form.Item label="SSID">
+                        {getFieldDecorator('ssid', {
+                          initialValue: drawerConfig.ssid || null,
+                        })(<div>{drawerConfig.ssid}</div>)}
                       </Form.Item>
                     </Col>
                     <Col span={12}>
-                      <Form.Item label="Url">
-                        {getFieldDecorator('url', {
-                          rules: [{ required: true, message: 'Please enter url' }],
+                      <Form.Item label="Access Point">
+                        {getFieldDecorator('bssid', {
+                          initialValue: drawerConfig.bssid || null,
                         })(
-                          <Input
-                            style={{ width: '100%' }}
-                            addonBefore="http://"
-                            addonAfter=".com"
-                            placeholder="Please enter url"
-                          />
+                          isGroup
+                            ? (
+                              <Select placeholder="Select an access point">
+                                {drawerConfig.accessPoints.map(({ bssid }) => (
+                                  <Option key={bssid}>{bssid.toUpperCase()}</Option>
+                                ))}
+                              </Select>
+                            )
+                            : (<div>{drawerConfig.bssid.toUpperCase()}</div>)
                         )}
                       </Form.Item>
                     </Col>
                   </Row>
                   <Row gutter={16}>
-                    <Col span={12}>
+                    <Col span={24}>
                       <Form.Item label="Emoji">
-                        {getFieldDecorator('emoji')(
+                        {getFieldDecorator('emoji', selectedEmoji ? { initialValue: selectedEmoji } : {})(
                           <Select
                             allowClear
                             showSearch
@@ -110,79 +156,52 @@ class ModifyConfiguration extends Component {
                         )}
                       </Form.Item>
                     </Col>
-                    <Col span={12}>
-                      <Form.Item label="Type">
-                        {getFieldDecorator('type', {
-                          rules: [{ required: true, message: 'Please choose the type' }],
-                        })(
-                          <Select placeholder="Please choose the type">
-                            <Option value="private">Private</Option>
-                            <Option value="public">Public</Option>
-                          </Select>
-                        )}
-                      </Form.Item>
-                    </Col>
-                  </Row>
-                  <Row gutter={16}>
-                    <Col span={12}>
-                      <Form.Item label="Approver">
-                        {getFieldDecorator('approver', {
-                          rules: [{ required: true, message: 'Please choose the approver' }],
-                        })(
-                          <Select placeholder="Please choose the approver">
-                            <Option value="jack">Jack Ma</Option>
-                            <Option value="tom">Tom Liu</Option>
-                          </Select>
-                        )}
-                      </Form.Item>
-                    </Col>
-                    <Col span={12}>
-                      <Form.Item label="DateTime">
-                        {getFieldDecorator('dateTime', {
-                          rules: [{ required: true, message: 'Please choose the dateTime' }],
-                        })(
-                          <DatePicker.RangePicker
-                            style={{ width: '100%' }}
-                            getPopupContainer={trigger => trigger.parentNode}
-                          />
-                        )}
-                      </Form.Item>
-                    </Col>
                   </Row>
                   <Row gutter={16}>
                     <Col span={24}>
-                      <Form.Item label="Description">
-                        {getFieldDecorator('description', {
-                          rules: [
-                            {
-                              required: true,
-                              message: 'please enter url description',
-                            },
-                          ],
-                        })(<Input.TextArea rows={4} placeholder="please enter url description" />)}
+                      <Form.Item label="Status">
+                        {getFieldDecorator('status', {
+                          initialValue: drawerConfig.config.status,
+                          rules: [{
+                            max: 100,
+                            message: 'Status can be only 100 characters long!',
+                          }],
+                        })(
+                          <Input placeholder="Status, e.g.: Working remotely, At the Helsinki office, ..." />
+                        )}
                       </Form.Item>
                     </Col>
                   </Row>
+                  <Row gutter={16}>
+                    <Col span={12}>
+                      <Form.Item label="Enabled">
+                        {getFieldDecorator('enabled', {
+                          initialValue: drawerConfig.config && drawerConfig.config.hasOwnProperty('enabled') ? drawerConfig.config.enabled : true,
+                        })(
+                          <Radio.Group buttonStyle="solid">
+                            <Radio.Button value={true}>Enabled</Radio.Button>
+                            <Radio.Button value={false}>Disabled</Radio.Button>
+                          </Radio.Group>
+                        )}
+                      </Form.Item>
+                    </Col>
+                  </Row>
+                  <ActionButtons>
+                    <LeftColumn>
+                      <Button onClick={handleDelete} type="danger" disabled={removingConfiguration} loading={removingConfiguration}>
+                        Delete
+                    </Button>
+                    </LeftColumn>
+                    <RightColumn>
+                      <Button onClick={handleClose} style={{ marginRight: 8 }}>
+                        Cancel
+                    </Button>
+                      <Button htmlType="submit" type="primary" disabled={savingConfiguration} loading={savingConfiguration}>
+                        Save
+                    </Button>
+                    </RightColumn>
+                  </ActionButtons>
                 </Form>
-                <div
-                  style={{
-                    position: 'absolute',
-                    left: 0,
-                    bottom: 0,
-                    width: '100%',
-                    borderTop: '1px solid #e9e9e9',
-                    padding: '10px 16px',
-                    background: '#fff',
-                    textAlign: 'right',
-                  }}
-                >
-                  <Button onClick={handleClose} style={{ marginRight: 8 }}>
-                    Cancel
-                  </Button>
-                  <Button onClick={handleClose} type="primary">
-                    Save
-                  </Button>
-                </div>
               </Drawer>
             </Styled>
           );
@@ -201,6 +220,26 @@ const TooManyResults = styled.div`
   & div.text {
     padding: ${DIMENSION['0.5x']};
   }
+`;
+const ActionButtons = styled.div`
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  border-top: 1px solid #e9e9e9;
+  padding: 10px 16px;
+  background: #fff;
+  display: flex;
+  flex: 1 1 100%;
+`;
+const LeftColumn = styled.div`
+  display: flex;
+  flex: 1 1 30%;
+`;
+const RightColumn = styled.div`
+  display: flex;
+  flex: 1 1 70%;
+  justify-content: flex-end;
 `;
 
 export default Form.create()(ModifyConfiguration);

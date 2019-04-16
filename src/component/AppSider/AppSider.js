@@ -5,6 +5,7 @@ import { Layout } from 'antd';
 import A from '../A';
 import Menu from '../Menu';
 import AddInstance from '../AddInstance';
+import Logo from '../Logo';
 
 import { BORDER, COLOR, DIMENSION, FONT_SIZE } from '../../assets/css';
 import { COPYRIGHT } from '../../assets/constants';
@@ -16,7 +17,7 @@ const { Sider, Footer } = Layout;
 const AppSider = () => (
   <StyledSider>
     <Sider>
-      <Logo>Slothy</Logo>
+      <Logo withText />
       <Scrollable>
         <Menu />
         <AddInstance mode="text" text="Add new instance" />
@@ -27,19 +28,6 @@ const AppSider = () => (
     </Sider>
   </StyledSider>
 );
-
-const LOGO_HEIGHT = '5rem';
-
-const Logo = styled.div`
-  color: #000;
-  background: ${COLOR['darkBlue']};
-  color: ${COLOR['white']};
-  flex: 0;
-  align-items: center;
-  justify-content: center;
-  display: flex;
-  flex: 0 0 ${LOGO_HEIGHT};
-`;
 
 const Scrollable = styled.div`
   overflow: auto;

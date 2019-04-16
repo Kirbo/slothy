@@ -13,12 +13,14 @@ const INITIAL_STATE = {
   slackInstances: [],
   configurations: [],
   expandedRowKeys: [],
-  currentToken: null,
   viewType: type,
   selectedView: name,
   drawerConfig: null,
   searchEmoji: '',
   emojiLimit: 100,
+  drawerVisible: false,
+  savingConfiguration: false,
+  removingConfiguration: false,
 };
 
 export default INITIAL_STATE;

@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { message } from 'antd';
 
 import INITIAL_STATE from './InitialState';
 import { Provider } from './Context';
@@ -14,10 +15,10 @@ let connectionsTimeout;
 class AppProvider extends Component {
   state = {
     ...INITIAL_STATE,
-    removeSlackInstance: (token) => {
+    removeSlackInstance: token => {
       ipcRenderer.send('removeSlackInstance', { token });
     },
-    setProperty: (newState) => {
+    setProperty: newState => {
       this.setState(prevState => ({
         ...prevState,
         ...newState,
@@ -52,10 +53,17 @@ class AppProvider extends Component {
         });
       }
     },
-    modifyConfiguration: (record) => {
+    modifyConfiguration: record => {
       this.state.setProperty({
         drawerConfig: record,
+        drawerVisible: true,
       });
+    },
+    saveConfiguration: configuration => {
+      ipcRenderer.send('saveConfiguration', configuration);
+    },
+    removeConfiguration: id => {
+      ipcRenderer.send('removeConfiguration', { id });
     },
   };
 
@@ -83,6 +91,21 @@ class AppProvider extends Component {
       this.state.setProperty({ configurations });
     });
 
+    ipcRenderer.on('savedConfiguration', (event, value) => {
+      this.state.setProperty({
+        savingConfiguration: value,
+        drawerVisible: false,
+      });
+      message.success('Configuration succesfully saved.');
+    });
+    ipcRenderer.on('removedConfiguration', (event, value) => {
+      this.state.setProperty({
+        removingConfiguration: value,
+        drawerVisible: false,
+      });
+      message.success('Configuration succesfully removed.');
+    });
+
     ipcRenderer.on('slackInstances', (event, slackInstances) => {
       let { viewType, selectedView } = this.state;
 
@@ -99,10 +122,6 @@ class AppProvider extends Component {
         selectedView,
       });
     });
-
-    ipcRenderer.on('newSlackInstance', (event, slackInstance) => {
-      console.log('slackInstance', slackInstance);
-    });
   };
 
   componentWillUnmount = () => {
@@ -114,6 +133,8 @@ class AppProvider extends Component {
       'slackInstances',
       'newSlackInstance',
       'wifiStatus',
+      'savedConfiguration',
+      'removedConfiguration',
     ].forEach(channel => {
       ipcRenderer.removeAllListeners(channel);
     });

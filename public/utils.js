@@ -1,7 +1,6 @@
 const storage = require('electron-json-storage');
 const slack = require('slack');
 const wifi = require('node-wifi');
-const uuid = require('uuid/v4');
 const url = require('url');
 const request = require('request');
 const packageJson = require('../package.json');
@@ -183,8 +182,7 @@ const getConnections = () => (
               })
             } else {
               return [...result, {
-                ...item,
-                bssid: null,
+                ssid: item.ssid,
                 key: `group-${item.ssid}`,
                 accessPoints: [{
                   ...item,
@@ -267,32 +265,27 @@ const getConfigurations = async () => (
       if (error) {
         reject(error);
       }
-      let configurations = [];
-      if (data.length) {
-        configurations = data;
-      }
-      resolve(configurations);
+      resolve(data);
     });
   })
 );
 
 const saveConfiguration = async (configuration) => (
   new Promise(async (resolve, reject) => {
-    const configurations = await getConfigurations();
+    const configurations = (await getConfigurations()).filter(({ id }) => id !== configuration.id);
     storage.set('configurations', [...configurations, configuration], async (error, data) => {
-      resolve(configuration);
+      resolve(await getConfigurations());
     });
   })
 );
 
 const removeConfiguration = async ({ id }) => (
   new Promise(async (resolve, reject) => {
-    const configurations = await getConfigurations();
-    storage.set('configurations', configurations.filter(configuration => configuration.id !== id), (error, data) => {
+    storage.set('configurations', (await getConfigurations()).filter(configuration => configuration.id !== id), async (error, data) => {
       if (error) {
         reject(error);
       }
-      resolve(getConfigurations());
+      resolve(await getConfigurations());
     });
 
   })

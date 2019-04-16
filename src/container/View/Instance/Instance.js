@@ -17,20 +17,21 @@ const Instance = () => (
   <Consumer>
     {({ wifiEnabled, ssidsLoaded, currentSsids, ssids, slackInstances, setStatus, getConnections, selectedView, removeSlackInstance, configurations, expandedRowKeys, handleExpand }) => {
       const instance = slackInstances.find(({ id }) => id === selectedView);
-      const { profile } = instance;
+      const { id, profile } = instance;
 
       const statusSet = (profile.status_emoji || profile.status_text);
 
       const sortAndFindConfig = (array, findConfigBy) => (
         array
           .map(ssid => ({
+            instanceId: id,
             config: (configurations
               .filter(config => !!config[findConfigBy])
               .find(config =>
                 config.instanceId.toUpperCase() === instance.id.toUpperCase()
                 && ssid[findConfigBy]
                 && config[findConfigBy].toUpperCase() === ssid[findConfigBy].toUpperCase()
-              ) || null),
+              ) || { emoji: '', status: '' }),
             ...ssid,
             ...((ssid.accessPoints && { accessPoints: sortAndFindConfig(ssid.accessPoints, 'bssid') }) || {}),
           })
@@ -107,6 +108,9 @@ const Instance = () => (
   </Consumer>
 );
 
+const HeaderHeight = DIMENSION['5x'];
+const ContentTopMargin = `calc(${HeaderHeight} + ${DIMENSION['1x']})`;
+
 const StyledInstance = styled.div`
   min-width: 100%;
   min-height: 100%;
@@ -114,18 +118,22 @@ const StyledInstance = styled.div`
   & .ant-layout-header {
     display: flex;
     justify-content: space-between;
+    align-items: center;
     background: ${COLOR['white']};
     padding: 0;
     position: fixed;
     width: calc(100% - 200px);
-    z-index: 100;
+    height: ${HeaderHeight};
+    min-height: ${HeaderHeight};
+    max-height: ${HeaderHeight};
+    z-index: 99;
     box-shadow: 0 ${DIMENSION['0.125x']} ${DIMENSION['0.75x']} rgba(0, 0, 0, 0.25);
   }
 
   & .ant-layout-content {
-    margin: ${DIMENSION['1.5x']} ${DIMENSION['1x']} 0;
+    margin: ${DIMENSION['1.5x']} ${DIMENSION['1x']};
     overflow: initial;
-    margin-top: ${DIMENSION['5x']};
+    margin-top: ${ContentTopMargin};
     font-size: ${FONT_SIZE['regular']};
   }
 
