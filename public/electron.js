@@ -129,6 +129,7 @@ const createWindow = async () => {
             if (mainWindow.isMinimized()) {
               mainWindow.restore();
             }
+            app.dock.show();
             mainWindow.show();
             mainWindow.focus();
           } else {
@@ -154,6 +155,7 @@ const createWindow = async () => {
 
   mainWindow
     .once('ready-to-show', () => {
+      app.dock.show();
       mainWindow.show();
     })
     .on('move', () => {
@@ -181,7 +183,9 @@ const createWindow = async () => {
       mainWindow.hide();
     })
     .on('close', event => {
-      event.preventDefault();
+      if (!quit) {
+        event.preventDefault();
+      }
       if (mainWindow) {
         mainWindow.hide();
         app.dock.hide();
@@ -221,6 +225,7 @@ app
     if (mainWindow === null) {
       createWindow();
     } else {
+      app.dock.show();
       mainWindow.show();
       mainWindow.focus();
     }
@@ -235,10 +240,6 @@ app
       .on('resume', () => {
         console.log('system resuming');
         computerRunning = true;
-      })
-      .on('shutdown', () => {
-        console.log('system going to shutdown');
-        app.quit();
       });
   })
   .on('open-url', (event, uri) => {
