@@ -11,7 +11,7 @@
   },
   "engines": {
     "node": ">=8.15.1",
-    "yarn": ">=1.15.2"
+    "yarn": ">=1.12.3"
   },
   "author": "Kirbo",
   "version": "0.1.0",
