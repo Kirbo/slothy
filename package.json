@@ -9,10 +9,6 @@
     "Pages": "https://kirbo.gitlab.io/slothy/",
     "Protocol": "slothy"
   },
-  "engines": {
-    "node": ">=8.15.1",
-    "yarn": ">=1.12.3"
-  },
   "author": "Kirbo",
   "version": "0.1.0",
   "private": true,
