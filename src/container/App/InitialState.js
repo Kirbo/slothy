@@ -17,6 +17,7 @@ const INITIAL_STATE = {
   selectedView: name,
   drawerConfig: null,
   searchEmoji: '',
+  selectedEmoji: undefined,
   emojiLimit: 100,
   drawerVisible: false,
   savingConfiguration: false,

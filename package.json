@@ -9,7 +9,7 @@
     "Pages": "https://kirbo.gitlab.io/slothy/",
     "Protocol": "slothy"
   },
-  "author": "kirbownz@me.com",
+  "author": "Kirbo",
   "version": "0.1.0",
   "private": true,
   "main": "public/electron.js",

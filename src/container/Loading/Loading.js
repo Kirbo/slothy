@@ -4,6 +4,8 @@ import styled from 'styled-components';
 import { GlobalStyles, FONT_SIZE } from '../../assets/css';
 import { DIMENSION, COLOR } from '../../assets/css';
 
+import Logo from '../../component/Logo';
+
 class Loading extends Component {
   state = {};
 
@@ -32,6 +34,7 @@ class Loading extends Component {
       <Styled hideLoading={this.props.hideLoading}>
         <Layout>
           <div className="container">
+            <Logo withText />
             <div className="loading hidden">
               Loading, please standby...
             </div>
@@ -58,6 +61,22 @@ const Styled = styled.div`
   background: radial-gradient(${COLOR['darkBlue']}, ${COLOR['black']});
   transition: all 0.5s ease;
   opacity: ${({ hideLoading }) => hideLoading ? 0 : 1};
+
+  & div.logo {
+    height: ${DIMENSION['10x']};
+    min-height: ${DIMENSION['10x']};
+    max-height: ${DIMENSION['10x']};
+    width: 20rem;
+    min-width: 20rem;
+    max-width: 20rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    & svg.logo-text {
+      fill: ${COLOR['white']};
+    }
+  }
 `;
 
 const Layout = styled.div`
@@ -75,7 +94,7 @@ const Layout = styled.div`
     color: ${COLOR['lightGray']};
     opacity: 1;
     height: ${DIMENSION['1.5x']};
-    top: calc(50% - ${DIMENSION['1.5x']}/2);
+    top: calc(50% - ${DIMENSION['1.5x']}/2 + ${DIMENSION['4x']});
     transition: all 0.25s ease;
     position: absolute;
     margin-left: 0;

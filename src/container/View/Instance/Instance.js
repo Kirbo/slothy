@@ -65,7 +65,7 @@ const Instance = () => (
       };
 
       return (
-        <StyledInstance>
+        <Styled>
           <Header>
             <Column className={statusSet ? 'end' : 'center'}>
               <Image className="round"><img src={profile.image_48} alt={profile.real_name_normalized} /></Image>
@@ -102,7 +102,7 @@ const Instance = () => (
             </Centered>
             <ModifyConfiguration />
           </Content>
-        </StyledInstance>
+        </Styled>
       );
     }}
   </Consumer>
@@ -111,7 +111,7 @@ const Instance = () => (
 const HeaderHeight = DIMENSION['5x'];
 const ContentTopMargin = `calc(${HeaderHeight} + ${DIMENSION['1x']})`;
 
-const StyledInstance = styled.div`
+export const Styled = styled.div`
   min-width: 100%;
   min-height: 100%;
 
@@ -139,6 +139,8 @@ const StyledInstance = styled.div`
 
   & .ant-table {
     font-size: ${FONT_SIZE['regular']};
+    max-width: 100%;
+    min-width: 100%;
 
     & .bssid {
       text-transform: uppercase;
@@ -146,6 +148,15 @@ const StyledInstance = styled.div`
     & tr {
       & td {
         height: ${DIMENSION['4x']};
+      }
+      & .slack {
+        max-width: ${DIMENSION['4x']};
+      }
+      & .ssid {
+        max-width: ${DIMENSION['6x']};
+      }
+      & .bssid {
+        max-width: ${DIMENSION['6x']};
       }
       & .emoji {
         width: ${DIMENSION['5x']};

@@ -5,21 +5,21 @@ import { Consumer } from '../../container/App/Context';
 
 import { COLOR } from '../../assets/css';
 
-const ModifyButton = ({ instanceId, record }) => (
+const ModifyButton = ({ record }) => (
   <Consumer>
     {({ modifyConfiguration }) => (
       <Styled
-        onClick={() => modifyConfiguration({ instanceId, ...record })}
-        configuration={record.config}
+        onClick={() => modifyConfiguration(record)}
+        existing={record.config.id}
       >
-        {record.config ? 'Modify' : 'Add'}
+        {record && record.config && record.config.id ? 'Modify' : 'Add'}
       </Styled>
     )}
   </Consumer>
 )
 
 const Styled = styled.a`
-  color: ${({ configuration }) => configuration ? COLOR['red'] : COLOR['lightGray']};
+  color: ${({ existing }) => existing ? COLOR['red'] : COLOR['lightGray']};
 `;
 
 export default ModifyButton;

@@ -60,9 +60,16 @@ class AppProvider extends Component {
       });
     },
     saveConfiguration: configuration => {
+      this.state.setProperty({
+        savingConfiguration: true,
+        searchEmoji: '',
+      });
       ipcRenderer.send('saveConfiguration', configuration);
     },
     removeConfiguration: id => {
+      this.state.setProperty({
+        removingConfiguration: true,
+      });
       ipcRenderer.send('removeConfiguration', { id });
     },
   };
@@ -90,6 +97,9 @@ class AppProvider extends Component {
     ipcRenderer.on('configurations', (event, configurations) => {
       this.state.setProperty({ configurations });
     });
+    ipcRenderer.on('info', (event, message) => {
+      message.info(message);
+    });
 
     ipcRenderer.on('savedConfiguration', (event, value) => {
       this.state.setProperty({
@@ -106,6 +116,28 @@ class AppProvider extends Component {
       message.success('Configuration succesfully removed.');
     });
 
+    ipcRenderer.on('success', (event, data) => {
+      console.log('success', data);
+      message.success(data);
+    });
+    ipcRenderer.on('error', (event, data) => {
+      console.log('error', data);
+      message.error(data);
+    });
+    ipcRenderer.on('info', (event, data) => {
+      console.log('info', data);
+      message.info(data);
+    });
+    ipcRenderer.on('warning', (event, data) => {
+      console.log('warning', data);
+      message.warn(data);
+    });
+    ipcRenderer.on('loading', (event, data) => {
+      console.log('loading', data);
+      message.loading(data);
+    });
+
+    ipcRenderer.on('newSlackInstance', (event, data) => {});
     ipcRenderer.on('slackInstances', (event, slackInstances) => {
       let { viewType, selectedView } = this.state;
 
@@ -135,6 +167,11 @@ class AppProvider extends Component {
       'wifiStatus',
       'savedConfiguration',
       'removedConfiguration',
+      'success',
+      'error',
+      'info',
+      'warning',
+      'loading',
     ].forEach(channel => {
       ipcRenderer.removeAllListeners(channel);
     });

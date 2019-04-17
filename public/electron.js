@@ -12,7 +12,7 @@ const packageJson = require('../package.json');
 
 const protocol = packageJson.product.Protocol;
 
-const { app, BrowserWindow, Menu, Tray, nativeImage, systemPreferences } = electron;
+const { app, BrowserWindow, Menu, Tray, nativeImage, systemPreferences, shell } = electron;
 
 const getIcon = () => (
   path.join(__dirname, (process.env.NODE_ENV === 'development' ? '../src/assets' : ''), 'icons', (systemPreferences.isDarkMode() ? 'white' : 'black'), 'icon_16x16.png')
@@ -37,6 +37,7 @@ const {
   getConfigurations,
   saveConfiguration,
   removeConfiguration,
+  clearConfigurations,
   handleAuth,
 } = require('./utils.js');
 
@@ -92,7 +93,7 @@ const createWindow = async () => {
     });
   });
   const [x, y] = windowSettings.position || [null, null];
-  const [width, height] = windowSettings.size || [900, 600];
+  const [width, height] = windowSettings.size || [950, 600];
 
   mainWindow = new BrowserWindow({
     minWidth: 600,
@@ -119,6 +120,94 @@ const createWindow = async () => {
     mainWindow.webContents.openDevTools();
   }
 
+  const MENU_TEMPLATE = [
+    {
+      label: 'Edit',
+      submenu: [
+        { label: 'Undo', accelerator: 'CmdOrCtrl+Z', selector: 'undo:' },
+        { label: 'Redo', accelerator: 'Shift+CmdOrCtrl+Z', selector: 'redo:' },
+        { type: 'separator' },
+        { label: 'Cut', accelerator: 'CmdOrCtrl+X', selector: 'cut:' },
+        { label: 'Copy', accelerator: 'CmdOrCtrl+C', selector: 'copy:' },
+        { label: 'Paste', accelerator: 'CmdOrCtrl+V', selector: 'paste:' },
+        { label: 'Select All', accelerator: 'CmdOrCtrl+A', selector: 'selectAll:' },
+      ],
+    },
+    {
+      role: 'window',
+      submenu: [
+        { role: 'zoomIn' },
+        { role: 'zoomOut' },
+        { role: 'resetZoom' },
+        { type: 'separator' },
+        { role: 'reload' },
+        { role: 'forcereload' },
+        { type: 'separator' },
+        { role: 'close' },
+        { role: 'minimize' },
+      ],
+    },
+  ];
+
+  if (process.platform === 'darwin') {
+    // Window menu
+    MENU_TEMPLATE[1].submenu = [
+      { role: 'zoomIn' },
+      { role: 'zoomOut' },
+      { role: 'resetZoom' },
+      { type: 'separator' },
+      { role: 'reload' },
+      { role: 'forcereload' },
+      { type: 'separator' },
+      { role: 'close' },
+      { role: 'minimize' },
+      { role: 'zoom' },
+      { type: 'separator' },
+      { role: 'front' },
+    ];
+  }
+
+  if (process.platform === 'darwin') {
+    MENU_TEMPLATE.unshift({
+      label: packageJson.productName,
+      submenu: [
+        { role: 'about' },
+        { type: 'separator' },
+        {
+          label: 'Check for updates',
+          click() { autoUpdater.checkForUpdates(); },
+        },
+        { role: 'services', submenu: [] },
+        { type: 'separator' },
+        { role: 'hide' },
+        { role: 'hideothers' },
+        { role: 'unhide' },
+        { type: 'separator' },
+        { role: 'quit' },
+      ],
+    });
+  }
+
+  MENU_TEMPLATE.push({
+    role: 'help',
+    submenu: [
+      {
+        label: 'Check for updates',
+        click: () => { autoUpdater.checkForUpdates(); },
+      },
+      {
+        label: 'Official website',
+        click: () => { shell.openExternal(packageJson.product.Pages); },
+      },
+      { role: 'toggleDevTools' },
+      {
+        label: 'Clear configurations',
+        click: async () => { await sendIfMainWindow('configurations', clearConfigurations); },
+      },
+    ],
+  });
+  Menu.setApplicationMenu(Menu.buildFromTemplate(MENU_TEMPLATE));
+
   if (!tray) {
     tray = new Tray(nativeImage.createFromPath(iconPath));
 
@@ -142,7 +231,7 @@ const createWindow = async () => {
           quit = true;
           app.quit();
         }
-      }
+      },
     ]);
     tray.setToolTip(packageJson.productName);
     tray.setContextMenu(contextMenu);
@@ -301,11 +390,11 @@ ipc
   .on('getConfigurations', async (event, data) => sendIfMainWindow('configurations', getConfigurations))
   .on('saveConfiguration', async (event, data) => {
     await sendIfMainWindow('configurations', saveConfiguration, data);
-    await sendIfMainWindow('savedConfiguration', data => data, false);
+    await sendIfMainWindow('savedConfiguration', () => false);
   })
   .on('removeConfiguration', async (event, data) => {
     await sendIfMainWindow('configurations', removeConfiguration, data);
-    await sendIfMainWindow('removedConfiguration', data => data, false);
+    await sendIfMainWindow('removedConfiguration', () => false);
   })
   .on('setStatus', async (event, data) => {
     await setStatus(data);
@@ -314,6 +403,7 @@ ipc
   .on('checkUpdates', () => {
     if (mainWindow) {
       autoUpdater.checkForUpdates();
+      mainWindow.webContents.send('info', 'Checking updates');
     }
   })
   .on('update', () => {

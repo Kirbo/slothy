@@ -184,6 +184,7 @@ const getConnections = () => (
               return [...result, {
                 ssid: item.ssid,
                 key: `group-${item.ssid}`,
+                connected: item.connected,
                 accessPoints: [{
                   ...item,
                   key: `bssid-${item.bssid}`,
@@ -265,7 +266,11 @@ const getConfigurations = async () => (
       if (error) {
         reject(error);
       }
-      resolve(data);
+      let configurations = [];
+      if (data.length) {
+        configurations = data;
+      }
+      resolve(configurations);
     });
   })
 );
@@ -291,6 +296,18 @@ const removeConfiguration = async ({ id }) => (
   })
 );
 
+const clearConfigurations = async () => (
+  new Promise(async (resolve, reject) => {
+    storage.set('configurations', [], async (error, data) => {
+      if (error) {
+        reject(error);
+      }
+      resolve(await getConfigurations());
+    });
+
+  })
+);
+
 const handleAuth = (sendIfMainWindow, uri) => {
   const { hostname } = url.parse(uri);
 
@@ -306,17 +323,26 @@ const handleAuth = (sendIfMainWindow, uri) => {
       if (!ok) {
         sendIfMainWindow('error', () => 'Error in authentication!');
       } else {
-        const profile = await getStatus({ token: access_token });
-        let instance;
+        const token = { token: access_token };
+        const profile = await getStatus(token);
+        const workspace = await getWorkspace(token);
 
-        if (profile) {
-          instance = await saveSlackInstance({
-            token: access_token,
-            profile,
-          });
+        const slackInstances = await getSlackInstances();
+        const existing = slackInstances.find(({ id }) => id === workspace.id);
+        if (!existing) {
+          let instance;
+
+          if (profile) {
+            instance = await saveSlackInstance({
+              token: access_token,
+              profile,
+            });
+          }
+          sendIfMainWindow('slackInstances', getSlackInstances);
+          sendIfMainWindow('newSlackInstance', () => instance);
+        } else {
+          sendIfMainWindow('error', () => `${existing.name} already exists!`);
         }
-        sendIfMainWindow('slackInstances', getSlackInstances);
-        sendIfMainWindow('newSlackInstance', () => instance);
       }
     });
   }
@@ -356,6 +382,7 @@ module.exports = {
   getConfigurations,
   saveConfiguration,
   removeConfiguration,
+  clearConfigurations,
   handleAuth,
   sortBy,
   uniqueArray,

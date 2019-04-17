@@ -18,18 +18,37 @@ class ModifyConfiguration extends Component {
 
     return (
       <Consumer>
-        {({ modifyConfiguration, drawerVisible, drawerConfig, slackInstances, selectedView, searchEmoji, setProperty, emojiLimit, saveConfiguration, removeConfiguration, savingConfiguration, removingConfiguration }) => {
-          const instance = slackInstances.find(({ id }) => id === selectedView);
-          const { emojis } = instance;
-
-          if (!drawerVisible && !drawerConfig) {
+        {({
+          drawerVisible,
+          drawerConfig,
+          slackInstances,
+          viewType,
+          selectedView,
+          searchEmoji,
+          selectedEmoji,
+          setProperty,
+          emojiLimit,
+          saveConfiguration,
+          removeConfiguration,
+          savingConfiguration,
+          removingConfiguration,
+        }) => {
+          if (
+            !drawerVisible
+            && (
+              !drawerConfig
+              || (drawerConfig && drawerConfig.config && !drawerConfig.config.id)
+            )
+          ) {
             return null;
           } else if (!drawerVisible && drawerConfig) {
             this.props.form.resetFields();
           }
 
+          const instance = slackInstances.find(({ id }) => id === (viewType === 'instance' ? selectedView : drawerConfig.config.instanceId));
+          const { emojis } = instance;
+
           const handleDelete = () => {
-            setProperty({ removingConfiguration: true });
             removeConfiguration(drawerConfig.config.id);
           }
 
@@ -41,14 +60,10 @@ class ModifyConfiguration extends Component {
             event.preventDefault();
             this.props.form.validateFields((err, values) => {
               if (!err) {
-                setProperty({
-                  savingConfiguration: true,
-                  searchEmoji: '',
-                });
                 saveConfiguration({
                   ...values,
                   id: drawerConfig.config.id || uuid(),
-                  emoji: `:${values.emoji}:`,
+                  emoji: values.emoji ? `:${values.emoji}:` : null,
                 });
               }
             });
@@ -59,33 +74,34 @@ class ModifyConfiguration extends Component {
             ...emoji.search('').sort(sortBy('key')),
           ];
 
-          const selectedEmoji = drawerConfig
-            && drawerConfig.config
-            && drawerConfig.config.emoji
-            ? drawerConfig.config.emoji.replace(/:/g, '')
-            : null;
+          const selectEmoji = selectedEmoji
+            || (drawerConfig
+              && drawerConfig.config
+              && drawerConfig.config.emoji
+              && drawerConfig.config.emoji.replace(/:/g, '')
+            )
+            || undefined
+          ;
 
           let searchedEmojis = allEmojis.filter(({ key, value }) => key.includes(searchEmoji));
           if (searchEmoji) {
             searchedEmojis.sort(sortBy('key'));
           }
-          // let filteredEmojis = searchedEmojis;
-          /**/
+
           let filteredEmojis = searchedEmojis.slice(0, emojiLimit);
-          const selected = allEmojis.find(({ key, value }) => key === selectedEmoji);
-          if (selectedEmoji && selected) {
-            filteredEmojis = filteredEmojis.filter(({ key }) => key !== selectedEmoji);
+          const selected = allEmojis.find(({ key, value }) => key === selectEmoji);
+          if (selectEmoji && selected) {
+            filteredEmojis = filteredEmojis.filter(({ key }) => key !== selectEmoji);
             filteredEmojis.unshift(selected);
             filteredEmojis = filteredEmojis.slice(0, emojiLimit);
           }
-          /**/
 
           const isGroup = !!drawerConfig.accessPoints;
 
           return (
             <Styled>
               <Drawer
-                title="Create a new account"
+                title={`${drawerConfig.config.id ? 'Modify existing' : 'Add new'} configuration`}
                 width="calc(100% - 300px)"
                 onClose={handleClose}
                 visible={drawerVisible}
@@ -104,28 +120,30 @@ class ModifyConfiguration extends Component {
                         })(<div>{drawerConfig.ssid}</div>)}
                       </Form.Item>
                     </Col>
-                    <Col span={12}>
-                      <Form.Item label="Access Point">
-                        {getFieldDecorator('bssid', {
-                          initialValue: drawerConfig.bssid || null,
-                        })(
-                          isGroup
-                            ? (
-                              <Select placeholder="Select an access point">
-                                {drawerConfig.accessPoints.map(({ bssid }) => (
-                                  <Option key={bssid}>{bssid.toUpperCase()}</Option>
-                                ))}
-                              </Select>
-                            )
-                            : (<div>{drawerConfig.bssid.toUpperCase()}</div>)
-                        )}
-                      </Form.Item>
-                    </Col>
+                    {(isGroup || drawerConfig.hasOwnProperty('bssid')) && (
+                      <Col span={12}>
+                        <Form.Item label="Access Point">
+                          {getFieldDecorator('bssid', {
+                            initialValue: drawerConfig.bssid ? drawerConfig.bssid : null,
+                          })(
+                            isGroup
+                              ? (
+                                <Select placeholder="Select an access point">
+                                  {drawerConfig.accessPoints.map(({ bssid }) => (
+                                    <Option key={bssid}>{bssid.toUpperCase()}</Option>
+                                  ))}
+                                </Select>
+                              )
+                              : (<div>{drawerConfig.bssid ? drawerConfig.bssid.toUpperCase() : ''}</div>)
+                          )}
+                        </Form.Item>
+                      </Col>
+                    )}
                   </Row>
                   <Row gutter={16}>
                     <Col span={24}>
                       <Form.Item label="Emoji">
-                        {getFieldDecorator('emoji', selectedEmoji ? { initialValue: selectedEmoji } : {})(
+                        {getFieldDecorator('emoji', { initialValue: selectEmoji })(
                           <Select
                             allowClear
                             showSearch
@@ -149,7 +167,7 @@ class ModifyConfiguration extends Component {
                           >
                             {filteredEmojis.map(({ key }) => (
                               <Option key={key} value={key}>
-                                <Emoji emoji={key} size="m" /> - {key}
+                                <Emoji emoji={key} slackInstanceId={instance.id} size="m" /> - {key}
                               </Option>
                             ))}
                           </Select>

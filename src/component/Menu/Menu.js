@@ -25,18 +25,16 @@ const AppMenu = () => (
               </div>
             </Menu.Item>
           ))}
-          {slackInstances.sort((a, b) => a.name > b.name).map(instance => {
-            return (
-              <Menu.Item key={instance.id} type="instance" onClick={selectView}>
-                <Dropdown overlay={contextMenu(instance, removeSlackInstance)} trigger={['contextMenu']} placement="bottomRight">
-                  <div>
-                    <img src={instance.icon.image_34} alt={instance.name} />
-                    <MenuItemName>{instance.name}</MenuItemName>
-                  </div>
-                </Dropdown>
-              </Menu.Item>
-            );
-          })}
+          {slackInstances.sort((a, b) => a.name > b.name).map(instance => (
+            <Menu.Item key={instance.id} type="instance" onClick={selectView}>
+              <Dropdown overlay={contextMenu(instance, removeSlackInstance)} trigger={['contextMenu']} placement="bottomRight">
+                <div>
+                  <img src={instance.icon.image_34} alt={instance.name} />
+                  <MenuItemName>{instance.name}</MenuItemName>
+                </div>
+              </Dropdown>
+            </Menu.Item>
+          ))}
         </Menu>
       )}
     </Consumer>
@@ -47,8 +45,8 @@ const Styled = styled.div`
   & li.ant-menu-item {
     display: flex;
     align-items: center;
-    padding: 0 !important;
-    margin: 0;
+    padding: ${DIMENSION['1.5x']} 0 !important;
+    margin: 0 !important;
 
     & div {
       display: flex;

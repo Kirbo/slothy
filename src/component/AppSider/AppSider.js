@@ -15,7 +15,7 @@ import packageJSON from '../../../package.json';
 const { Sider, Footer } = Layout;
 
 const AppSider = () => (
-  <StyledSider>
+  <Styled>
     <Sider>
       <Logo withText />
       <Scrollable>
@@ -26,7 +26,7 @@ const AppSider = () => (
         <A href={packageJSON.product.Pages} name="copyright link" external>{COPYRIGHT}</A>
       </Footer>
     </Sider>
-  </StyledSider>
+  </Styled>
 );
 
 const Scrollable = styled.div`
@@ -38,10 +38,20 @@ const Scrollable = styled.div`
   height: calc(100% - 10rem);
 `;
 
-const StyledSider = styled.div`
+const Styled = styled.div`
   display: flex;
   flex: 0 0 200px;
   z-index: 100;
+
+  & div.logo {
+    height: ${DIMENSION['5x']};
+    min-height: ${DIMENSION['5x']};
+    max-height: ${DIMENSION['5x']};
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+  }
 
   & .ant-layout-sider {
     overflow: hidden;
