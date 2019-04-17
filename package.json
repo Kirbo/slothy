@@ -10,7 +10,7 @@
     "Protocol": "slothy"
   },
   "engines": {
-    "node": ">=8.16.0",
+    "node": ">=8.15.1",
     "yarn": ">=1.15.2"
   },
   "author": "Kirbo",
