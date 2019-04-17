@@ -41,7 +41,8 @@ test:
     policy: pull
     paths:
       - node_modules
-  dependencies: []
+  dependencies:
+    - install
   artifacts:
     paths:
       - coverage
@@ -60,7 +61,8 @@ build:
     policy: pull
     paths:
       - node_modules
-  dependencies: []
+  dependencies:
+    - install
   script:
     - yarn react-build
   artifacts:
@@ -79,9 +81,31 @@ pack:
     policy: pull
     paths:
       - node_modules
-  dependencies: []
+  dependencies:
+    - build
   script:
     - yarn dist-all
+  artifacts:
+    expire_in: 1 week
+    paths:
+      - dist
+  only:
+    - master
+
+release:
+  <<: *general
+  when: manual
+  stage: deploy
+  environment:
+    name: ${CI_COMMIT_REF_NAME}
+  cache:
+    policy: pull
+    paths:
+      - node_modules
+  dependencies:
+    - pack
+  script:
+    - yarn release
   artifacts:
     expire_in: 1 week
     paths:
@@ -92,6 +116,10 @@ pack:
 pages:
   <<: *general
   stage: deploy
+  cache:
+    policy: pull
+    paths: []
+  dependencies: []
   script:
     - cd pages
     - yarn install
@@ -99,6 +127,7 @@ pages:
     - rm -rf ../public
     - mv build ../public
   artifacts:
+    expire_in: 1 hour
     paths:
     - public
   only:
