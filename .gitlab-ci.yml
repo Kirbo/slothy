@@ -13,6 +13,24 @@ cache:
   variables:
     GIT_STRATEGY: fetch
 
+.pack-common: &pack-common
+  <<: *general
+  stage: pack
+  environment:
+    name: ${CI_COMMIT_REF_NAME}
+  cache:
+    policy: pull
+    paths:
+      - node_modules
+  dependencies:
+    - build
+  artifacts:
+    expire_in: 1 week
+    paths:
+      - dist
+  only:
+    - master
+
 ###### STAGES #################################################################
 stages:
   - install
@@ -72,25 +90,23 @@ build:
   only:
     - master
 
-pack:
-  <<: *general
-  stage: pack
-  environment:
-    name: ${CI_COMMIT_REF_NAME}
-  cache:
-    policy: pull
-    paths:
-      - node_modules
-  dependencies:
-    - build
+pack:mac:
+  <<: *pack-common
+  image: electronuserland/builder:base
   script:
-    - yarn dist-all
-  artifacts:
-    expire_in: 1 week
-    paths:
-      - dist
-  only:
-    - master
+    - yarn dist -m
+
+pack:linux:
+  <<: *pack-common
+  image: electronuserland/builder:10
+  script:
+    - yarn dist -l
+
+pack:windows:
+  <<: *pack-common
+  image: electronuserland/builder:wine
+  script:
+    - yarn dist -w
 
 release:
   <<: *general
@@ -103,7 +119,9 @@ release:
     paths:
       - node_modules
   dependencies:
-    - pack
+    - pack:mac
+    - pack:linux
+    - pack:windows
   script:
     - yarn release
   artifacts:
