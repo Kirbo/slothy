@@ -22,6 +22,7 @@
     "electron-start": "electron .",
     "electron-dev": "cross-env NODE_ENV=development ELECTRON_START_URL=http://localhost:5000 node src/electron-wait-react",
     "pack": "electron-builder --dir",
+    "test": "yarn react-test --detectOpenHandles",
     "react-dev": "cross-env BROWSER=none NODE_PATH=./src react-app-rewired start",
     "react-build": "react-app-rewired build",
     "react-test": "react-app-rewired test",
@@ -104,5 +105,30 @@
     "not dead",
     "not ie <= 11",
     "not op_mini all"
-  ]
+  ],
+  "jest": {
+    "bail": false,
+    "collectCoverage": true,
+    "forceExit": true,
+    "collectCoverageFrom": [
+      "**/src/**.js"
+    ],
+    "coverageDirectory": "coverage",
+    "coveragePathIgnorePatterns": [
+      "/src/setupTests.js",
+      "/pages"
+    ],
+    "coverageReporters": [
+      "text",
+      "html"
+    ],
+    "notify": true,
+    "testMatch": [
+      "**/src/**.test.js"
+    ],
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "pages/"
+    ]
+  }
 }

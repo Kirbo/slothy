@@ -6,12 +6,91 @@ cache:
   - node_modules/
   - pages/node_modules/
 
+###### TEMPLATES ##############################################################
+.general: &general
+  tags:
+    - gitlab-org
+  variables:
+    GIT_STRATEGY: fetch
+
 ###### STAGES #################################################################
 stages:
+  - install
+  - test
+  - build
+  - pack
   - deploy
 
 ###### JOBS ###################################################################
+install:
+  <<: *general
+  stage: install
+  cache:
+    policy: pull-push
+    paths:
+      - node_modules
+  script:
+    - yarn install
+  only:
+    - master
+
+test:
+  <<: *general
+  stage: test
+  cache:
+    policy: pull
+    paths:
+      - node_modules
+  dependencies: []
+  artifacts:
+    paths:
+      - coverage
+    expire_in: 1 month
+  script:
+    - yarn test --ci --coverage
+  only:
+    - master
+
+build:
+  <<: *general
+  stage: build
+  environment:
+    name: ${CI_COMMIT_REF_NAME}
+  cache:
+    policy: pull
+    paths:
+      - node_modules
+  dependencies: []
+  script:
+    - yarn react-build
+  artifacts:
+    expire_in: 1 week
+    paths:
+      - build
+  only:
+    - master
+
+pack:
+  <<: *general
+  stage: pack
+  environment:
+    name: ${CI_COMMIT_REF_NAME}
+  cache:
+    policy: pull
+    paths:
+      - node_modules
+  dependencies: []
+  script:
+    - yarn dist-all
+  artifacts:
+    expire_in: 1 week
+    paths:
+      - dist
+  only:
+    - master
+
 pages:
+  <<: *general
   stage: deploy
   script:
     - cd pages
