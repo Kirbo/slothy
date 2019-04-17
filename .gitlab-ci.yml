@@ -66,7 +66,7 @@ test:
       - coverage
     expire_in: 1 month
   script:
-    - yarn test --ci --coverage
+    - yarn test --verbose --forceExit --ci --coverage --colors
   only:
     - master
 
