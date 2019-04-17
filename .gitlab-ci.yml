@@ -92,7 +92,7 @@ build:
 
 pack:mac:
   <<: *pack-common
-  image: electronuserland/builder:base
+  image: electronuserland/builder:10
   script:
     - yarn dist -m
 

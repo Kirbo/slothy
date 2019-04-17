@@ -112,12 +112,12 @@
     "collectCoverage": true,
     "forceExit": true,
     "collectCoverageFrom": [
-      "**/src/**.js"
+      "/src/**.js"
     ],
     "coverageDirectory": "coverage",
     "coveragePathIgnorePatterns": [
       "/src/setupTests.js",
-      "/pages"
+      "/pages/"
     ],
     "coverageReporters": [
       "text",
@@ -125,11 +125,11 @@
     ],
     "notify": true,
     "testMatch": [
-      "**/src/**.test.js"
+      "/src/**.test.js"
     ],
     "testPathIgnorePatterns": [
       "/node_modules/",
-      "pages/"
+      "/pages/"
     ]
   }
 }
