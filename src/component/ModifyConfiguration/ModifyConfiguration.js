@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import styled from 'styled-components';
-import uuid from 'uuid/v4';
 import { Drawer, Form, Button, Col, Row, Input, Select, Radio, Divider } from 'antd';
 import emoji from 'node-emoji';
 
@@ -37,7 +36,10 @@ class ModifyConfiguration extends Component {
             !drawerVisible
             && (
               !drawerConfig
-              || (drawerConfig && drawerConfig.config && !drawerConfig.config.id)
+              || (
+                (drawerConfig && drawerConfig.config && !drawerConfig.config.id)
+                && (drawerConfig && !drawerConfig.id)
+              )
             )
           ) {
             return null;
@@ -62,7 +64,6 @@ class ModifyConfiguration extends Component {
               if (!err) {
                 saveConfiguration({
                   ...values,
-                  id: drawerConfig.config.id || uuid(),
                   emoji: values.emoji ? `:${values.emoji}:` : null,
                 });
               }
@@ -107,11 +108,8 @@ class ModifyConfiguration extends Component {
                 visible={drawerVisible}
               >
                 <Form layout="vertical" hideRequiredMark onSubmit={handleSubmit}>
-                  <Form.Item>
-                    {getFieldDecorator('instanceId', {
-                      initialValue: drawerConfig.instanceId
-                    })(<span />)}
-                  </Form.Item>
+                  {getFieldDecorator('instanceId', { initialValue: drawerConfig.instanceId })(<span />)}
+                  {getFieldDecorator('id', { initialValue: drawerConfig.config.id })(<span />)}
                   <Row gutter={16}>
                     <Col span={12}>
                       <Form.Item label="SSID">

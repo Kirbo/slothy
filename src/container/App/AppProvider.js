@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { message } from 'antd';
+import uuid from 'uuid/v4';
 
 import INITIAL_STATE from './InitialState';
 import { Provider } from './Context';
@@ -55,7 +56,14 @@ class AppProvider extends Component {
     },
     modifyConfiguration: record => {
       this.state.setProperty({
-        drawerConfig: record,
+        drawerConfig: {
+          ...record,
+          config: {
+            ...record.config,
+            instanceId: record.instanceId,
+            id: record.config.id || uuid(),
+          }
+        },
         drawerVisible: true,
       });
     },
