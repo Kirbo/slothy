@@ -15,12 +15,15 @@ const protocol = packageJson.product.Protocol;
 const { app, BrowserWindow, Menu, Tray, nativeImage, systemPreferences, shell } = electron;
 
 const getIcon = () => (
-  path.join(__dirname, (process.env.NODE_ENV === 'development' ? '../src/assets' : ''), 'icons', (systemPreferences.isDarkMode() ? 'white' : 'black'), 'icon_16x16.png')
+  //path.join(__dirname, (process.env.NODE_ENV === 'development' ? '../src/assets' : ''), 'icons', (systemPreferences.isDarkMode() ? 'white' : 'black'), 'icon_16x16.png')
+  path.join(__dirname, (process.env.NODE_ENV === 'development' ? '../src/assets' : ''), 'icons', 'fill', 'icon_16x16.png')
 )
 
-systemPreferences.subscribeNotification('AppleInterfaceThemeChangedNotification', () => {
-  tray.setImage(getIcon());
-});
+if (process.platform === 'darwin') {
+  systemPreferences.subscribeNotification('AppleInterfaceThemeChangedNotification', () => {
+    tray.setImage(getIcon());
+  });
+}
 
 const {
   getSlackInstances,
@@ -218,7 +221,6 @@ const createWindow = async () => {
             if (mainWindow.isMinimized()) {
               mainWindow.restore();
             }
-            app.dock.show();
             mainWindow.show();
             mainWindow.focus();
           } else {
@@ -240,11 +242,8 @@ const createWindow = async () => {
     });
   }
 
-  app.dock.show();
-
   mainWindow
     .once('ready-to-show', () => {
-      app.dock.show();
       mainWindow.show();
     })
     .on('move', () => {
@@ -277,7 +276,6 @@ const createWindow = async () => {
       }
       if (mainWindow) {
         mainWindow.hide();
-        app.dock.hide();
 
         if (process.env.NODE_ENV === 'development') {
           mainWindow.webContents.closeDevTools();
