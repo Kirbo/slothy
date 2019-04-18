@@ -85,15 +85,7 @@ class AppProvider extends Component {
   componentDidMount = () => {
     ipcRenderer.send('initialize');
 
-    const setConnectionsTimeout = () => {
-      clearTimeout(connectionsTimeout);
-      connectionsTimeout = setTimeout(() => {
-        this.state.getConnections();
-      }, 30 * 1000);
-    }
-
     ipcRenderer.on('connections', (event, { ssids, currentSsids }) => {
-      setConnectionsTimeout();
       this.state.setProperty({
         ssids: !!this.state.ssids.length && !ssids.length ? this.state.ssids : ssids,
         currentSsids,
@@ -103,7 +95,10 @@ class AppProvider extends Component {
     });
 
     ipcRenderer.on('configurations', (event, configurations) => {
-      this.state.setProperty({ configurations });
+      this.state.setProperty({
+        configurationsLoaded: true,
+        configurations,
+      });
     });
     ipcRenderer.on('info', (event, message) => {
       message.info(message);
@@ -145,7 +140,9 @@ class AppProvider extends Component {
       message.loading(data);
     });
 
-    ipcRenderer.on('newSlackInstance', (event, data) => {});
+    ipcRenderer.on('newSlackInstance', (event, data) => {
+      console.log('newSlackInstance', data);
+    });
     ipcRenderer.on('slackInstances', (event, slackInstances) => {
       let { viewType, selectedView } = this.state;
 
@@ -190,6 +187,8 @@ class AppProvider extends Component {
       {this.state.showLoading && (
         <Loading
           slackInstancesLoaded={this.state.slackInstancesLoaded}
+          ssidsLoaded={this.state.ssidsLoaded}
+          configurationsLoaded={this.state.configurationsLoaded}
           hideLoading={this.state.hideLoading}
           setProperty={this.state.setProperty}
           connected={this.state.connected}

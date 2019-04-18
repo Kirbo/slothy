@@ -4,14 +4,13 @@ const wifi = require('node-wifi');
 const url = require('url');
 const request = require('request');
 const packageJson = require('../package.json');
+const appConfigs = require('./config');
 
 const protocol = packageJson.product.Protocol;
 
 wifi.init({
   iface: null,
 });
-
-const fetchWorkspacesInterval = storage.get('fetchWorkspacesInterval') || 5;
 
 const getSlackInstances = async () => (
   new Promise((resolve, reject) => {
@@ -115,43 +114,56 @@ const getWorkspaceEmojis = async ({ token }) => (
       if (error) {
         reject(error);
       }
-      const { emoji } = data;
-      resolve(emoji);
+      try {
+        const { emoji } = data;
+        resolve(emoji);
+      } catch (error) {
+        console.error(error);
+        resolve({});
+      }
     });
   })
 );
 
+const getCurrentConnections = () => (
+  new Promise((res, rej) => {
+    wifi.getCurrentConnections((error, connections) => {
+      if (error) {
+        console.error('error', error);
+        rej(error);
+      }
+      res(connections);
+    })
+  })
+)
+
+const getAvailableConnections = () => (
+  new Promise((res, rej) => {
+    wifi.scan((error, connections) => {
+      if (error) {
+        console.error('error', error);
+        rej(error);
+      }
+      res(connections);
+    })
+  })
+)
+
 const getConnections = () => (
-  new Promise((resolve, reject) => {
+  new Promise(async (resolve, reject) => {
     const promises = [
-      new Promise((res, rej) => {
-        wifi.getCurrentConnections((error, connections) => {
-          if (error) {
-            console.error('error', error);
-            rej(error);
-          }
-          res(connections);
-        })
-      }),
-      new Promise((res, rej) => {
-        wifi.scan((error, connections) => {
-          if (error) {
-            console.error('error', error);
-            rej(error);
-          }
-          res(connections);
-        })
-      }),
+      await getCurrentConnections(),
+      await getAvailableConnections(),
     ];
 
     return Promise
       .all(promises)
       .then(([currentSsids, ssids]) => {
-        const connectedSsids = currentSsids.map(({ bssid }) => bssid);
+        const connectedBssids = currentSsids.map(({ bssid }) => bssid);
         const connections = ssids
           .map(connection => ({
             ...connection,
-            connected: connectedSsids.includes(connection.bssid)
+            connected: connectedBssids.includes(connection.bssid)
           }))
           .sort((a, b) => {
             if (!a.connected && b.connected) {
@@ -189,7 +201,7 @@ const getConnections = () => (
                   ...item,
                   key: `bssid-${item.bssid}`,
                 }]
-              } ];
+              }];
             }
           }, []);
         resolve({
@@ -233,23 +245,23 @@ const getParameterByName = (uri, name) => {
   return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
 };
 
-const fetchWorkspaces = async () => (
+const getWorkspaces = async () => (
   new Promise(async (resolve, reject) => {
-    const oldSlackInstances = await getSlackInstances();
-    const promises = oldSlackInstances.map(instance => (
-      new Promise(async (res, rej) => {
-        const token = { token: instance.token };
-        const workspace = await getWorkspace(token);
-        const newInstance = {
-          ...instance,
-          ...workspace,
-          emojis: await getWorkspaceEmojis(token),
-          profile: await getStatus(token),
-        };
+    const promises = (await getSlackInstances())
+      .map(instance => (
+        new Promise(async (res, rej) => {
+          const token = { token: instance.token };
+          const workspace = await getWorkspace(token);
+          const newInstance = {
+            ...instance,
+            ...workspace,
+            emojis: await getWorkspaceEmojis(token),
+            profile: await getStatus(token),
+          };
 
-        res(newInstance);
-      })
-    ));
+          res(newInstance);
+        })
+      ));
 
     return Promise
       .all(promises)
@@ -275,6 +287,47 @@ const getConfigurations = async () => (
   })
 );
 
+const getEnabledConfigurations = async () => (
+  new Promise(async (resolve, reject) => {
+    const promises = [
+      (await getConfigurations()).filter(({ enabled }) => !!enabled),
+      await getCurrentConnections(),
+      await getSlackInstances(),
+    ];
+
+    Promise
+      .all(promises)
+      .then(([enabledConfigurations, currentConnections, slackInstances]) => {
+        const connectedBssids = currentConnections.map(({ bssid }) => bssid.toUpperCase());
+        const bssidConfigurations = enabledConfigurations.filter(({ bssid }) => bssid && connectedBssids.includes(bssid.toUpperCase()));
+
+        const connectedSsids = currentConnections.map(({ ssid }) => ssid.toUpperCase());
+        const ssidConfigurations = enabledConfigurations.filter(({ bssid, instanceId, ssid }) => {
+          if (bssid && connectedBssids.includes(bssid.toUpperCase()) && !bssidConfigurations.find(config => instanceId === config.instanceId && config.bssid.toUpperCase() === bssid.toUpperCase())) {
+            return true;
+          } else if (!bssid && !bssidConfigurations.find(config => instanceId === config.instanceId && config.ssid.toUpperCase() === ssid.toUpperCase()) && connectedSsids.includes(ssid.toUpperCase())) {
+            return true;
+          }
+
+          return false;
+        });
+
+        const updateConfigs = [
+          ...bssidConfigurations,
+          ...ssidConfigurations,
+        ].map(config => ({
+          ...config,
+          token: (slackInstances.find(({ id }) => id === config.instanceId)).token,
+        }));
+
+        resolve(updateConfigs);
+      })
+      .catch(error => {
+        reject(error);
+      })
+  })
+)
+
 const saveConfiguration = async (configuration) => (
   new Promise(async (resolve, reject) => {
     const configurations = (await getConfigurations()).filter(({ id }) => id !== configuration.id);
@@ -298,13 +351,33 @@ const removeConfiguration = async ({ id }) => (
 
 const clearConfigurations = async () => (
   new Promise(async (resolve, reject) => {
-    storage.set('configurations', [], async (error, data) => {
-      if (error) {
-        reject(error);
-      }
-      resolve(await getConfigurations());
-    });
+    const promises = [
+      new Promise(async (res, rej) => {
+        storage.set('configurations', [], async (error, data) => {
+          if (error) {
+            rej(error);
+          }
+          res(await getConfigurations());
+        });
+      }),
+      new Promise(async (res, rej) => {
+        storage.set('slackInstances', [], async (error, data) => {
+          if (error) {
+            rej(error);
+          }
+          res(await getSlackInstances());
+        });
+      }),
+    ];
 
+    return Promise
+      .all(promises)
+      .then(([configurations, slackInstances]) => {
+        resolve();
+      })
+      .catch(error => {
+        reject(error);
+      });
   })
 );
 
@@ -365,25 +438,48 @@ const uniqueArray = a => (
   [...new Set(a.map(o => JSON.stringify(o)))].map(s => JSON.parse(s))
 )
 
+const updateStatuses = async () => {
+  const enabledConfigurations = await getEnabledConfigurations();
+
+  console.log('enabledConfigurations', enabledConfigurations);
+}
+
+const getAppConfigs = async () => (
+  new Promise((resolve, reject) => {
+    storage.get('appConfigs', (error, data) => {
+      if (error) {
+        reject(error);
+      }
+
+      resolve({
+        ...appConfigs,
+        ...data,
+      });
+    });
+  })
+)
 
 module.exports = {
   getSlackInstances,
   updateSlackInstance,
   saveSlackInstance,
   removeSlackInstance,
+
   getStatus,
   getWorkspace,
   getWorkspaceEmojis,
   getConnections,
   setStatus,
   getParameterByName,
-  fetchWorkspaces,
-  fetchWorkspacesInterval,
+  getWorkspaces,
   getConfigurations,
+  getEnabledConfigurations,
   saveConfiguration,
   removeConfiguration,
   clearConfigurations,
   handleAuth,
   sortBy,
   uniqueArray,
+
+  getAppConfigs,
 };

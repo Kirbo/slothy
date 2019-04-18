@@ -33,25 +33,25 @@ const {
   // getStatus,
   // getWorkspace,
   getConnections,
+  getEnabledConfigurations,
   setStatus,
   // getParameterByName,
-  fetchWorkspaces,
-  fetchWorkspacesInterval,
+  getWorkspaces,
   getConfigurations,
   saveConfiguration,
   removeConfiguration,
   clearConfigurations,
   handleAuth,
+  getAppConfigs,
 } = require('./utils.js');
 
 require('dotenv').config({ path: path.join(__dirname, '/../.env') });
-
-fetchWorkspaces();
 
 let mainWindow;
 let tray = null;
 let quit = false;
 let computerRunning = true;
+let timers = {};
 
 const cached = {
   configurations: null,
@@ -62,6 +62,56 @@ const cached = {
 autoUpdater.autoDownload = false;
 autoUpdater.logger = log;
 autoUpdater.logger.transports.file.level = 'info';
+
+
+const ifComputerRunning = callback => {
+  if (computerRunning) {
+    callback();
+  }
+}
+
+const sendIfMainWindow = async (event, callback, data = null) => {
+  const cachedEvent = event;
+  const value = await callback(data);
+
+  if (cached.hasOwnProperty(cachedEvent)) {
+    cached[cachedEvent] = value;
+  }
+
+  if (mainWindow) {
+    try {
+      mainWindow.webContents.send(event, value);
+    } catch (error) {
+      throw new Error(error);
+    }
+  }
+}
+
+const ifCachedSend = async (event, callback) => {
+  if (cached[event]) {
+    sendIfMainWindow(event, () => cached[event]);
+  } else {
+    await sendIfMainWindow(event, callback);
+  }
+}
+
+const setTimer = async (event, callback) => {
+  clearInterval(timers[event]);
+  const timeout = (await getAppConfigs()).timers[event];
+  const timerFunction = async () => {
+    ifComputerRunning(() => sendIfMainWindow(event, callback));
+  }
+
+  timerFunction();
+  timers[event] = setInterval(timerFunction, timeout * 1000);
+}
+
+const startTimers = async () => {
+  setTimer('slackInstances', getWorkspaces);
+  setTimer('connections', getConnections);
+}
+
+startTimers();
 
 const iconPath = getIcon();
 
@@ -354,34 +404,12 @@ app
     }
   });
 
-const sendIfMainWindow = async (event, callback, data = null) => {
-  const cachedEvent = event;
-  const value = await callback(data);
-
-  if (cached.hasOwnProperty(cachedEvent)) {
-    cached[cachedEvent] = value;
-  }
-
-  if (mainWindow) {
-    try {
-      mainWindow.webContents.send(event, value);
-    } catch (error) {
-      throw new Error(error);
-    }
-  }
-}
 
 ipc
   .on('initialize', async () => {
-    if (cached.configurations && cached.connections && cached.slackInstances) {
-      sendIfMainWindow('configurations', () => cached.configurations);
-      sendIfMainWindow('connections', () => cached.connections);
-      sendIfMainWindow('slackInstances', () => cached.slackInstances);
-    } else {
-      await sendIfMainWindow('configurations', getConfigurations);
-      await sendIfMainWindow('connections', getConnections);
-      await sendIfMainWindow('slackInstances', getSlackInstances);
-    }
+    ifCachedSend('configurations', getConfigurations);
+    ifCachedSend('connections', getConnections);
+    ifCachedSend('slackInstances', getSlackInstances);
   })
   .on('getConnections', async (event, data) => sendIfMainWindow('connections', getConnections))
   .on('removeSlackInstance', async (event, data) => sendIfMainWindow('slackInstances', removeSlackInstance, data))
@@ -413,14 +441,3 @@ ipc
   .on('installUpdate', () => {
     autoUpdater.quitAndInstall();
   });
-
-
-
-setInterval(async () => {
-  if (computerRunning) {
-    cached.slackInstances = await fetchWorkspaces();
-    if (mainWindow) {
-      mainWindow.webContents.send('slackInstances', cached.slackInstances);
-    }
-  }
-}, fetchWorkspacesInterval * 60 * 1000);

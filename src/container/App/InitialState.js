@@ -3,11 +3,13 @@ import { findFirstRoute } from '../../assets/utils';
 const { name, type } = findFirstRoute();
 
 const INITIAL_STATE = {
+  slackInstancesLoaded: false,
+  ssidsLoaded: false,
+  configurationsLoaded: false,
   wifiEnabled: false,
   showLoading: true,
   hideLoading: false,
-  slackInstancesLoaded: false,
-  ssidsLoaded: false,
+  currentSsids: [],
   ssids: [],
   iface: null,
   slackInstances: [],

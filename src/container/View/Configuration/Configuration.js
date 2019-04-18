@@ -13,6 +13,25 @@ const { Header, Content } = Layout;
 const Configuration = () => (
   <Consumer>
     {({ configurations, viewType, selectedView, slackInstances, currentSsids }) => {
+      const connectedBssids = currentSsids.map(({ bssid }) => bssid.toUpperCase());
+      const bssidConfigurations = configurations.filter(({ bssid }) => bssid && connectedBssids.includes(bssid.toUpperCase()));
+
+      const connectedSsids = currentSsids.map(({ ssid }) => ssid.toUpperCase());
+      const ssidConfigurations = configurations.filter(({ bssid, instanceId, ssid }) => {
+        if (bssid && connectedBssids.includes(bssid.toUpperCase()) && !bssidConfigurations.find(config => instanceId === config.instanceId && config.bssid.toUpperCase() === bssid.toUpperCase())) {
+          return true;
+        } else if (!bssid && !bssidConfigurations.find(config => instanceId === config.instanceId && config.ssid.toUpperCase() === ssid.toUpperCase()) && connectedSsids.includes(ssid.toUpperCase())) {
+          return true;
+        }
+
+        return false;
+      });
+
+      const connectedConfigurations = [
+        ...bssidConfigurations.map(({ id }) => id),
+        ...ssidConfigurations.map(({ id }) => id),
+      ];
+
       const dataSource = configurations
         .map(config => {
           const instance = slackInstances.find(({ id }) => id === config.instanceId) || {
@@ -23,7 +42,7 @@ const Configuration = () => (
             slackInstanceName: instance.name,
             ssid: config.ssid,
             bssid: config.bssid,
-            connected: !!currentSsids.find(ssid => config.bssid === ssid.bssid || config.ssid === ssid.ssid),
+            connected: connectedConfigurations.includes(config.id),
             instanceId: config.instanceId,
             config,
           };
