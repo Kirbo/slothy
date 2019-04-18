@@ -92,7 +92,8 @@ build:
 
 pack:mac:
   <<: *pack-common
-  image: electronuserland/builder:10
+  tags:
+    - macos
   script:
     - yarn dist -m
 
