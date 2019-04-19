@@ -439,9 +439,10 @@ const uniqueArray = a => (
 )
 
 const updateStatuses = async () => {
-  const enabledConfigurations = await getEnabledConfigurations();
-
-  console.log('enabledConfigurations', enabledConfigurations);
+  (await getEnabledConfigurations())
+    .forEach(({ token, emoji, status }) => {
+      setStatus({ status, emoji, token });
+    })
 }
 
 const getAppConfigs = async () => (
@@ -482,4 +483,5 @@ module.exports = {
   uniqueArray,
 
   getAppConfigs,
+  updateStatuses,
 };

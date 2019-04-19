@@ -3,5 +3,6 @@ module.exports = {
   timers: {
     slackInstances: 300,
     connections: 60,
+    updateStatus: 300,
   },
 };

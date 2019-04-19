@@ -15,7 +15,6 @@ const protocol = packageJson.product.Protocol;
 const { app, BrowserWindow, Menu, Tray, nativeImage, systemPreferences, shell } = electron;
 
 const getIcon = () => (
-  //path.join(__dirname, (process.env.NODE_ENV === 'development' ? '../src/assets' : ''), 'icons', (systemPreferences.isDarkMode() ? 'white' : 'black'), 'icon_16x16.png')
   path.join(__dirname, (process.env.NODE_ENV === 'development' ? '../src/assets' : ''), 'icons', 'fill', 'icon_16x16.png')
 )
 
@@ -33,7 +32,6 @@ const {
   // getStatus,
   // getWorkspace,
   getConnections,
-  getEnabledConfigurations,
   setStatus,
   // getParameterByName,
   getWorkspaces,
@@ -43,6 +41,7 @@ const {
   clearConfigurations,
   handleAuth,
   getAppConfigs,
+  updateStatuses,
 } = require('./utils.js');
 
 require('dotenv').config({ path: path.join(__dirname, '/../.env') });
@@ -64,9 +63,9 @@ autoUpdater.logger = log;
 autoUpdater.logger.transports.file.level = 'info';
 
 
-const ifComputerRunning = callback => {
+const ifComputerRunning = async callback => {
   if (computerRunning) {
-    callback();
+    await callback();
   }
 }
 
@@ -98,17 +97,19 @@ const ifCachedSend = async (event, callback) => {
 const setTimer = async (event, callback) => {
   clearInterval(timers[event]);
   const timeout = (await getAppConfigs()).timers[event];
-  const timerFunction = async () => {
-    ifComputerRunning(() => sendIfMainWindow(event, callback));
-  }
+  callback();
+  timers[event] = setInterval(callback, timeout * 1000);
+}
 
-  timerFunction();
-  timers[event] = setInterval(timerFunction, timeout * 1000);
+const updateStatusesFunction = async () => {
+  await ifComputerRunning(updateStatuses);
+  ifComputerRunning(() => sendIfMainWindow('slackInstances', getWorkspaces));
 }
 
 const startTimers = async () => {
-  setTimer('slackInstances', getWorkspaces);
-  setTimer('connections', getConnections);
+  setTimer('slackInstances', () => ifComputerRunning(() => sendIfMainWindow('slackInstances', getWorkspaces)));
+  setTimer('connections', () => ifComputerRunning(() => sendIfMainWindow('connections', getConnections)));
+  setTimer('updateStatus', updateStatusesFunction);
 }
 
 startTimers();
@@ -370,14 +371,8 @@ app
   .on('ready', () => {
     createWindow();
     electron.powerMonitor
-      .on('suspend', () => {
-        console.log('system going to suspend');
-        computerRunning = false;
-      })
-      .on('resume', () => {
-        console.log('system resuming');
-        computerRunning = true;
-      });
+      .on('suspend', () => computerRunning = false)
+      .on('resume', () => computerRunning = true);
   })
   .on('open-url', (event, uri) => {
     event.preventDefault();
@@ -416,10 +411,12 @@ ipc
   .on('getConfigurations', async (event, data) => sendIfMainWindow('configurations', getConfigurations))
   .on('saveConfiguration', async (event, data) => {
     await sendIfMainWindow('configurations', saveConfiguration, data);
+    await setTimer('updateStatus', updateStatusesFunction);
     await sendIfMainWindow('savedConfiguration', () => false);
   })
   .on('removeConfiguration', async (event, data) => {
     await sendIfMainWindow('configurations', removeConfiguration, data);
+    await setTimer('updateStatus', updateStatusesFunction);
     await sendIfMainWindow('removedConfiguration', () => false);
   })
   .on('setStatus', async (event, data) => {
