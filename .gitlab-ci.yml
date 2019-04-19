@@ -1,3 +1,5 @@
+## https://docs.gitlab.com/ce/ci/yaml/README.html
+
 ###### GENERAL ################################################################
 image: node:8.15.1
 
@@ -109,9 +111,30 @@ pack:windows:
   script:
     - yarn dist -w
 
+pages:
+  <<: *general
+  stage: deploy
+  cache:
+    policy: pull
+    paths: []
+  dependencies: []
+  script:
+    - cd pages
+    - yarn install
+    - yarn build
+    - rm -rf ../public
+    - mv build ../public
+  artifacts:
+    expire_in: 1 hour
+    paths:
+    - public
+  only:
+    - master
+
 release:
   <<: *general
   when: manual
+  allow_failure: false
   stage: deploy
   environment:
     name: ${CI_COMMIT_REF_NAME}
@@ -132,22 +155,3 @@ release:
   only:
     - master
 
-pages:
-  <<: *general
-  stage: deploy
-  cache:
-    policy: pull
-    paths: []
-  dependencies: []
-  script:
-    - cd pages
-    - yarn install
-    - yarn build
-    - rm -rf ../public
-    - mv build ../public
-  artifacts:
-    expire_in: 1 hour
-    paths:
-    - public
-  only:
-    - master
