@@ -49,6 +49,7 @@ EmojiElement.defaultProps = {
 
 const Img = styled.img`
   width: ${({ size }) => FONT_SIZE[size]};
+  height: ${({ size }) => FONT_SIZE[size]};
 `;
 const Span = styled.span`
   font-size: ${({ size }) => FONT_SIZE[size]};

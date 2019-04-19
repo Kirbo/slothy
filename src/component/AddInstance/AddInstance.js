@@ -7,8 +7,10 @@ import Icon from '../Icon';
 import { openExternal } from '../../assets/utils';
 import { COLOR, DIMENSION } from '../../assets/css';
 
+import packageJson from '../../../package.json';
+
 const handleClick = () => {
-  openExternal('https://slack.com/oauth/authorize?client_id=328708589652.565337016417&scope=emoji:read,users.profile:read,users.profile:write,team:read');
+  openExternal(`https://slack.com/oauth/authorize?client_id=${packageJson.product.ClientId}&scope=emoji:read,users.profile:read,users.profile:write,team:read`);
 };
 
 const content = ({ mode, text, icon }) => {

@@ -7,6 +7,8 @@
     "GitLabRepository": "https://gitlab.com/kirbo/slothy",
     "GitHubRepository": "https://github.com/kirbo/slothy",
     "Pages": "https://kirbo.gitlab.io/slothy/",
+    "Slack": "https://join.slack.com/t/slothy-app/shared_invite/enQtNjE1NTcxMzY1MTU4LTcyMzhhZmMwNzdlMjkwZTQ4NzNkYjc3NWI0NWY5YWVjNDg3NTg5MTlhNGQ2ZGQ4NDZjMGMxM2YxNGQxOTBhOTc",
+    "ClientId": "613360590693.615573455494",
     "Protocol": "slothy"
   },
   "author": "Kirbo",

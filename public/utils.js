@@ -387,7 +387,7 @@ const handleAuth = (sendIfMainWindow, uri) => {
   if (hostname === 'auth') {
     const code = getParameterByName(uri, 'code');
     const options = {
-      uri: `https://slack.com/api/oauth.access?code=${code}&client_id=${process.env.CLIENT_ID}&client_secret=${process.env.CLIENT_SECRET}&redirect_uri=${protocol}://auth`,
+      uri: `https://slack.com/api/oauth.access?code=${code}&client_id=${packageJson.product.ClientId}&client_secret=${process.env.CLIENT_SECRET}&redirect_uri=${protocol}://auth`,
       method: 'GET',
     };
 

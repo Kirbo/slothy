@@ -253,10 +253,23 @@ const createWindow = async () => {
         label: 'Official website',
         click: () => { shell.openExternal(packageJson.product.Pages); },
       },
+      {
+        label: 'Join Slothy Slack',
+        click: () => { shell.openExternal(packageJson.product.Slack); },
+      },
+      { type: 'separator' },
       { role: 'toggleDevTools' },
       {
-        label: 'Clear configurations',
-        click: async () => { await sendIfMainWindow('configurations', clearConfigurations); },
+        label: 'Reset app',
+        click: async () => {
+          mainWindow.close();
+          mainWindow = null;
+          await sendIfMainWindow('configurations', clearConfigurations);
+          Object.keys(cached).forEach(key => {
+            cached[key] = null;
+          });
+          createWindow();
+        },
       },
     ],
   });
