@@ -15,9 +15,9 @@ cache:
   variables:
     GIT_STRATEGY: fetch
 
-.pack-common: &pack-common
+.release-common: &release-common
   <<: *general
-  stage: pack
+  stage: release
   environment:
     name: ${CI_COMMIT_REF_NAME}
   cache:
@@ -32,13 +32,16 @@ cache:
       - dist
   only:
     - master
+  retry:
+    max: 2
+    when: always
 
 ###### STAGES #################################################################
 stages:
   - install
   - test
   - build
-  - pack
+  - release
   - deploy
 
 ###### JOBS ###################################################################
@@ -92,8 +95,8 @@ build:
   only:
     - master
 
-pack:
-  <<: *pack-common
+release:
+  <<: *release-common
   tags:
     - macos
   script:
