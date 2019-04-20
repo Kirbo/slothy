@@ -455,18 +455,48 @@ ipc
     await setStatus(data);
     sendIfMainWindow('slackInstances', getSlackInstances);
   })
-  .on('checkUpdates', () => {
-    if (mainWindow) {
-      autoUpdater.checkForUpdates();
-      mainWindow.webContents.send('info', 'Checking updates');
-    }
+  .on('checkUpdates', autoUpdater.checkForUpdates)
+  .on('update', autoUpdater.downloadUpdate)
+  .on('installUpdate', autoUpdater.quitAndInstall);
+
+autoUpdater
+  .on('checking-for-update', () => {
+    sendIfMainWindow('info', () => 'Checking for updates...');
   })
-  .on('update', () => {
-    if (mainWindow) {
-      mainWindow.webContents.send('info', 'Downloading updates...');
-    }
-    autoUpdater.downloadUpdate();
+  .on('update-available', event => {
+    log.warn('Updates available.', event);
+    const message = `
+      <table class="updates">
+        <tr>
+          <th>Current version</th>
+          <td>${electron.getVersion()}</td>
+        </tr>
+        <tr>
+          <th>Latest version</th>
+          <td>${event.version}</td>
+        </tr>
+      </table>
+      <h4>Release date</h4>
+      ${new Date(event.releaseDate)}
+      <br />
+      <br />
+      <h4>Release notes</h4>
+      <div class="release-notes">
+        ${event.releaseNotes}
+      </div>
+    `;
+    sendIfMainWindow('warning', () => ({ title: 'Update available', message, button: 'update' }));
   })
-  .on('installUpdate', () => {
-    autoUpdater.quitAndInstall();
+  .on('update-not-available', () => {
+    sendIfMainWindow('success', () => 'Software is up-to-date.');
+  })
+  .on('error', (event, error) => {
+    log.error(error);
+    sendIfMainWindow('error', () => 'Error in auto-updater.');
+  })
+  .on('download-progress', () => {
+    sendIfMainWindow('info', () => 'Downloading updates...');
+  })
+  .on('update-downloaded', () => {
+    sendIfMainWindow('success', () => ({ title: 'Update downloaded', message: 'Please restart the app to finish the update', button: 'install' }));
   });

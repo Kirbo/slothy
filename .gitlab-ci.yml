@@ -92,24 +92,12 @@ build:
   only:
     - master
 
-pack:mac:
+pack:
   <<: *pack-common
   tags:
     - macos
   script:
-    - yarn dist -m --publish onTag
-
-pack:linux:
-  <<: *pack-common
-  image: electronuserland/builder:10
-  script:
-    - yarn dist -l --publish onTag
-
-pack:windows:
-  <<: *pack-common
-  image: electronuserland/builder:wine
-  script:
-    - yarn dist -w --publish onTag
+    - yarn dist-all --publish always
 
 pages:
   <<: *general

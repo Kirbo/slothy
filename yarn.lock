@@ -2854,6 +2854,11 @@ color@^3.0.0:
     color-convert "^1.9.1"
     color-string "^1.5.2"
 
+colors@^1.1.2:
+  version "1.3.3"
+  resolved "https://registry.npmjs.org/colors/-/colors-1.3.3.tgz#39e005d546afe01e01f9c4ca8fa50f686a01205d"
+  integrity sha512-mmGt/1pZqYRjMxB1axhTo16/snVZ5krrKkcmMeVKxzECMMXoCgnvTPp10QgHfcbQZw8Dq2jMNG6je4JlWU0gWg==
+
 combined-stream@^1.0.6, combined-stream@~1.0.6:
   version "1.0.7"
   resolved "https://registry.npmjs.org/combined-stream/-/combined-stream-1.0.7.tgz#2d1d24317afb8abe95d6d2c0b07b57813539d828"
@@ -3983,6 +3988,14 @@ electron-log@3.0.5:
   version "3.0.5"
   resolved "https://registry.npmjs.org/electron-log/-/electron-log-3.0.5.tgz#9bdd307f1f1aec85c0873babd6bdfffb1a661436"
   integrity sha512-wWOPNBVGh7NJx/OLXdgtuYrqxoG9ZWO+kZYloIHi66B5W9EgXZw71jdZ1ddeWNg4CkABypa8tkrRGqCKF+9tYg==
+
+electron-logger@0.0.3:
+  version "0.0.3"
+  resolved "https://registry.npmjs.org/electron-logger/-/electron-logger-0.0.3.tgz#5166e62f4ed6e1cb941fdd6ba1d787b18073b29a"
+  integrity sha1-UWbmL07W4cuUH91rodeHsYBzspo=
+  dependencies:
+    colors "^1.1.2"
+    merge "^1.2.0"
 
 electron-osx-sign@0.4.11:
   version "0.4.11"
