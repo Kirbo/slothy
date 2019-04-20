@@ -56,7 +56,7 @@
         "rpm",
         "zip"
       ],
-      "icon": "build/icons/fill/logo.ico"
+      "icon": "build/icons/fill/logo.icns"
     },
     "protocols": [
       {
