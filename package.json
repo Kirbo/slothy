@@ -48,6 +48,16 @@
       ],
       "icon": "build/icons/fill/logo.ico"
     },
+    "linux": {
+      "target": [
+        "AppImage",
+        "snap",
+        "deb",
+        "rpm",
+        "zip"
+      ],
+      "icon": "build/icons/fill/logo.ico"
+    },
     "protocols": [
       {
         "name": "slothy",

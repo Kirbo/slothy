@@ -63,6 +63,18 @@ autoUpdater.logger = log;
 autoUpdater.logger.transports.file.level = 'info';
 
 
+const hideDock = () => {
+  if (app.dock) {
+    app.dock.hide();
+  }
+}
+
+const showDock = () => {
+  if (app.dock) {
+    app.dock.show();
+  }
+}
+
 const ifComputerRunning = async callback => {
   if (computerRunning) {
     await callback();
@@ -169,6 +181,7 @@ const createWindow = async () => {
   });
 
   mainWindow.loadURL(startUrl);
+  showDock();
 
   if (process.env.NODE_ENV === 'development') {
     mainWindow.webContents.openDevTools();
@@ -287,6 +300,7 @@ const createWindow = async () => {
             }
             mainWindow.show();
             mainWindow.focus();
+            showDock();
           } else {
             createWindow();
           }
@@ -309,6 +323,7 @@ const createWindow = async () => {
   mainWindow
     .once('ready-to-show', () => {
       mainWindow.show();
+      showDock();
     })
     .on('move', () => {
       storage.get('windowSettings', (error, data) => {
@@ -340,6 +355,7 @@ const createWindow = async () => {
       }
       if (mainWindow) {
         mainWindow.hide();
+        hideDock();
 
         if (process.env.NODE_ENV === 'development') {
           mainWindow.webContents.closeDevTools();
@@ -349,6 +365,7 @@ const createWindow = async () => {
     .on('closed', event => {
       event.preventDefault();
       mainWindow = null;
+      hideDock();
       return false;
     });
 }
@@ -365,6 +382,7 @@ if (!app.requestSingleInstanceLock()) {
           mainWindow.restore();
         }
         mainWindow.focus();
+        showDock();
       } else {
         createWindow();
       }
@@ -376,13 +394,14 @@ app
     if (mainWindow === null) {
       createWindow();
     } else {
-      app.dock.show();
+      showDock();
       mainWindow.show();
       mainWindow.focus();
     }
   })
   .on('ready', () => {
     createWindow();
+    showDock();
     electron.powerMonitor
       .on('suspend', () => computerRunning = false)
       .on('resume', () => computerRunning = true);
@@ -392,7 +411,7 @@ app
     handleAuth(sendIfMainWindow, uri);
   })
   .on('window-all-closed', () => {
-    app.dock.hide();
+    hideDock();
   })
   .on('will-quit', event => {
     if (!quit) {
@@ -400,7 +419,7 @@ app
 
       if (mainWindow) {
         mainWindow.hide();
-        app.dock.hide();
+        hideDock();
 
         if (process.env.NODE_ENV === 'development') {
           mainWindow.webContents.closeDevTools();
