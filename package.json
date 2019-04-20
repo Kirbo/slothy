@@ -12,7 +12,7 @@
     "ClientId": "613360590693.615573455494",
     "Protocol": "slothy"
   },
-  "author": "Kimmo Saari <kirbo@kirbo-designs.com> (https://gitlab.com/kirbo)",
+  "author": "Kirbo (https://gitlab.com/kirbo)",
   "private": true,
   "main": "public/electron.js",
   "scripts": {
@@ -52,8 +52,6 @@
       "target": [
         "AppImage",
         "snap",
-        "deb",
-        "rpm",
         "zip"
       ],
       "icon": "build/icons/fill/logo.icns"
