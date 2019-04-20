@@ -1,4 +1,5 @@
 {
+  "version": "0.1.0",
   "name": "slothy",
   "description": "Changes your Slack status based on the SSID you're currently connected to.",
   "productName": "Slothy",
@@ -11,8 +12,7 @@
     "ClientId": "613360590693.615573455494",
     "Protocol": "slothy"
   },
-  "author": "Kirbo",
-  "version": "0.1.0",
+  "author": "Kimmo Saari <kirbo@kirbo-designs.com> (https://gitlab.com/kirbo)",
   "private": true,
   "main": "public/electron.js",
   "scripts": {
