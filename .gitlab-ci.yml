@@ -95,12 +95,24 @@ build:
   only:
     - master
 
-release:
+release:mac:
   <<: *release-common
   tags:
     - macos
   script:
-    - yarn dist-all --publish always
+    - yarn dist -m --publish always
+
+release:linux:
+  <<: *release-common
+  image: electronuserland/builder:10
+  script:
+    - yarn dist -l --publish always
+
+release:windows:
+  <<: *release-common
+  image: electronuserland/builder:wine
+  script:
+    - yarn dist -w --publish always
 
 pages:
   <<: *general
