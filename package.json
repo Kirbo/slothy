@@ -4,6 +4,7 @@
   "description": "Changes your Slack status based on the SSID you're currently connected to.",
   "productName": "Slothy",
   "productUrl": "https://github.com/kirbo/slothy/releases",
+  "repository": "https://github.com/kirbo/slothy",
   "product": {
     "GitLabRepository": "https://gitlab.com/kirbo/slothy",
     "GitHubRepository": "https://github.com/kirbo/slothy",
@@ -23,8 +24,6 @@
     "dist-all": "electron-builder -mwl",
     "electron-start": "electron .",
     "electron-dev": "cross-env NODE_ENV=development ELECTRON_START_URL=http://localhost:5000 node src/electron-wait-react",
-    "pack": "electron-builder --dir",
-    "release": "build",
     "test": "yarn react-test --detectOpenHandles",
     "react-dev": "cross-env BROWSER=none NODE_PATH=./src react-app-rewired start",
     "react-build": "react-app-rewired build",
@@ -32,7 +31,7 @@
     "react-eject": "react-scripts eject"
   },
   "build": {
-    "appId": "com.github.kirbo.slothy",
+    "appId": "com.electron.kirbo.slothy",
     "asar": true,
     "files": [
       ".env",

@@ -97,19 +97,19 @@ pack:mac:
   tags:
     - macos
   script:
-    - yarn dist -m
+    - yarn dist -m --publish onTag
 
 pack:linux:
   <<: *pack-common
   image: electronuserland/builder:10
   script:
-    - yarn dist -l
+    - yarn dist -l --publish onTag
 
 pack:windows:
   <<: *pack-common
   image: electronuserland/builder:wine
   script:
-    - yarn dist -w
+    - yarn dist -w --publish onTag
 
 pages:
   <<: *general
@@ -130,28 +130,3 @@ pages:
     - public
   only:
     - master
-
-release:
-  <<: *general
-  when: manual
-  allow_failure: false
-  stage: deploy
-  environment:
-    name: ${CI_COMMIT_REF_NAME}
-  cache:
-    policy: pull
-    paths:
-      - node_modules
-  dependencies:
-    - pack:mac
-    - pack:linux
-    - pack:windows
-  script:
-    - yarn release
-  artifacts:
-    expire_in: 1 week
-    paths:
-      - dist
-  only:
-    - master
-
