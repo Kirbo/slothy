@@ -25,7 +25,7 @@ cache:
     paths:
       - node_modules
   dependencies:
-    - build
+    - React app
   artifacts:
     expire_in: 1 week
     paths:
@@ -45,7 +45,7 @@ stages:
   - deploy
 
 ###### JOBS ###################################################################
-install:
+Dependencies:
   <<: *general
   stage: install
   cache:
@@ -57,7 +57,7 @@ install:
   only:
     - master
 
-test:
+Jest:
   <<: *general
   stage: test
   cache:
@@ -65,7 +65,7 @@ test:
     paths:
       - node_modules
   dependencies:
-    - install
+    - Dependencies
   artifacts:
     paths:
       - coverage
@@ -75,7 +75,7 @@ test:
   only:
     - master
 
-build:
+React app:
   <<: *general
   stage: build
   environment:
@@ -85,7 +85,7 @@ build:
     paths:
       - node_modules
   dependencies:
-    - install
+    - Dependencies
   script:
     - yarn react-build
   artifacts:
@@ -95,26 +95,26 @@ build:
   only:
     - master
 
-release:mac:
+Mac:
   <<: *release-common
   tags:
     - macos
   script:
     - yarn dist -m --publish always
 
-release:linux:
+Linux:
   <<: *release-common
   image: electronuserland/builder:10
   script:
     - yarn dist -l --publish always
 
-release:windows:
+Windows:
   <<: *release-common
   image: electronuserland/builder:wine
   script:
     - yarn dist -w --publish always
 
-pages:
+Pages:
   <<: *general
   stage: deploy
   cache:
