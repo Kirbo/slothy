@@ -509,7 +509,10 @@ ipc
       onConfirm: 'checkUpdates',
     }));
   })
-  .on('installUpdate', () => autoUpdater.quitAndInstall());
+  .on('installUpdate', () => {
+    quit = true;
+    autoUpdater.quitAndInstall();
+  });
 
 autoUpdater
   .on('checking-for-update', () => {
