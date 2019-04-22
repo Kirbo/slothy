@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { message } from 'antd';
+import { message, notification, Button, Progress } from 'antd';
 import uuid from 'uuid/v4';
 
 import INITIAL_STATE from './InitialState';
@@ -12,6 +12,21 @@ const electron = window.require('electron');
 const { ipcRenderer } = electron;
 
 let connectionsTimeout;
+
+const notifications = [
+  'update-notification',
+  'update-progress',
+  'update-downloaded',
+  'update-cancelled',
+];
+
+const closeOtherNotifications = (skip = '') => {
+  notifications
+    .filter(key => key !== skip)
+    .forEach(key => {
+      notification.close(key);
+    })
+}
 
 class AppProvider extends Component {
   state = {
@@ -85,80 +100,167 @@ class AppProvider extends Component {
   componentDidMount = () => {
     ipcRenderer.send('initialize');
 
-    ipcRenderer.on('connections', (event, { ssids, currentSsids }) => {
-      this.state.setProperty({
-        ssids: !!this.state.ssids.length && !ssids.length ? this.state.ssids : ssids,
-        currentSsids,
-        wifiEnabled: !!ssids.length || !!currentSsids.length,
-        ssidsLoaded: true,
+    ipcRenderer
+      .on('connections', (event, { ssids, currentSsids }) => {
+        this.state.setProperty({
+          ssids: !!this.state.ssids.length && !ssids.length ? this.state.ssids : ssids,
+          currentSsids,
+          wifiEnabled: !!ssids.length || !!currentSsids.length,
+          ssidsLoaded: true,
+        });
+      })
+      .on('configurations', (event, configurations) => {
+        this.state.setProperty({
+          configurationsLoaded: true,
+          configurations,
+        });
+      })
+      .on('savedConfiguration', (event, value) => {
+        this.state.setProperty({
+          savingConfiguration: value,
+          drawerVisible: false,
+        });
+        message.success('Configuration succesfully saved.');
+      })
+      .on('removedConfiguration', (event, value) => {
+        this.state.setProperty({
+          removingConfiguration: value,
+          drawerVisible: false,
+        });
+        message.success('Configuration succesfully removed.');
+      })
+      .on('success', (event, data) => {
+        console.log('success', data);
+        message.success(data.message);
+      })
+      .on('error', (event, data) => {
+        console.log('error', data);
+        message.error(data.message);
+      })
+      .on('info', (event, data) => {
+        console.log('info', data);
+        message.info(data.message);
+      })
+      .on('warning', (event, data) => {
+        console.log('warning', data);
+        message.warn(data.message);
+      })
+      .on('loading', (event, data) => {
+        console.log('loading', data);
+        message.loading(data.message);
+      })
+      .on('update-notification', (event, data) => {
+        let message = `
+          <div class="version">
+            <span class="title">Current version</span>
+            <span class="value">${data.updates.currentVersion}</span>
+          </div>
+          <div class="version">
+            <span class="title">Latest version</span>
+            <span class="value">${data.updates.version}</span>
+          </div>
+        `;
+        if (data.updates.releaseDate) {
+          message = `${message}<div class="release"><span class="title">Release date</span><span class="value">${new Date(data.updates.releaseDate)}</span></div>`;
+        }
+        if (data.updates.releaseNotes.trim()) {
+          message = `${message}<div class="release"><span class="title">Release notes</span><span class="value">${data.updates.releaseNotes}</span></div>`;
+        }
+        notification[data.type || 'open']({
+          message: data.title,
+          description: <div dangerouslySetInnerHTML={{ __html: message }} />,
+          duration: 0,
+          key: 'update-notification',
+          btn: (
+            <React.Fragment>
+              <Button type="default" size="small" onClick={() => notification.close('update-notification')}>
+                {data.cancel}
+              </Button>
+              <Button type="primary" onClick={() => ipcRenderer.send(data.onConfirm)}>
+                {data.confirm}
+              </Button>
+            </React.Fragment>
+          ),
+          onClose: () => notification.close('update-notification'),
+        });
+        closeOtherNotifications('update-notification');
+      })
+      .on('update-progress', (event, data) => {
+        notification[data.type || 'open']({
+          message: data.title,
+          description: <Progress percent={((data.progress.percent).toFixed(2))} status="active" />,
+          duration: 0,
+          key: 'update-progress',
+          btn: (
+            <React.Fragment>
+              <Button type="default" size="small" onClick={() => ipcRenderer.send(data.onCancel)}>
+                {data.cancel}
+              </Button>
+            </React.Fragment>
+          ),
+          onClose: () => notification.close('update-progress'),
+        });
+        closeOtherNotifications('update-progress');
+      })
+      .on('update-downloaded', (event, data) => {
+        notification[data.type || 'open']({
+          message: data.title,
+          description: data.message,
+          duration: 0,
+          key: 'update-downloaded',
+          btn: (
+            <React.Fragment>
+              <Button type="default" size="small" onClick={() => notification.close('update-downloaded')}>
+                {data.cancel}
+              </Button>
+              <Button type="primary" size="small" onClick={() => ipcRenderer.send(data.onConfirm)}>
+                {data.confirm}
+              </Button>
+            </React.Fragment>
+          ),
+          onClose: () => notification.close('update-downloaded'),
+        });
+        closeOtherNotifications('update-downloaded');
+      })
+      .on('update-cancelled', (event, data) => {
+        notification[data.type || 'open']({
+          message: data.title,
+          description: data.message,
+          duration: 0,
+          key: 'update-cancelled',
+          btn: (
+            <React.Fragment>
+              <Button type="default" size="small" onClick={() => notification.close('update-cancelled')}>
+                {data.cancel}
+              </Button>
+              <Button type="primary" size="small" onClick={() => ipcRenderer.send(data.onConfirm)}>
+                {data.confirm}
+              </Button>
+            </React.Fragment>
+          ),
+          onClose: () => notification.close('update-notification'),
+        });
+        closeOtherNotifications('update-cancelled');
+      })
+      .on('newSlackInstance', (event, data) => {
+        console.log('newSlackInstance', data);
+      })
+      .on('slackInstances', (event, slackInstances) => {
+        let { viewType, selectedView } = this.state;
+
+        if (
+          (viewType === 'instance' && !selectedView && slackInstances.length)
+          || (viewType === 'instance' && selectedView && slackInstances.length && !slackInstances.find(({ id }) => id === this.state.selectedView))
+        ) {
+          selectedView = slackInstances.sort(sortBy('name'))[0].id;
+        }
+
+        this.state.setProperty({
+          slackInstancesLoaded: true,
+          slackInstances,
+          selectedView,
+        });
       });
-    });
-
-    ipcRenderer.on('configurations', (event, configurations) => {
-      this.state.setProperty({
-        configurationsLoaded: true,
-        configurations,
-      });
-    });
-    ipcRenderer.on('info', (event, message) => {
-      message.info(message);
-    });
-
-    ipcRenderer.on('savedConfiguration', (event, value) => {
-      this.state.setProperty({
-        savingConfiguration: value,
-        drawerVisible: false,
-      });
-      message.success('Configuration succesfully saved.');
-    });
-    ipcRenderer.on('removedConfiguration', (event, value) => {
-      this.state.setProperty({
-        removingConfiguration: value,
-        drawerVisible: false,
-      });
-      message.success('Configuration succesfully removed.');
-    });
-
-    ipcRenderer.on('success', (event, data) => {
-      console.log('success', data);
-      message.success(data);
-    });
-    ipcRenderer.on('error', (event, data) => {
-      console.log('error', data);
-      message.error(data);
-    });
-    ipcRenderer.on('info', (event, data) => {
-      console.log('info', data);
-      message.info(data);
-    });
-    ipcRenderer.on('warning', (event, data) => {
-      console.log('warning', data);
-      message.warn(data);
-    });
-    ipcRenderer.on('loading', (event, data) => {
-      console.log('loading', data);
-      message.loading(data);
-    });
-
-    ipcRenderer.on('newSlackInstance', (event, data) => {
-      console.log('newSlackInstance', data);
-    });
-    ipcRenderer.on('slackInstances', (event, slackInstances) => {
-      let { viewType, selectedView } = this.state;
-
-      if (
-        (viewType === 'instance' && !selectedView && slackInstances.length)
-        || (viewType === 'instance' && selectedView && slackInstances.length && !slackInstances.find(({ id }) => id === this.state.selectedView))
-      ) {
-        selectedView = slackInstances.sort(sortBy('name'))[0].id;
-      }
-
-      this.state.setProperty({
-        slackInstancesLoaded: true,
-        slackInstances,
-        selectedView,
-      });
-    });
   };
 
   componentWillUnmount = () => {
@@ -177,6 +279,7 @@ class AppProvider extends Component {
       'info',
       'warning',
       'loading',
+      ...notifications,
     ].forEach(channel => {
       ipcRenderer.removeAllListeners(channel);
     });

@@ -4,36 +4,19 @@ const fs = require('fs');
 const url = require('url');
 const os = require('os');
 const ipc = require('electron').ipcMain;
-const { autoUpdater } = require('electron-updater');
+const { autoUpdater, CancellationToken } = require('electron-updater');
 const log = require('electron-log');
 const storage = require('electron-json-storage');
 
 const packageJson = require('../package.json');
 
-const protocol = packageJson.product.Protocol;
-
 const { app, BrowserWindow, Menu, Tray, nativeImage, systemPreferences, shell } = electron;
-
-const getIcon = () => (
-  path.join(__dirname, (process.env.NODE_ENV === 'development' ? '../src/assets' : ''), 'icons', 'fill', 'icon_16x16.png')
-)
-
-if (process.platform === 'darwin') {
-  systemPreferences.subscribeNotification('AppleInterfaceThemeChangedNotification', () => {
-    tray.setImage(getIcon());
-  });
-}
 
 const {
   getSlackInstances,
-  // updateSlackInstance,
-  // saveSlackInstance,
   removeSlackInstance,
-  // getStatus,
-  // getWorkspace,
   getConnections,
   setStatus,
-  // getParameterByName,
   getWorkspaces,
   getConfigurations,
   saveConfiguration,
@@ -44,13 +27,17 @@ const {
   updateStatuses,
 } = require('./utils.js');
 
+const protocol = packageJson.product.Protocol;
+
 require('dotenv').config({ path: path.join(__dirname, '/../.env') });
 
-let mainWindow;
+let mainWindow = null;
 let tray = null;
 let quit = false;
 let computerRunning = true;
 let timers = {};
+let config = {};
+let cancellationToken = null;
 
 const cached = {
   configurations: null,
@@ -58,10 +45,18 @@ const cached = {
   slackInstances: null,
 };
 
-autoUpdater.autoDownload = false;
-autoUpdater.logger = log;
-autoUpdater.logger.transports.file.level = 'info';
+const setAutoUpdates = async () => {
+  config = await getAppConfigs();
 
+  Object.keys(config.updates).forEach(key => {
+    autoUpdater[key] = config.updates[key];
+  });
+
+  autoUpdater.logger = log;
+  autoUpdater.logger.transports.file.level = 'info';
+}
+
+setAutoUpdates();
 
 const hideDock = () => {
   if (app.dock) {
@@ -122,6 +117,16 @@ const startTimers = async () => {
   setTimer('slackInstances', () => ifComputerRunning(() => sendIfMainWindow('slackInstances', getWorkspaces)));
   setTimer('connections', () => ifComputerRunning(() => sendIfMainWindow('connections', getConnections)));
   setTimer('updateStatus', updateStatusesFunction);
+}
+
+const getIcon = () => (
+  path.join(__dirname, (process.env.NODE_ENV === 'development' ? '../src/assets' : ''), 'icons', 'fill', 'icon_16x16.png')
+)
+
+if (process.platform === 'darwin') {
+  systemPreferences.subscribeNotification('AppleInterfaceThemeChangedNotification', () => {
+    tray.setImage(getIcon());
+  });
 }
 
 startTimers();
@@ -242,7 +247,7 @@ const createWindow = async () => {
         { type: 'separator' },
         {
           label: 'Check for updates',
-          click() { autoUpdater.checkForUpdates(); },
+          click: () => { autoUpdater.checkForUpdates(); },
         },
         { role: 'services', submenu: [] },
         { type: 'separator' },
@@ -370,6 +375,8 @@ const createWindow = async () => {
     });
 }
 
+
+
 if (!app.requestSingleInstanceLock()) {
   app.quit();
 } else {
@@ -431,12 +438,12 @@ app
     }
   });
 
-
 ipc
   .on('initialize', async () => {
     ifCachedSend('configurations', getConfigurations);
     ifCachedSend('connections', getConnections);
     ifCachedSend('slackInstances', getSlackInstances);
+    autoUpdater.checkForUpdates();
   })
   .on('getConnections', async (event, data) => sendIfMainWindow('connections', getConnections))
   .on('removeSlackInstance', async (event, data) => sendIfMainWindow('slackInstances', removeSlackInstance, data))
@@ -455,48 +462,87 @@ ipc
     await setStatus(data);
     sendIfMainWindow('slackInstances', getSlackInstances);
   })
-  .on('checkUpdates', autoUpdater.checkForUpdates)
-  .on('update', autoUpdater.downloadUpdate)
-  .on('installUpdate', autoUpdater.quitAndInstall);
+  .on('checkUpdates', () => autoUpdater.checkForUpdates())
+  .on('update', () => {
+    sendIfMainWindow('update-progress', () => ({
+      type: 'info',
+      title: 'Downloading updates...',
+      progress: {
+        percent: 0,
+      },
+      cancel: 'Cancel',
+      onCancel: 'cancelUpdate',
+    }));
+
+    cancellationToken = new CancellationToken();
+
+    autoUpdater
+    .downloadUpdate(cancellationToken)
+    .then((downloadPromise) => {
+      log.info('downloadPromise', downloadPromise);
+    })
+    .catch(error => {
+      // log.error(error);
+    });
+  })
+  .on('cancelUpdate', () => {
+    cancellationToken.cancel();
+    sendIfMainWindow('update-cancelled', () => ({
+      type: 'error',
+      title: 'Downloading cancelled',
+      message: 'Downloading the update was cancelled',
+      cancel: 'Close',
+      confirm: 'Check updates',
+      onConfirm: 'checkUpdates',
+    }));
+  })
+  .on('installUpdate', () => autoUpdater.quitAndInstall());
 
 autoUpdater
   .on('checking-for-update', () => {
-    sendIfMainWindow('info', () => 'Checking for updates...');
+    log.info('Checking for updates...');
+    sendIfMainWindow('info', () => ({ message: 'Checking for updates...' }));
   })
   .on('update-available', event => {
     log.warn('Updates available.', event);
-    const message = `
-      <table class="updates">
-        <tr>
-          <th>Current version</th>
-          <td>${electron.getVersion()}</td>
-        </tr>
-        <tr>
-          <th>Latest version</th>
-          <td>${event.version}</td>
-        </tr>
-      </table>
-      <h4>Release date</h4>
-      ${new Date(event.releaseDate)}
-      <br />
-      <br />
-      <h4>Release notes</h4>
-      <div class="release-notes">
-        ${event.releaseNotes}
-      </div>
-    `;
-    sendIfMainWindow('warning', () => ({ title: 'Update available', message, button: 'update' }));
+    sendIfMainWindow('update-notification', () => ({
+      type: 'info',
+      title: 'Update available',
+      updates: {
+        currentVersion: app.getVersion(),
+        ...event,
+      },
+      cancel: 'Close',
+      confirm: 'Download update',
+      onConfirm: 'update',
+    }));
   })
   .on('update-not-available', () => {
-    sendIfMainWindow('success', () => 'Software is up-to-date.');
+    sendIfMainWindow('success', () => ({ message: 'Software is up-to-date.' }));
   })
   .on('error', (event, error) => {
     log.error(error);
-    sendIfMainWindow('error', () => 'Error in auto-updater.');
+    sendIfMainWindow('error', () => ({ message: 'Error in auto-updater.', error }));
   })
-  .on('download-progress', () => {
-    sendIfMainWindow('info', () => 'Downloading updates...');
+  .on('update-cancelled', error => {
+    log.error('update-cancelled', error);
+  })
+  .on('download-progress', progress => {
+    sendIfMainWindow('update-progress', () => ({
+      type: 'info',
+      title: 'Downloading updates...',
+      progress,
+      cancel: 'Cancel',
+      onCancel: 'cancelUpdate',
+    }));
   })
   .on('update-downloaded', () => {
-    sendIfMainWindow('success', () => ({ title: 'Update downloaded', message: 'Please restart the app to finish the update', button: 'install' }));
+    sendIfMainWindow('update-downloaded', () => ({
+      type: 'success',
+      title: 'Update downloaded',
+      message: 'To install the updates, please click the "Install and restart" button below.',
+      confirm: 'Install and restart',
+      cancel: 'Close',
+      onConfirm: 'installUpdate',
+    }));
   });
