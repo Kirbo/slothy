@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.3] - 2019-04-23
+### Fixed
+- Old `CLIENT_SECRET` on CI/CD variables.
+
+## [0.3.2] - 2019-04-23
+### Fixed
+- Added missing `.env` file from CI/CD.
+
 ## [0.3.1] - 2019-04-22
 ### Fixed
 - Auto updater was not able to quit the application on "Install and restart".
