@@ -445,7 +445,7 @@ const updateStatuses = async () => {
     })
 }
 
-const getAppConfigs = async () => (
+const getAppConfigurations = async () => (
   new Promise((resolve, reject) => {
     storage.get('appConfigs', (error, data) => {
       if (error) {
@@ -455,6 +455,31 @@ const getAppConfigs = async () => (
       resolve({
         ...appConfigs,
         ...data,
+      });
+    });
+  })
+)
+
+const setAppConfigurations = async appConfigurations => (
+  new Promise((resolve, reject) => {
+    storage.get('appConfigs', (error, data) => {
+      if (error) {
+        reject(error);
+      }
+
+      const recursiveObject = (config, newConfig) => (
+        Object.keys(config).reduce((newConfigObject, key) => {
+          if (typeof config[key] === 'object') {
+            newConfigObject[key] = recursiveObject(config[key], newConfig[key]);
+            return newConfigObject;
+          }
+          newConfigObject[key] = newConfig[key];
+          return newConfigObject;
+        }, {})
+      );
+
+      storage.set('appConfigs', recursiveObject(appConfigs, appConfigurations), async (error, data) => {
+        resolve(appConfigurations);
       });
     });
   })
@@ -482,6 +507,7 @@ module.exports = {
   sortBy,
   uniqueArray,
 
-  getAppConfigs,
+  getAppConfigurations,
+  setAppConfigurations,
   updateStatuses,
 };

@@ -15,8 +15,8 @@ class Loading extends Component {
     }, 250);
   }
 
-  componentWillReceiveProps = ({ slackInstancesLoaded, ssidsLoaded, configurationsLoaded, setProperty }, state) => {
-    if (slackInstancesLoaded && configurationsLoaded) {
+  componentWillReceiveProps = ({ slackInstancesLoaded, ssidsLoaded, configurationsLoaded, appConfigurationsLoaded, setProperty }, state) => {
+    if (slackInstancesLoaded && configurationsLoaded && appConfigurationsLoaded) {
       document.querySelector('.loading').classList.add('loaded');
       setTimeout(() => {
         setProperty({ hideLoading: true });

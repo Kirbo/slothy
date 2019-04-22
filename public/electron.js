@@ -23,7 +23,8 @@ const {
   removeConfiguration,
   clearConfigurations,
   handleAuth,
-  getAppConfigs,
+  getAppConfigurations,
+  setAppConfigurations,
   updateStatuses,
 } = require('./utils.js');
 
@@ -46,7 +47,7 @@ const cached = {
 };
 
 const setAutoUpdates = async () => {
-  config = await getAppConfigs();
+  config = await getAppConfigurations();
 
   Object.keys(config.updates).forEach(key => {
     autoUpdater[key] = config.updates[key];
@@ -101,10 +102,12 @@ const ifCachedSend = async (event, callback) => {
   }
 }
 
-const setTimer = async (event, callback) => {
+const setTimer = async (runNow, event, callback) => {
   clearInterval(timers[event]);
-  const timeout = (await getAppConfigs()).timers[event];
-  callback();
+  const timeout = (await getAppConfigurations()).timers[event];
+  if (runNow) {
+    callback();
+  }
   timers[event] = setInterval(callback, timeout * 1000);
 }
 
@@ -113,10 +116,10 @@ const updateStatusesFunction = async () => {
   ifComputerRunning(() => sendIfMainWindow('slackInstances', getWorkspaces));
 }
 
-const startTimers = async () => {
-  setTimer('slackInstances', () => ifComputerRunning(() => sendIfMainWindow('slackInstances', getWorkspaces)));
-  setTimer('connections', () => ifComputerRunning(() => sendIfMainWindow('connections', getConnections)));
-  setTimer('updateStatus', updateStatusesFunction);
+const startTimers = async (runNow = true) => {
+  setTimer(runNow, 'slackInstances', () => ifComputerRunning(() => sendIfMainWindow('slackInstances', getWorkspaces)));
+  setTimer(runNow, 'connections', () => ifComputerRunning(() => sendIfMainWindow('connections', getConnections)));
+  setTimer(runNow, 'updateStatus', updateStatusesFunction);
 }
 
 const getIcon = () => (
@@ -440,6 +443,7 @@ app
 
 ipc
   .on('initialize', async () => {
+    ifCachedSend('appConfigurations', getAppConfigurations);
     ifCachedSend('configurations', getConfigurations);
     ifCachedSend('connections', getConnections);
     ifCachedSend('slackInstances', getSlackInstances);
@@ -462,6 +466,15 @@ ipc
     await setStatus(data);
     sendIfMainWindow('slackInstances', getSlackInstances);
   })
+  .on('saveAppConfigurationsTimers', async (event, data) => {
+    const appConfigurations = await setAppConfigurations(data);
+    await startTimers(false);
+    await sendIfMainWindow('appConfigurations', () => appConfigurations);
+  })
+  .on('saveAppConfigurationsUpdates', async (event, data) => {
+    const appConfigurations = await setAppConfigurations(data);
+    await sendIfMainWindow('appConfigurations', () => appConfigurations);
+  })
   .on('checkUpdates', () => autoUpdater.checkForUpdates())
   .on('update', () => {
     sendIfMainWindow('update-progress', () => ({
@@ -479,7 +492,7 @@ ipc
     autoUpdater
     .downloadUpdate(cancellationToken)
     .then((downloadPromise) => {
-      log.info('downloadPromise', downloadPromise);
+      // log.info('downloadPromise', downloadPromise);
     })
     .catch(error => {
       // log.error(error);
@@ -500,11 +513,11 @@ ipc
 
 autoUpdater
   .on('checking-for-update', () => {
-    log.info('Checking for updates...');
+    // log.info('Checking for updates...');
     sendIfMainWindow('info', () => ({ message: 'Checking for updates...' }));
   })
   .on('update-available', event => {
-    log.warn('Updates available.', event);
+    // log.warn('Updates available.', event);
     sendIfMainWindow('update-notification', () => ({
       type: 'info',
       title: 'Update available',
@@ -525,7 +538,7 @@ autoUpdater
     sendIfMainWindow('error', () => ({ message: 'Error in auto-updater.', error }));
   })
   .on('update-cancelled', error => {
-    log.error('update-cancelled', error);
+    // log.error('update-cancelled', error);
   })
   .on('download-progress', progress => {
     sendIfMainWindow('update-progress', () => ({

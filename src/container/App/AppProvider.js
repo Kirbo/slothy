@@ -6,7 +6,7 @@ import INITIAL_STATE from './InitialState';
 import { Provider } from './Context';
 import Loading from '../Loading';
 
-import { sortBy } from '../../assets/utils';
+import { sortBy, capitalizeFirst } from '../../assets/utils';
 
 const electron = window.require('electron');
 const { ipcRenderer } = electron;
@@ -95,6 +95,9 @@ class AppProvider extends Component {
       });
       ipcRenderer.send('removeConfiguration', { id });
     },
+    updateAppConfigurations: (property, appConfigurations) => {
+      ipcRenderer.send(`saveAppConfigurations${capitalizeFirst(property)}`, appConfigurations);
+    }
   };
 
   componentDidMount = () => {
@@ -113,6 +116,12 @@ class AppProvider extends Component {
         this.state.setProperty({
           configurationsLoaded: true,
           configurations,
+        });
+      })
+      .on('appConfigurations', (event, appConfigurations) => {
+        this.state.setProperty({
+          appConfigurationsLoaded: true,
+          appConfigurations,
         });
       })
       .on('savedConfiguration', (event, value) => {
@@ -267,6 +276,7 @@ class AppProvider extends Component {
     clearTimeout(connectionsTimeout);
 
     [
+      'appConfigurations',
       'connections',
       'configurations',
       'slackInstances',
@@ -289,9 +299,10 @@ class AppProvider extends Component {
     <React.Fragment>
       {this.state.showLoading && (
         <Loading
+          appConfigurationsLoaded={this.state.appConfigurationsLoaded}
+          configurationsLoaded={this.state.configurationsLoaded}
           slackInstancesLoaded={this.state.slackInstancesLoaded}
           ssidsLoaded={this.state.ssidsLoaded}
-          configurationsLoaded={this.state.configurationsLoaded}
           hideLoading={this.state.hideLoading}
           setProperty={this.state.setProperty}
           connected={this.state.connected}

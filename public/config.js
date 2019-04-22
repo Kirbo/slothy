@@ -7,10 +7,9 @@ module.exports = {
   },
   updates: {
     autoDownload: false,
-    autoInstallOnAppQuit: false,
+    autoInstallOnAppQuit: true,
     allowPrerelease: false,
-    fullChangelog: false,
     allowDowngrade: false,
-    allowBeta: false,
+    fullChangelog: false,
   }
 };

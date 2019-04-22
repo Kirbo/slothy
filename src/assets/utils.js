@@ -25,3 +25,8 @@ export const findFirstRoute = () => (
     type: 'instance',
   }
 );
+
+
+export const capitalizeFirst = str => (
+  `${str[0].toUpperCase()}${str.slice(1).toLowerCase()}`
+);
