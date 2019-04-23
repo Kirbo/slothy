@@ -22,8 +22,6 @@ cache:
 .release-common: &release-common
   <<: *general
   stage: release
-  environment:
-    name: ${CI_COMMIT_REF_NAME}
   cache:
     policy: pull
     paths:
