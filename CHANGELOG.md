@@ -6,13 +6,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.5] - 2019-04-23
+### Fixed
+- [Bug #7](https://gitlab.com/kirbo/slothy/issues/7) - Updating the status was not working.
+
+### Added
+- CI/CD pipeline automatically creates new tag before release.
+
 ## [0.3.4] - 2019-04-23
 ### Fixed
-- Saving a configuration doesn't close the Drawer.
+- [Bug #6](https://gitlab.com/kirbo/slothy/issues/6) - Saving a configuration doesn't close the Drawer.
 
 ## [0.3.3] - 2019-04-23
 ### Fixed
-- Old `CLIENT_SECRET` on CI/CD variables.
+- [Bug #5](https://gitlab.com/kirbo/slothy/issues/5) - Old `CLIENT_SECRET` on CI/CD variables.
 
 ## [0.3.2] - 2019-04-23
 ### Fixed
