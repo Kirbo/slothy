@@ -102,7 +102,7 @@ const ifCachedSend = async (event, callback) => {
   }
 }
 
-const setTimer = async (event, callback, runNow = false) => {
+const setTimer = async (event, callback, runNow = true) => {
   clearInterval(timers[event]);
   const timeout = (await getAppConfigurations()).timers[event];
   if (runNow && callback) {

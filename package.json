@@ -1,5 +1,5 @@
 {
-  "version": "0.3.4",
+  "version": "0.3.5",
   "name": "slothy",
   "description": "Changes your Slack status based on the SSID you're currently connected to.",
   "productName": "Slothy",
@@ -20,13 +20,13 @@
     "build": "yarn react-build && yarn dist",
     "build-all": "yarn react-build && yarn dist-all",
     "start": "nf start",
-    "dist": "electron-builder",
-    "dist-all": "electron-builder -mwl",
+    "dist": "cross-env NODE_ENV=production electron-builder",
+    "dist-all": "cross-env NODE_ENV=production electron-builder -mwl",
     "electron-start": "electron .",
     "electron-dev": "cross-env NODE_ENV=development ELECTRON_START_URL=http://localhost:5000 node src/electron-wait-react",
     "test": "yarn react-test --detectOpenHandles",
     "react-dev": "cross-env BROWSER=none NODE_PATH=./src react-app-rewired start",
-    "react-build": "react-app-rewired build",
+    "react-build": "cross-env NODE_ENV=production react-app-rewired build",
     "react-test": "react-app-rewired test",
     "react-eject": "react-scripts eject",
     "release": "export VERSION=$(node -e \"console.log('v'+require('./package.json').version)\") && git tag -a ${VERSION} -m \"Release ${VERSION}\""

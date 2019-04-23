@@ -41,6 +41,7 @@ stages:
   - install
   - test
   - build
+  - pre-release
   - release
   - deploy
 
@@ -54,8 +55,6 @@ dependencies:
       - node_modules
   script:
     - yarn install
-  only:
-    - master
 
 jest:
   <<: *general
@@ -72,8 +71,6 @@ jest:
     expire_in: 1 month
   script:
     - yarn test --verbose --forceExit --ci --coverage --colors
-  only:
-    - master
 
 react app:
   <<: *general
@@ -95,6 +92,20 @@ react app:
     paths:
       - .env
       - build
+  only:
+    - master
+
+tag version:
+  <<: *general
+  stage: pre-release
+  environment:
+    name: ${CI_COMMIT_REF_NAME}
+  cache:
+    policy: pull
+    paths: []
+  dependencies: []
+  script:
+    - yarn release
   only:
     - master
 
