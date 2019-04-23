@@ -97,7 +97,7 @@ react app:
       - .env
       - build
   only:
-    - master
+    - release
 
 tag version:
   <<: *general
