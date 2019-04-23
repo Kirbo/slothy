@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.8] - 2019-04-23
+### Fixed
+- [Bug #9](https://gitlab.com/kirbo/slothy/issues/9) - Updating the status required admin permissions.
+
 ## [0.3.7] - 2019-04-23
 ### Fixed
 - CI/CD pipeline.

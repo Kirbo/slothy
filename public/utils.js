@@ -3,6 +3,8 @@ const slack = require('slack');
 const wifi = require('node-wifi');
 const url = require('url');
 const request = require('request');
+const log = require('electron-log');
+
 const packageJson = require('../package.json');
 const appConfigs = require('./config');
 
@@ -16,6 +18,7 @@ const getSlackInstances = async () => (
   new Promise((resolve, reject) => {
     storage.get('slackInstances', (error, data) => {
       if (error) {
+        log.error('getSlackInstances', error);
         reject(error);
       }
       let instances = [];
@@ -41,6 +44,7 @@ const updateSlackInstance = async ({ instance, profile }) => (
 
     storage.set('slackInstances', newSlackInstances, async (error, data) => {
       if (error) {
+        log.error('updateSlackInstance', error);
         reject(error);
       }
       resolve(getSlackInstances());
@@ -63,6 +67,10 @@ const saveSlackInstance = async (instance) => (
 
     const slackInstances = await getSlackInstances();
     storage.set('slackInstances', [...slackInstances, newInstance], async (error, data) => {
+      if (error) {
+        log.error('saveSlackInstance', error);
+        reject(error);
+      }
       resolve(newInstance);
     });
   })
@@ -73,6 +81,7 @@ const removeSlackInstance = async ({ token }) => (
     const slackInstances = await getSlackInstances();
     storage.set('slackInstances', slackInstances.filter(instance => instance.token !== token), (error, data) => {
       if (error) {
+        log.error('removeSlackInstance', error);
         reject(error);
       }
       resolve(getSlackInstances());
@@ -84,6 +93,7 @@ const getStatus = async ({ token }) => (
   new Promise(async (resolve, reject) => {
     slack.users.profile.get({ token }, (error, data) => {
       if (error) {
+        log.error('getStatus', error);
         reject(error);
       }
       const { profile } = data;
@@ -96,6 +106,7 @@ const getWorkspace = async ({ token }) => (
   new Promise(async (resolve, reject) => {
     slack.team.info({ token }, (error, data) => {
       if (error) {
+        log.error('getWorkspace', error);
         reject(error);
       }
       if (data) {
@@ -112,6 +123,7 @@ const getWorkspaceEmojis = async ({ token }) => (
   new Promise(async (resolve, reject) => {
     slack.emoji.list({ token }, (error, data) => {
       if (error) {
+        log.error('getWorkspaceEmojis', error);
         reject(error);
       }
       try {
@@ -126,25 +138,25 @@ const getWorkspaceEmojis = async ({ token }) => (
 );
 
 const getCurrentConnections = () => (
-  new Promise((res, rej) => {
+  new Promise((resolve, reject) => {
     wifi.getCurrentConnections((error, connections) => {
       if (error) {
-        console.error('error', error);
-        rej(error);
+        log.error('getCurrentConnections', error);
+        reject(error);
       }
-      res(connections);
+      resolve(connections);
     })
   })
 )
 
 const getAvailableConnections = () => (
-  new Promise((res, rej) => {
+  new Promise((resolve, reject) => {
     wifi.scan((error, connections) => {
       if (error) {
-        console.error('error', error);
-        rej(error);
+        log.error('getAvailableConnections', error);
+        reject(error);
       }
-      res(connections);
+      resolve(connections);
     })
   })
 )
@@ -212,17 +224,14 @@ const getConnections = () => (
   })
 );
 
-const setStatus = async ({ status, emoji, token }) => (
+const setStatus = async ({ token, emoji, status }) => (
   new Promise(async (resolve, reject) => {
     const slackInstances = await getSlackInstances();
-    const instance = slackInstances.find(
-      instance => instance.token === token
-    );
+    const instance = slackInstances.find(instance => instance.token === token);
 
     const payload = {
       token,
       profile: JSON.stringify({
-        ...instance.profile,
         status_text: status,
         status_emoji: emoji
       })
@@ -230,8 +239,8 @@ const setStatus = async ({ status, emoji, token }) => (
 
     slack.users.profile.set(payload, async (error, data) => {
       if (error) {
+        log.error('setStatus', error);
         reject(error);
-        return;
       }
       const { profile } = data;
       await updateSlackInstance({ instance, profile });
@@ -268,6 +277,10 @@ const getWorkspaces = async () => (
       .then(slackInstances => {
         storage.set('slackInstances', [...slackInstances]);
         resolve(slackInstances);
+      })
+      .catch(error => {
+        log.error('getWorkspaces', error);
+        reject(error);
       });
   })
 );
@@ -276,6 +289,7 @@ const getConfigurations = async () => (
   new Promise((resolve, reject) => {
     storage.get('configurations', (error, data) => {
       if (error) {
+        log.error('getConfigurations', error);
         reject(error);
       }
       let configurations = [];
@@ -323,6 +337,7 @@ const getEnabledConfigurations = async () => (
         resolve(updateConfigs);
       })
       .catch(error => {
+        log.error('getConfigurations', error);
         reject(error);
       })
   })
@@ -332,6 +347,10 @@ const saveConfiguration = async (configuration) => (
   new Promise(async (resolve, reject) => {
     const configurations = (await getConfigurations()).filter(({ id }) => id !== configuration.id);
     storage.set('configurations', [...configurations, configuration], async (error, data) => {
+      if (error) {
+        log.error('saveConfiguration', error);
+        reject(error);
+      }
       resolve(await getConfigurations());
     });
   })
@@ -341,6 +360,7 @@ const removeConfiguration = async ({ id }) => (
   new Promise(async (resolve, reject) => {
     storage.set('configurations', (await getConfigurations()).filter(configuration => configuration.id !== id), async (error, data) => {
       if (error) {
+        log.error('removeConfiguration', error);
         reject(error);
       }
       resolve(await getConfigurations());
@@ -355,6 +375,7 @@ const clearConfigurations = async () => (
       new Promise(async (res, rej) => {
         storage.set('configurations', [], async (error, data) => {
           if (error) {
+            log.error('clearConfigurations.configurations', error);
             rej(error);
           }
           res(await getConfigurations());
@@ -363,6 +384,7 @@ const clearConfigurations = async () => (
       new Promise(async (res, rej) => {
         storage.set('slackInstances', [], async (error, data) => {
           if (error) {
+            log.error('clearConfigurations.slackInstances', error);
             rej(error);
           }
           res(await getSlackInstances());
@@ -376,6 +398,7 @@ const clearConfigurations = async () => (
         resolve();
       })
       .catch(error => {
+        log.error('clearConfigurations', error);
         reject(error);
       });
   })
@@ -394,6 +417,7 @@ const handleAuth = (sendIfMainWindow, uri) => {
     request(options, async (error, response, body) => {
       const { ok, access_token } = JSON.parse(body);
       if (!ok) {
+        log.error('handleAuth', error);
         sendIfMainWindow('error', () => 'Error in authentication!');
       } else {
         const token = { token: access_token };
@@ -414,6 +438,7 @@ const handleAuth = (sendIfMainWindow, uri) => {
           sendIfMainWindow('slackInstances', getSlackInstances);
           sendIfMainWindow('newSlackInstance', () => instance);
         } else {
+          log.error('handleAuth', `${existing.name} already exists!`);
           sendIfMainWindow('error', () => `${existing.name} already exists!`);
         }
       }
@@ -449,6 +474,7 @@ const getAppConfigurations = async () => (
   new Promise((resolve, reject) => {
     storage.get('appConfigs', (error, data) => {
       if (error) {
+        log.error('getAppConfigurations', error);
         reject(error);
       }
 
@@ -464,6 +490,7 @@ const setAppConfigurations = async appConfigurations => (
   new Promise((resolve, reject) => {
     storage.get('appConfigs', (error, data) => {
       if (error) {
+        log.error('setAppConfigurations', error);
         reject(error);
       }
 
@@ -479,6 +506,10 @@ const setAppConfigurations = async appConfigurations => (
       );
 
       storage.set('appConfigs', recursiveObject(appConfigs, appConfigurations), async (error, data) => {
+        if (error) {
+          log.error('setAppConfigurations.appConfigs', error);
+          reject(error);
+        }
         resolve(appConfigurations);
       });
     });
