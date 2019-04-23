@@ -26,7 +26,10 @@ const {
   getAppConfigurations,
   setAppConfigurations,
   updateStatuses,
-} = require('./utils.js');
+  // crashReporter,
+} = require('./lib/helpers');
+
+// crashReporter();
 
 const protocol = packageJson.product.Protocol;
 
@@ -46,7 +49,7 @@ const cached = {
   slackInstances: null,
 };
 
-const setAutoUpdates = async () => {
+const setAutoUpdater = async () => {
   config = await getAppConfigurations();
 
   Object.keys(config.updates).forEach(key => {
@@ -56,8 +59,6 @@ const setAutoUpdates = async () => {
   autoUpdater.logger = log;
   autoUpdater.logger.transports.file.level = 'info';
 }
-
-setAutoUpdates();
 
 const hideDock = () => {
   if (app.dock) {
@@ -296,6 +297,57 @@ const createWindow = async () => {
   });
   Menu.setApplicationMenu(Menu.buildFromTemplate(MENU_TEMPLATE));
 
+  mainWindow
+    .once('ready-to-show', () => {
+      mainWindow.show();
+      showDock();
+    })
+    .on('move', () => {
+      storage.get('windowSettings', (error, data) => {
+        const position = mainWindow.getPosition();
+
+        storage.set('windowSettings', {
+          ...data,
+          position,
+        });
+      });
+    })
+    .on('resize', () => {
+      storage.get('windowSettings', (error, data) => {
+        const size = mainWindow.getSize();
+
+        storage.set('windowSettings', {
+          ...data,
+          size,
+        });
+      });
+    })
+    .on('minimize', event => {
+      event.preventDefault();
+      mainWindow.hide();
+    })
+    .on('close', event => {
+      if (config.app.closeToTray && !quit) {
+        event.preventDefault();
+      }
+      if (mainWindow) {
+        mainWindow.hide();
+        hideDock();
+
+        if (process.env.NODE_ENV === 'development') {
+          mainWindow.webContents.closeDevTools();
+        }
+      }
+    })
+    .on('closed', event => {
+      event.preventDefault();
+      mainWindow = null;
+      hideDock();
+      return false;
+    });
+}
+
+const createTray = async () => {
   if (!tray) {
     tray = new Tray(nativeImage.createFromPath(iconPath));
 
@@ -327,58 +379,7 @@ const createWindow = async () => {
       mainWindow.isVisible() ? mainWindow.hide() : mainWindow.show();
     });
   }
-
-  mainWindow
-    .once('ready-to-show', () => {
-      mainWindow.show();
-      showDock();
-    })
-    .on('move', () => {
-      storage.get('windowSettings', (error, data) => {
-        const position = mainWindow.getPosition();
-
-        storage.set('windowSettings', {
-          ...data,
-          position,
-        });
-      });
-    })
-    .on('resize', () => {
-      storage.get('windowSettings', (error, data) => {
-        const size = mainWindow.getSize();
-
-        storage.set('windowSettings', {
-          ...data,
-          size,
-        });
-      });
-    })
-    .on('minimize', event => {
-      event.preventDefault();
-      mainWindow.hide();
-    })
-    .on('close', event => {
-      if (!quit) {
-        event.preventDefault();
-      }
-      if (mainWindow) {
-        mainWindow.hide();
-        hideDock();
-
-        if (process.env.NODE_ENV === 'development') {
-          mainWindow.webContents.closeDevTools();
-        }
-      }
-    })
-    .on('closed', event => {
-      event.preventDefault();
-      mainWindow = null;
-      hideDock();
-      return false;
-    });
 }
-
-
 
 if (!app.requestSingleInstanceLock()) {
   app.quit();
@@ -409,9 +410,17 @@ app
       mainWindow.focus();
     }
   })
-  .on('ready', () => {
-    createWindow();
-    showDock();
+  .on('ready', async () => {
+    createTray();
+    config = await getAppConfigurations();
+    setAutoUpdater();
+
+    if (!config.app.launchMinimised) {
+      createWindow();
+    } else {
+      hideDock();
+    }
+
     electron.powerMonitor
       .on('suspend', () => computerRunning = false)
       .on('resume', () => computerRunning = true);
@@ -424,7 +433,7 @@ app
     hideDock();
   })
   .on('will-quit', event => {
-    if (!quit) {
+    if (config.app.closeToTray && !quit) {
       event.preventDefault();
 
       if (mainWindow) {
@@ -443,11 +452,14 @@ app
 
 ipc
   .on('initialize', async () => {
-    ifCachedSend('appConfigurations', getAppConfigurations);
+    const appConfigurations = await getAppConfigurations();
+    ifCachedSend('appConfigurations', () => appConfigurations);
     ifCachedSend('configurations', getConfigurations);
     ifCachedSend('connections', getConnections);
     ifCachedSend('slackInstances', getSlackInstances);
-    autoUpdater.checkForUpdates();
+    if (appConfigurations.updates.checkUpdatesOnLaunch) {
+      autoUpdater.checkForUpdates();
+    }
   })
   .on('getConnections', async (event, data) => sendIfMainWindow('connections', getConnections))
   .on('removeSlackInstance', async (event, data) => sendIfMainWindow('slackInstances', removeSlackInstance, data))
@@ -466,13 +478,13 @@ ipc
     await setStatus(data);
     sendIfMainWindow('slackInstances', getSlackInstances);
   })
-  .on('saveAppConfigurationsTimers', async (event, data) => {
-    const appConfigurations = await setAppConfigurations(data);
-    await startTimers(false);
-    await sendIfMainWindow('appConfigurations', () => appConfigurations);
-  })
-  .on('saveAppConfigurationsUpdates', async (event, data) => {
-    const appConfigurations = await setAppConfigurations(data);
+  .on('saveAppConfigurations', async (event, data) => {
+    const appConfigurations = await setAppConfigurations(data.appConfigurations);
+    if (data.property === 'timers') {
+      await startTimers(false);
+    }
+    config = appConfigurations;
+    setAutoUpdater();
     await sendIfMainWindow('appConfigurations', () => appConfigurations);
   })
   .on('checkUpdates', () => autoUpdater.checkForUpdates())
@@ -561,4 +573,17 @@ autoUpdater
       cancel: 'Close',
       onConfirm: 'installUpdate',
     }));
+  });
+
+process
+  .on('unhandledRejection', (reason, p) => {
+    log.error('Unhandled Rejection at:', p, 'reason:', reason);
+  })
+  .on('uncaughtException', error => {
+    log.error('uncaughtException', error);
+  })
+  .on('warning', (warning) => {
+    log.warn(warning.name);
+    log.warn(warning.message);
+    log.warn(warning.stack);
   });

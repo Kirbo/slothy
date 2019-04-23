@@ -5,6 +5,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Crash reporter.
+
+## [0.4.0] - 2019-04-23
+### Added
+- New option: `Check updates at launch`.
+- New option: `Launch application minimised`.
+- New option: `Minimise application on quit`.
+- More logging for debugging.
+
+### Changed
+- Default value for `Update Slack workspaces` set from 5 to 15 minutes.
 
 ## [0.3.8] - 2019-04-23
 ### Fixed

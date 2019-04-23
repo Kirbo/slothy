@@ -3,10 +3,7 @@ import { findFirstRoute } from '../../assets/utils';
 const { name, type } = findFirstRoute();
 
 const INITIAL_STATE = {
-  appConfigurations: {
-    timers: {},
-    updates: {},
-  },
+  appConfigurations: null,
   appConfigurationsLoaded: null,
   configurations: [],
   configurationsLoaded: false,
