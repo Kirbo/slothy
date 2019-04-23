@@ -98,6 +98,7 @@ react app:
       - build
   only:
     - master
+    - release
 
 tag version:
   <<: *general
