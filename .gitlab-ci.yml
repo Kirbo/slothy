@@ -105,6 +105,8 @@ tag version:
     paths: []
   dependencies: []
   script:
+    - git config --global user.email "incoming+kirbo-slothy-11124740-issue-@incoming.gitlab.com"
+    - git config --global user.name "Slothy CI/CD"
     - yarn release
   only:
     - master
