@@ -105,7 +105,7 @@ tag version:
     paths: []
   dependencies: []
   script:
-    - mkdir ~/.ssh/id_rsa
+    - mkdir ~/.ssh
     - echo "${SSH_KEY}" > ~/.ssh/id_rsa
     - chmod 700 ~/.ssh
     - chmod 600 ~/.ssh/id_rsa
