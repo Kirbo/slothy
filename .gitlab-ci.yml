@@ -31,7 +31,7 @@ cache:
     paths:
       - dist
   only:
-    - master
+    - release
   retry:
     max: 2
     when: always
@@ -119,7 +119,7 @@ tag version:
     - yarn create-tag
     - git push gitlab --tags -o ci.skip
   only:
-    - master
+    - release
 
 mac:
   <<: *release-common
@@ -158,4 +158,4 @@ pages:
     paths:
     - public
   only:
-    - master
+    - release

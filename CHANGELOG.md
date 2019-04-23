@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.6] - 2019-04-23
+### Fixed
+- CI/CD pipeline automatically creates new tag before release.
+
 ## [0.3.5] - 2019-04-23
 ### Fixed
 - [Bug #7](https://gitlab.com/kirbo/slothy/issues/7) - Updating the status was not working.
