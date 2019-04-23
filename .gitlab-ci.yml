@@ -114,9 +114,10 @@ tag version:
     - git config --global user.name "Slothy CI/CD"
     - git config --global user.email "3884597-slothy-cicd@users.noreply.gitlab.com"
     - ssh-keyscan -t rsa gitlab.com >> ~/.ssh/known_hosts
-    - git remote add gitlab git@gitlab.com:kirbo/slothy.git
-    - yarn release
-    - git push gitlab --tags
+    - git remote remove origin
+    - git remote add gitlab https://slothy-cicd:${GITLAB_TOKEN}@gitlab.com/kirbo/slothy.git
+    - yarn create-tag
+    - git push gitlab --tags -o ci.skip
   only:
     - master
 
