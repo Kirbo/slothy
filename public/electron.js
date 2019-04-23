@@ -102,10 +102,10 @@ const ifCachedSend = async (event, callback) => {
   }
 }
 
-const setTimer = async (runNow, event, callback) => {
+const setTimer = async (event, callback, runNow = false) => {
   clearInterval(timers[event]);
   const timeout = (await getAppConfigurations()).timers[event];
-  if (runNow) {
+  if (runNow && callback) {
     callback();
   }
   timers[event] = setInterval(callback, timeout * 1000);
@@ -117,9 +117,9 @@ const updateStatusesFunction = async () => {
 }
 
 const startTimers = async (runNow = true) => {
-  setTimer(runNow, 'slackInstances', () => ifComputerRunning(() => sendIfMainWindow('slackInstances', getWorkspaces)));
-  setTimer(runNow, 'connections', () => ifComputerRunning(() => sendIfMainWindow('connections', getConnections)));
-  setTimer(runNow, 'updateStatus', updateStatusesFunction);
+  setTimer('slackInstances', () => ifComputerRunning(() => sendIfMainWindow('slackInstances', getWorkspaces)), runNow);
+  setTimer('connections', () => ifComputerRunning(() => sendIfMainWindow('connections', getConnections)), runNow);
+  setTimer('updateStatus', updateStatusesFunction, runNow);
 }
 
 const getIcon = () => (
