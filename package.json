@@ -1,5 +1,5 @@
 {
-  "version": "0.3.5",
+  "version": "0.3.6",
   "name": "slothy",
   "description": "Changes your Slack status based on the SSID you're currently connected to.",
   "productName": "Slothy",
@@ -29,7 +29,7 @@
     "react-build": "cross-env NODE_ENV=production react-app-rewired build",
     "react-test": "react-app-rewired test",
     "react-eject": "react-scripts eject",
-    "release": "export VERSION=$(node -e \"console.log('v'+require('./package.json').version)\") && git tag -a ${VERSION} -m \"Release ${VERSION}\""
+    "create-tag": "export VERSION=$(node -e \"console.log('v'+require('./package.json').version)\") && git tag -a ${VERSION} -m \"Release ${VERSION}\""
   },
   "build": {
     "appId": "com.electron.kirbo.slothy",

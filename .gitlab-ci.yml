@@ -14,6 +14,10 @@ cache:
     - gitlab-org
   variables:
     GIT_STRATEGY: fetch
+  only:
+    - branches
+  except:
+    - /^v.*$/
 
 .release-common: &release-common
   <<: *general
@@ -31,7 +35,7 @@ cache:
     paths:
       - dist
   only:
-    - master
+    - release
   retry:
     max: 2
     when: always
@@ -109,14 +113,17 @@ tag version:
     - echo "${SSH_KEY}" > ~/.ssh/id_rsa
     - chmod 700 ~/.ssh
     - chmod 600 ~/.ssh/id_rsa
-    - git config --global user.email "3884597-slothy-cicd@users.noreply.gitlab.com"
+    - echo "Host gitlab.com" > ~/.ssh/config
+    - echo " IdentityFile ~/.ssh/id_rsa" >> ~/.ssh/config
     - git config --global user.name "Slothy CI/CD"
+    - git config --global user.email "3884597-slothy-cicd@users.noreply.gitlab.com"
     - ssh-keyscan -t rsa gitlab.com >> ~/.ssh/known_hosts
-    - git remote add gitlab git@gitlab.com:kirbo/slothy.git
-    - yarn release
-    - git push gitlab --tags
+    - git remote remove origin
+    - git remote add gitlab https://slothy-cicd:${GITLAB_TOKEN}@gitlab.com/kirbo/slothy.git
+    - yarn create-tag
+    - git push gitlab --tags -o ci.skip
   only:
-    - master
+    - release
 
 mac:
   <<: *release-common
@@ -155,4 +162,4 @@ pages:
     paths:
     - public
   only:
-    - master
+    - release
