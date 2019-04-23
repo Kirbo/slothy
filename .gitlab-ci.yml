@@ -105,12 +105,13 @@ tag version:
     paths: []
   dependencies: []
   script:
-    - mkdir ~/.ssh
+    - mkdir -p ~/.ssh
     - echo "${SSH_KEY}" > ~/.ssh/id_rsa
     - chmod 700 ~/.ssh
     - chmod 600 ~/.ssh/id_rsa
     - git config --global user.email "3884597-slothy-cicd@users.noreply.gitlab.com"
     - git config --global user.name "Slothy CI/CD"
+    - ssh-keyscan -t rsa gitlab.com >> ~/.ssh/known_hosts
     - git remote add gitlab git@gitlab.com:kirbo/slothy.git
     - yarn release
     - git push gitlab --tags
