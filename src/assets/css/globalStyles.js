@@ -54,7 +54,26 @@ export const GlobalStyles = createGlobalStyle`
           overflow-y: auto;
           overflow-x: hidden;
           word-break: break-word;
+
+          & h2 {
+            font-size: ${FONT_SIZE['m']};
+            font-weight: ${FONT_WEIGHT['thick']};
+            border-top: ${BORDER['thin']} solid ${COLOR['borderLight']};
+
+            &:first-child {
+              border: none;
+            }
+          }
+
+          & h3 {
+            font-size: ${FONT_SIZE['regular']};
+            font-weight: ${FONT_WEIGHT['bold']};
+          }
         }
+      }
+
+      & .ant-progress {
+        width: calc(100% - ${DIMENSION['2.5x']});
       }
     }
     & .ant-notification-notice-btn {

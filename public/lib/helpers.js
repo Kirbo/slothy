@@ -1,3 +1,4 @@
+const electron = require('electron');
 const storage = require('electron-json-storage');
 const slack = require('slack');
 const wifi = require('node-wifi');
@@ -5,8 +6,13 @@ const url = require('url');
 const request = require('request');
 const log = require('electron-log');
 
-const packageJson = require('../package.json');
+const packageJson = require('../../package.json');
 const appConfigs = require('./config');
+
+const {
+  mergeDeep,
+  recursiveObject,
+} = require('./utils');
 
 const protocol = packageJson.product.Protocol;
 
@@ -478,10 +484,10 @@ const getAppConfigurations = async () => (
         reject(error);
       }
 
-      resolve({
-        ...appConfigs,
-        ...data,
-      });
+      const merged = mergeDeep(appConfigs, data);
+      const mergedStripped = recursiveObject(appConfigs, merged);
+
+      resolve(mergedStripped);
     });
   })
 )
@@ -494,27 +500,27 @@ const setAppConfigurations = async appConfigurations => (
         reject(error);
       }
 
-      const recursiveObject = (config, newConfig) => (
-        Object.keys(config).reduce((newConfigObject, key) => {
-          if (typeof config[key] === 'object') {
-            newConfigObject[key] = recursiveObject(config[key], newConfig[key]);
-            return newConfigObject;
-          }
-          newConfigObject[key] = newConfig[key];
-          return newConfigObject;
-        }, {})
-      );
-
-      storage.set('appConfigs', recursiveObject(appConfigs, appConfigurations), async (error, data) => {
+      const merged = recursiveObject(appConfigs, appConfigurations);
+      storage.set('appConfigs', merged, async (error, data) => {
         if (error) {
           log.error('setAppConfigurations.appConfigs', error);
           reject(error);
         }
-        resolve(appConfigurations);
+        resolve(merged);
       });
     });
   })
 )
+
+
+const crashReporter = async () => {
+  electron.crashReporter.start({
+    companyName: packageJson.author,
+    productName: packageJson.productName,
+    submitURL: packageJson.product.CrashReportUrl,
+    uploadToServer: true,
+  })
+}
 
 module.exports = {
   getSlackInstances,
@@ -541,4 +547,6 @@ module.exports = {
   getAppConfigurations,
   setAppConfigurations,
   updateStatuses,
+
+  crashReporter,
 };

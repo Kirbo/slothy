@@ -1,9 +1,9 @@
 module.exports = {
   // Timers are in seconds
   timers: {
-    slackInstances: 300,
-    connections: 60,
     updateStatus: 300,
+    connections: 60,
+    slackInstances: 900,
   },
   updates: {
     autoDownload: false,
@@ -11,5 +11,11 @@ module.exports = {
     allowPrerelease: false,
     allowDowngrade: false,
     fullChangelog: false,
-  }
+
+    checkUpdatesOnLaunch: true,
+  },
+  app: {
+    closeToTray: true,
+    launchMinimised: false,
+  },
 };

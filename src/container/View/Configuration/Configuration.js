@@ -140,6 +140,10 @@ const Configuration = () => (
         });
       }
 
+      if (!appConfigurations) {
+        return null;
+      }
+
       return (
         <Styled>
           <Header>
@@ -154,6 +158,9 @@ const Configuration = () => (
                   dataSource={dataSource}
                 />
               </Panel>
+
+
+
               <Panel header="Timers" key="appConfigurations.timers">
                 <ConfigurationSection>
                   <Tooltip placement="right" title="How often do you want your status to be updated in each Slack instance you have defined.">
@@ -190,7 +197,40 @@ const Configuration = () => (
                   />
                 </ConfigurationSection>
               </Panel>
+
+
+
               <Panel header="Updates" key="appConfigurations.updates">
+                <ConfigurationSection spacer>
+                  <Tooltip placement="right" title={`Opt-in if you want ${packageJson.productName} to automatically check updates at launch.`}>
+                    <ConfigurationTitle>Check updates at launch <Icon icon="info-circle" /></ConfigurationTitle>
+                  </Tooltip>
+                  <Switch
+                    checked={appConfigurations.updates.checkUpdatesOnLaunch}
+                    onChange={updateAppConfiguration('updates', ['checkUpdatesOnLaunch'])}
+                  />
+                </ConfigurationSection>
+
+                <ConfigurationSection spacer>
+                  <Tooltip placement="right" title={`Opt-in if you want ${packageJson.productName} to automatically download new updates.`}>
+                    <ConfigurationTitle>Auto download updates <Icon icon="info-circle" /></ConfigurationTitle>
+                  </Tooltip>
+                  <Switch
+                    checked={appConfigurations.updates.autoDownload}
+                    onChange={updateAppConfiguration('updates', ['autoDownload'])}
+                  />
+                </ConfigurationSection>
+
+                <ConfigurationSection spacer>
+                  <Tooltip placement="right" title={`Opt-in if you want ${packageJson.productName} to automatically install new (downloaded) updates on application quit.`}>
+                    <ConfigurationTitle>Install updates automatically on application quit <Icon icon="info-circle" /></ConfigurationTitle>
+                  </Tooltip>
+                  <Switch
+                    checked={appConfigurations.updates.autoInstallOnAppQuit}
+                    onChange={updateAppConfiguration('updates', ['autoInstallOnAppQuit'])}
+                  />
+                </ConfigurationSection>
+
                 <ConfigurationSection spacer>
                   <Tooltip placement="right" title="Opt-in if you want to get prereleases.">
                     <ConfigurationTitle>Allow pre-releases <Icon icon="info-circle" /></ConfigurationTitle>
@@ -202,22 +242,36 @@ const Configuration = () => (
                 </ConfigurationSection>
 
                 <ConfigurationSection spacer>
-                  <Tooltip placement="right" title="Opt-in if you want the application to automatically download new updates.">
-                    <ConfigurationTitle>Auto download updates <Icon icon="info-circle" /></ConfigurationTitle>
+                  <Tooltip placement="right" title={`Opt-in if you want see full Change Log when there are new updates.`}>
+                    <ConfigurationTitle>Show full Change Log <Icon icon="info-circle" /></ConfigurationTitle>
                   </Tooltip>
                   <Switch
-                    checked={appConfigurations.updates.autoDownload}
-                    onChange={updateAppConfiguration('updates', ['autoDownload'])}
+                    checked={appConfigurations.updates.fullChangelog}
+                    onChange={updateAppConfiguration('updates', ['fullChangelog'])}
+                  />
+                </ConfigurationSection>
+              </Panel>
+
+
+
+              <Panel header="Application" key="appConfigurations.app">
+                <ConfigurationSection spacer>
+                  <Tooltip placement="right" title={`Opt-in if you want ${packageJson.productName} to launch minimised.`}>
+                    <ConfigurationTitle>Launch application minimised <Icon icon="info-circle" /></ConfigurationTitle>
+                  </Tooltip>
+                  <Switch
+                    checked={appConfigurations.app.launchMinimised}
+                    onChange={updateAppConfiguration('app', ['launchMinimised'])}
                   />
                 </ConfigurationSection>
 
                 <ConfigurationSection spacer>
-                  <Tooltip placement="right" title="Opt-in if you want the application to automatically install new (downloaded) updates on application quit.">
-                    <ConfigurationTitle>Install updates automatically on application quit <Icon icon="info-circle" /></ConfigurationTitle>
+                  <Tooltip placement="right" title={`Opt-in if you want ${packageJson.productName} to minimise instead of quit.`}>
+                    <ConfigurationTitle>Minimise application on quit <Icon icon="info-circle" /></ConfigurationTitle>
                   </Tooltip>
                   <Switch
-                    checked={appConfigurations.updates.autoInstallOnAppQuit}
-                    onChange={updateAppConfiguration('updates', ['autoInstallOnAppQuit'])}
+                    checked={appConfigurations.app.closeToTray}
+                    onChange={updateAppConfiguration('app', ['closeToTray'])}
                   />
                 </ConfigurationSection>
               </Panel>

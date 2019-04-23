@@ -6,7 +6,7 @@ import INITIAL_STATE from './InitialState';
 import { Provider } from './Context';
 import Loading from '../Loading';
 
-import { sortBy, capitalizeFirst } from '../../assets/utils';
+import { sortBy } from '../../assets/utils';
 
 const electron = window.require('electron');
 const { ipcRenderer } = electron;
@@ -96,7 +96,7 @@ class AppProvider extends Component {
       ipcRenderer.send('removeConfiguration', { id });
     },
     updateAppConfigurations: (property, appConfigurations) => {
-      ipcRenderer.send(`saveAppConfigurations${capitalizeFirst(property)}`, appConfigurations);
+      ipcRenderer.send('saveAppConfigurations', { property, appConfigurations });
     }
   };
 
@@ -172,8 +172,14 @@ class AppProvider extends Component {
         if (data.updates.releaseDate) {
           message = `${message}<div class="release"><span class="title">Release date</span><span class="value">${new Date(data.updates.releaseDate)}</span></div>`;
         }
-        if (data.updates.releaseNotes.trim()) {
+        if (typeof data.updates.releaseNotes === 'string' && data.updates.releaseNotes.trim()) {
           message = `${message}<div class="release"><span class="title">Release notes</span><span class="value">${data.updates.releaseNotes}</span></div>`;
+        } else if (typeof data.updates.releaseNotes === 'object') {
+          message = `${message}<div class="release"><span class="title">Release notes</span><span class="value">`;
+          Object.values(data.updates.releaseNotes).forEach(releaseNote => {
+            message = `${message}<h2>Version ${releaseNote.version}</h2>${releaseNote.note}`;
+          });
+          message = `${message}</span></div>`;
         }
         notification[data.type || 'open']({
           message: data.title,
@@ -197,10 +203,10 @@ class AppProvider extends Component {
       .on('update-progress', (event, data) => {
         notification[data.type || 'open']({
           message: data.title,
-          description: <Progress percent={((data.progress.percent).toFixed(2))} status="active" />,
+          description: <Progress percent={((data.progress.percent).toFixed(2))} status={data.progress.percent < 100 ? 'active' : 'success'} />,
           duration: 0,
           key: 'update-progress',
-          btn: (
+          btn: !this.state.appConfigurations.updates.autoDownload && (
             <React.Fragment>
               <Button type="default" size="small" onClick={() => ipcRenderer.send(data.onCancel)}>
                 {data.cancel}
