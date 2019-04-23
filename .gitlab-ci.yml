@@ -111,8 +111,9 @@ tag version:
     - chmod 600 ~/.ssh/id_rsa
     - git config --global user.email "3884597-slothy-cicd@users.noreply.gitlab.com"
     - git config --global user.name "Slothy CI/CD"
+    - git remote add gitlab git@gitlab.com:kirbo/slothy.git
     - yarn release
-    - git push origin --tags
+    - git push gitlab --tags
   only:
     - master
 
