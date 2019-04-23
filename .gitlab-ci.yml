@@ -105,9 +105,14 @@ tag version:
     paths: []
   dependencies: []
   script:
-    - git config --global user.email "incoming+kirbo-slothy-11124740-issue-@incoming.gitlab.com"
+    - mkdir ~/.ssh/id_rsa
+    - echo "${SSH_KEY}" > ~/.ssh/id_rsa
+    - chmod 700 ~/.ssh
+    - chmod 600 ~/.ssh/id_rsa
+    - git config --global user.email "3884597-slothy-cicd@users.noreply.gitlab.com"
     - git config --global user.name "Slothy CI/CD"
     - yarn release
+    - git push origin --tags
   only:
     - master
 
