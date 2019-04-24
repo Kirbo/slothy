@@ -21,8 +21,6 @@ const getStatus = ({ token }) => (
 const setStatus = ({ token, emoji, status }) => (
   new Promise(async (resolve, reject) => {
     try {
-      const { getSlackInstances, updateSlackInstance } = require('./slackInstances');
-
       const slackInstances = await getSlackInstances();
       const instance = slackInstances.find(instance => instance.token === token);
 
@@ -52,7 +50,6 @@ const setStatus = ({ token, emoji, status }) => (
 const updateStatuses = () => {
   new Promise(async (resolve, reject) => {
     try {
-      const { getEnabledConfigurations } = require('./configurations');
 
       (await getEnabledConfigurations())
         .forEach(({ token, emoji, status }) => {
@@ -71,3 +68,6 @@ module.exports = {
   setStatus,
   updateStatuses,
 };
+
+const { getSlackInstances, updateSlackInstance } = require('./slackInstances');
+const { getEnabledConfigurations } = require('./configurations');

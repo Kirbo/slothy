@@ -42,8 +42,6 @@ const updateSlackInstance = ({ instance, profile }) => (
 const saveSlackInstance = (instance) => (
   new Promise(async (resolve, reject) => {
     try {
-      const { getWorkspace, getWorkspaceEmojis } = require('./workspaces');
-
       const token = { token: instance.token };
       const workspace = await getWorkspace(token);
       const newInstance = {
@@ -82,3 +80,5 @@ module.exports = {
   saveSlackInstance,
   removeSlackInstance,
 };
+
+const { getWorkspace, getWorkspaceEmojis } = require('./workspaces');

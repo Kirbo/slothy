@@ -9,10 +9,6 @@ const protocol = packageJson.product.Protocol;
 
 const handleAuth = (sendIfMainWindow, uri) => {
   try {
-    const { getStatus } = require('./status');
-    const { getWorkspace } = require('./workspaces');
-    const { getSlackInstances, saveSlackInstance } = require('./slackInstances');
-
     const { hostname } = url.parse(uri);
 
     if (hostname === 'auth') {
@@ -60,3 +56,7 @@ const handleAuth = (sendIfMainWindow, uri) => {
 module.exports = {
   handleAuth,
 };
+
+const { getStatus } = require('./status');
+const { getWorkspace } = require('./workspaces');
+const { getSlackInstances, saveSlackInstance } = require('./slackInstances');

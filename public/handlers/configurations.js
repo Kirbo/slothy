@@ -1,5 +1,6 @@
-const storage = require('../lib/storage');
 const log = require('electron-log');
+
+const storage = require('../lib/storage');
 
 const getConfigurations = () => (
   new Promise(async (resolve, reject) => {
@@ -20,9 +21,6 @@ const getConfigurations = () => (
 const getEnabledConfigurations = () => (
   new Promise(async (resolve, reject) => {
     try {
-      const { getCurrentConnections } = require('./connections');
-      const { getSlackInstances } = require('./slackInstances');
-
       const promises = [
         (await getConfigurations()).filter(({ enabled }) => !!enabled),
         await getCurrentConnections(),
@@ -130,3 +128,6 @@ module.exports = {
   removeConfiguration,
   clearConfigurations,
 };
+
+const { getCurrentConnections } = require('./connections');
+const { getSlackInstances } = require('./slackInstances');

@@ -27,7 +27,9 @@ const protocol = packageJson.product.Protocol;
 const resetApp = async () => {
   mainWindow.close();
   mainWindow = null;
-  await sendIfMainWindow('configurations', clearConfigurations);
+  await clearConfigurations();
+  await sendIfMainWindow('configurations', getConfigurations);
+  await sendIfMainWindow('slackInstances', getSlackInstances);
   Object.keys(cached).forEach(key => {
     cached[key] = null;
   });
@@ -92,7 +94,7 @@ const sendIfMainWindow = async (event, callback, data = null) => {
     try {
       mainWindow.webContents.send(event, value);
     } catch (error) {
-      throw new Error(error);
+      log.error('sendIfMainwindow', error);
     }
   }
 }
@@ -119,7 +121,7 @@ const updateStatusesFunction = async () => {
     await ifComputerRunning(updateStatuses);
     ifComputerRunning(() => sendIfMainWindow('slackInstances', getWorkspaces));
   } catch (error) {
-    log.error(error);
+    log.error('updateStatusesFunction', error);
   }
 }
 
@@ -199,7 +201,7 @@ const createWindow = async () => {
   });
 
   if (process.env.NODE_ENV === 'development') {
-    mainWindow.webContents.openDevTools();
+    // mainWindow.webContents.openDevTools();
   }
 
   let startUrl = process.env.ELECTRON_START_URL || url.format({

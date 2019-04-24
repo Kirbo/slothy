@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Changed
-- (╯°□°）╯︵ ┻━┻ (lots of refactoring :D)
+- (╯°□°）╯︵ ┻━┻ (lots of refactoring 😄)
 
 ### Added
 - Crash reporter.

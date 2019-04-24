@@ -2,7 +2,6 @@ const log = require('electron-log');
 
 const storage = require('../lib/storage');
 const appConfigs = require('../lib/config');
-
 const { mergeDeep, recursiveObject } = require('../lib/utils');
 
 const getAppConfigurations = () => (

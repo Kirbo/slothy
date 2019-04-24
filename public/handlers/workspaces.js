@@ -1,6 +1,7 @@
-const storage = require('../lib/storage');
 const slack = require('slack');
 const log = require('electron-log');
+
+const storage = require('../lib/storage');
 
 const getWorkspace = ({ token }) => (
   new Promise(async (resolve, reject) => {
@@ -47,9 +48,6 @@ const getWorkspaceEmojis = ({ token }) => (
 const getWorkspaces = () => (
   new Promise(async (resolve, reject) => {
     try {
-      const { getSlackInstances } = require('./slackInstances');
-      const { getStatus } = require('./status');
-
       const promises = (await getSlackInstances())
         .map(instance => (
           new Promise(async (res, rej) => {
@@ -86,3 +84,6 @@ module.exports = {
   getWorkspaceEmojis,
   getWorkspaces,
 };
+
+const { getSlackInstances } = require('./slackInstances');
+const { getStatus } = require('./status');
