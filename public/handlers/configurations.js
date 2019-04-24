@@ -1,10 +1,7 @@
 const storage = require('../lib/storage');
 const log = require('electron-log');
 
-const { getCurrentConnections } = require('./connections');
-const { getSlackInstances } = require('./slackInstances');
-
-const getConfigurations = async () => (
+const getConfigurations = () => (
   new Promise(async (resolve, reject) => {
     try {
       const data = await storage.get('configurations');
@@ -14,14 +11,18 @@ const getConfigurations = async () => (
       }
       resolve(configurations);
     } catch (error) {
+      log.error('getConfigurations', error);
       reject(error);
     }
   })
 );
 
-const getEnabledConfigurations = async () => (
+const getEnabledConfigurations = () => (
   new Promise(async (resolve, reject) => {
     try {
+      const { getCurrentConnections } = require('./connections');
+      const { getSlackInstances } = require('./slackInstances');
+
       const promises = [
         (await getConfigurations()).filter(({ enabled }) => !!enabled),
         await getCurrentConnections(),
@@ -56,48 +57,53 @@ const getEnabledConfigurations = async () => (
           resolve(updateConfigs);
         })
         .catch(error => {
-          log.error('getConfigurations', error);
           reject(error);
         })
-    } catch (error) { }
+    } catch (error) {
+      log.error('getEnabledConfigurations', error);
+      reject(error);
+    }
   })
 )
 
-const saveConfiguration = async configuration => (
+const saveConfiguration = configuration => (
   new Promise(async (resolve, reject) => {
     try {
       resolve(await storage.set('configurations', [...(await getConfigurations()).filter(({ id }) => id !== configuration.id), configuration]));
     } catch (error) {
+      log.error('saveConfiguration', error);
       reject(error);
     }
   })
 );
 
-const removeConfiguration = async ({ id }) => (
+const removeConfiguration = ({ id }) => (
   new Promise(async (resolve, reject) => {
     try {
       resolve(await storage.set('configurations', (await getConfigurations()).filter(configuration => configuration.id !== id)));
     } catch (error) {
+      log.error('removeConfiguration', error);
       reject(error);
     }
   })
 );
 
-const clearConfigurations = async () => (
+const clearConfigurations = () => (
   new Promise(async (resolve, reject) => {
+    try {
     const promises = [
       new Promise(async (res, rej) => {
         try {
           res(storage.set('configurations', []));
         } catch (error) {
-          rej(error);
+          throw new Error(error);
         }
       }),
       new Promise(async (res, rej) => {
         try {
           res(storage.set('slackInstances', []));
         } catch (error) {
-          rej(error);
+          throw new Error(error);
         }
       }),
     ];
@@ -108,9 +114,12 @@ const clearConfigurations = async () => (
         resolve();
       })
       .catch(error => {
-        log.error('clearConfigurations', error);
-        reject(error);
+        throw new Error(error);
       });
+    } catch (error) {
+      log.error('clearConfigurations', error);
+      reject(error);
+    }
   })
 );
 

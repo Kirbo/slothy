@@ -1,52 +1,69 @@
 const slack = require('slack');
 const log = require('electron-log');
 
-const { getSlackInstances, updateSlackInstance } = require('./slackInstances');
-const { getEnabledConfigurations } = require('./configurations');
-
-const getStatus = async ({ token }) => (
+const getStatus = ({ token }) => (
   new Promise(async (resolve, reject) => {
-    slack.users.profile.get({ token }, (error, data) => {
-      if (error) {
-        log.error('getStatus', error);
-        reject(error);
-      }
-      const { profile } = data;
-      resolve(profile);
-    });
+    try {
+      slack.users.profile.get({ token }, (error, data) => {
+        if (error) {
+          throw new Error(error);
+        }
+        const { profile } = data;
+        resolve(profile);
+      });
+    } catch (error) {
+      log.error('getStatus', error);
+      reject(error);
+    }
   })
 );
 
-const setStatus = async ({ token, emoji, status }) => (
+const setStatus = ({ token, emoji, status }) => (
   new Promise(async (resolve, reject) => {
-    const slackInstances = await getSlackInstances();
-    const instance = slackInstances.find(instance => instance.token === token);
+    try {
+      const { getSlackInstances, updateSlackInstance } = require('./slackInstances');
 
-    const payload = {
-      token,
-      profile: JSON.stringify({
-        status_text: status,
-        status_emoji: emoji
-      })
-    };
+      const slackInstances = await getSlackInstances();
+      const instance = slackInstances.find(instance => instance.token === token);
 
-    slack.users.profile.set(payload, async (error, data) => {
-      if (error) {
-        log.error('setStatus', error);
-        reject(error);
-      }
-      const { profile } = data;
-      await updateSlackInstance({ instance, profile });
-      resolve(profile);
-    });
+      const payload = {
+        token,
+        profile: JSON.stringify({
+          status_text: status,
+          status_emoji: emoji
+        })
+      };
+
+      slack.users.profile.set(payload, async (error, data) => {
+        if (error) {
+          throw new Error(error);
+        }
+        const { profile } = data;
+        await updateSlackInstance({ instance, profile });
+        resolve(profile);
+      });
+    } catch (error) {
+      log.error('setStatus', error);
+      reject(error);
+    }
   })
 );
 
-const updateStatuses = async () => {
-  (await getEnabledConfigurations())
-    .forEach(({ token, emoji, status }) => {
-      setStatus({ status, emoji, token }).catch();
-    })
+const updateStatuses = () => {
+  new Promise(async (resolve, reject) => {
+    try {
+      const { getEnabledConfigurations } = require('./configurations');
+
+      (await getEnabledConfigurations())
+        .forEach(({ token, emoji, status }) => {
+          setStatus({ status, emoji, token });
+          resolve();
+        })
+    } catch (error) {
+      log.error('updateStatuses', error);
+      reject(error);
+    }
+  });
 }
 
 module.exports = {

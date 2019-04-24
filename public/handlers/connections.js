@@ -7,30 +7,39 @@ wifi.init({
 
 const getCurrentConnections = () => (
   new Promise((resolve, reject) => {
-    wifi.getCurrentConnections((error, connections) => {
-      if (error) {
-        log.error('getCurrentConnections', error);
-        reject(error);
-      }
-      resolve(connections);
-    })
+    try {
+      wifi.getCurrentConnections((error, connections) => {
+        if (error) {
+          throw new Error(error);
+        }
+        resolve(connections);
+      })
+    } catch (error) {
+      log.error('getCurrentConnections', error);
+      reject(error);
+    }
   })
 )
 
 const getAvailableConnections = () => (
   new Promise((resolve, reject) => {
-    wifi.scan((error, connections) => {
-      if (error) {
-        log.error('getAvailableConnections', error);
-        reject(error);
-      }
-      resolve(connections);
-    })
+    try {
+      wifi.scan((error, connections) => {
+        if (error) {
+          throw new Error(error);
+        }
+        resolve(connections);
+      })
+    } catch (error) {
+      log.error('getAvailableConnections', error);
+      reject(error);
+    }
   })
 )
 
 const getConnections = () => (
   new Promise(async (resolve, reject) => {
+    try {
     const promises = [
       await getCurrentConnections(),
       await getAvailableConnections(),
@@ -89,6 +98,10 @@ const getConnections = () => (
           ssids: connections,
         });
       });
+    } catch (error) {
+      log.error('getConnections', error);
+      reject(error);
+    }
   })
 );
 

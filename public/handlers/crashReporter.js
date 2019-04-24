@@ -2,7 +2,7 @@ const electron = require('electron');
 
 const packageJson = require('../../package.json');
 
-const crashReporter = async () => {
+const crashReporter = () => {
   electron.crashReporter.start({
     companyName: packageJson.author,
     productName: packageJson.productName,

@@ -1,8 +1,8 @@
+const log = require('electron-log');
+
 const storage = require('../lib/storage');
 
-const { getWorkspace, getWorkspaceEmojis } = require('./workspaces');
-
-const getSlackInstances = async () => (
+const getSlackInstances = () => (
   new Promise(async (resolve, reject) => {
     try {
       const data = await storage.get('slackInstances');
@@ -12,12 +12,13 @@ const getSlackInstances = async () => (
       }
       resolve(instances);
     } catch (error) {
+      log.error('getSlackInstances', error);
       reject(error);
     }
   })
 );
 
-const updateSlackInstance = async ({ instance, profile }) => (
+const updateSlackInstance = ({ instance, profile }) => (
   new Promise(async (resolve, reject) => {
     try {
       const slackInstances = await getSlackInstances();
@@ -32,14 +33,17 @@ const updateSlackInstance = async ({ instance, profile }) => (
 
       resolve(await storage.set('slackInstances', newSlackInstances));
     } catch (error) {
+      log.error('updateSlackInstance', error);
       reject(error);
     }
   })
 );
 
-const saveSlackInstance = async (instance) => (
+const saveSlackInstance = (instance) => (
   new Promise(async (resolve, reject) => {
     try {
+      const { getWorkspace, getWorkspaceEmojis } = require('./workspaces');
+
       const token = { token: instance.token };
       const workspace = await getWorkspace(token);
       const newInstance = {
@@ -55,16 +59,18 @@ const saveSlackInstance = async (instance) => (
       await storage.set('slackInstances', [...slackInstances, newInstance]);
       resolve(newInstance);
     } catch (error) {
+      log.error('saveSlackInstance', error);
       reject(error);
     }
   })
 );
 
-const removeSlackInstance = async ({ token }) => (
+const removeSlackInstance = ({ token }) => (
   new Promise(async (resolve, reject) => {
     try {
       resolve(await storage.set('slackInstances', (await getSlackInstances()).filter(instance => instance.token !== token)));
     } catch (error) {
+      log.error('removeSlackInstance', error);
       reject(error);
     }
   })

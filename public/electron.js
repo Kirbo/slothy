@@ -4,7 +4,6 @@ const url = require('url');
 const ipc = require('electron').ipcMain;
 const { autoUpdater, CancellationToken } = require('electron-updater');
 const log = require('electron-log');
-// const storage = require('electron-json-storage');
 
 const storage = require('./lib/storage');
 const menuTemplate = require('./menuTemplate');
@@ -116,8 +115,12 @@ const setTimer = async (event, callback, runNow = true) => {
 }
 
 const updateStatusesFunction = async () => {
-  await ifComputerRunning(updateStatuses);
-  ifComputerRunning(() => sendIfMainWindow('slackInstances', getWorkspaces));
+  try {
+    await ifComputerRunning(updateStatuses);
+    ifComputerRunning(() => sendIfMainWindow('slackInstances', getWorkspaces));
+  } catch (error) {
+    log.error(error);
+  }
 }
 
 const startTimers = async (runNow = true) => {
@@ -232,39 +235,37 @@ const createWindow = async () => {
 }
 
 const createTray = async () => {
-  if (!tray) {
-    tray = new Tray(nativeImage.createFromPath(iconPath));
+  tray = new Tray(nativeImage.createFromPath(iconPath));
 
-    const contextMenu = Menu.buildFromTemplate([
-      {
-        label: `Open ${packageJson.productName}`,
-        click: () => {
-          if (mainWindow) {
-            if (mainWindow.isMinimized()) {
-              mainWindow.restore();
-            }
-            mainWindow.show();
-            mainWindow.focus();
-            showDock();
-          } else {
-            createWindow();
+  const contextMenu = Menu.buildFromTemplate([
+    {
+      label: `Open ${packageJson.productName}`,
+      click: () => {
+        if (mainWindow) {
+          if (mainWindow.isMinimized()) {
+            mainWindow.restore();
           }
+          mainWindow.show();
+          mainWindow.focus();
+          showDock();
+        } else {
+          createWindow();
         }
-      },
-      {
-        label: 'Quit',
-        click: () => {
-          quit = true;
-          app.quit();
-        }
-      },
-    ]);
-    tray.setToolTip(packageJson.productName);
-    tray.setContextMenu(contextMenu);
-    tray.on('click', () => {
-      mainWindow.isVisible() ? mainWindow.hide() : mainWindow.show();
-    });
-  }
+      }
+    },
+    {
+      label: 'Quit',
+      click: () => {
+        quit = true;
+        app.quit();
+      }
+    },
+  ]);
+  tray.setToolTip(packageJson.productName);
+  tray.setContextMenu(contextMenu);
+  tray.on('click', () => {
+    mainWindow.isVisible() ? mainWindow.hide() : mainWindow.show();
+  });
 }
 
 if (!app.requestSingleInstanceLock()) {
