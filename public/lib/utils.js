@@ -41,8 +41,34 @@ const recursiveObject = (config, newConfig) => (
   }, {})
 );
 
+const sortBy = (property = null) => (a, b) => {
+  const leftCompare = property ? a[property] : a;
+  const rightCompare = property ? b[property] : b;
+
+  if (leftCompare > rightCompare) {
+    return 1;
+  } else if (leftCompare < rightCompare) {
+    return -1;
+  }
+
+  return 0;
+};
+
+const uniqueArray = a => (
+  [...new Set(a.map(o => JSON.stringify(o)))].map(s => JSON.parse(s))
+)
+
+const getParameterByName = (uri, name) => {
+  var match = RegExp(`[?&]${name}=([^&]*)`).exec(uri);
+  return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
+};
+
+
 module.exports = {
   isObject,
   mergeDeep,
   recursiveObject,
+  sortBy,
+  uniqueArray,
+  getParameterByName,
 };

@@ -86,8 +86,9 @@ react app:
   dependencies:
     - dependencies
   script:
-    - echo "CLIENT_SECRET=${CLIENT_SECRET}" > .env
-    - echo 'REACT_APP_PRODUCT_NAME=${npm_package_productName}' >> .env
+    - echo "NODE_ENV=production" > .env
+    - echo "CLIENT_SECRET=${CLIENT_SECRET}" >> .env
+    - echo "REACT_APP_PRODUCT_NAME=${npm_package_productName}" >> .env
     - yarn react-build
   artifacts:
     expire_in: 1 week

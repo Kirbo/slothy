@@ -10,10 +10,13 @@ const Emoji = ({ emoji, size = 'm', slackInstanceId = null }) => (
     {({ slackInstances, selectedView }) => (
       <EmojiElement
         emojis={
-          (slackInstances.find(({ id }) => (
-            (slackInstanceId && id === slackInstanceId)
-            || (selectedView && id === selectedView)
-          )) || { emojis: [] }).emojis
+          (
+            slackInstances.find(({ id }) => (
+              (slackInstanceId && id === slackInstanceId)
+              || (selectedView && id === selectedView)
+            ))
+            || { emojis: [] }
+          ).emojis
         }
         emoji={emoji}
         size={size}
