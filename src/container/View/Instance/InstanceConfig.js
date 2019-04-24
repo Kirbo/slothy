@@ -8,7 +8,7 @@ import Icon from '../../../component/Icon';
 
 import { FONT_WEIGHT } from '../../../assets/css';
 
-const sharedColumns = [
+const sharedColumns = saveConfiguration => [
   {
     title: 'Emoji',
     dataIndex: 'emoji',
@@ -37,7 +37,15 @@ const sharedColumns = [
     title: 'Enabled',
     dataIndex: 'enabled',
     className: 'enabled',
-    render: (text, { config }) => config && config.enabled === true ? <Icon icon="check" /> : <Icon icon="times" />,
+    render: (text, { config }) => (
+      <Enabled id={config.id} onClick={() => saveConfiguration({ ...config, enabled: !config.enabled }, false)}>
+        {(
+          config && config.hasOwnProperty('id')
+            ? (config && config.enabled === true ? <Icon icon="check" /> : <Icon icon="times" />)
+            : null
+        )}
+      </Enabled>
+    )
   },
   {
     title: 'Config',
@@ -71,17 +79,17 @@ const bssidColumn = {
   )
 };
 
-export const columns = [
+export const columns = saveConfiguration => [
   ssidColumn,
-  ...sharedColumns,
+  ...sharedColumns(saveConfiguration),
 ];
 
-export const nestedColumns = [
+export const nestedColumns = saveConfiguration => [
   bssidColumn,
-  ...sharedColumns,
+  ...sharedColumns(saveConfiguration),
 ];
 
-export const configurationsColumns = slackInstances => [
+export const configurationsColumns = (saveConfiguration, slackInstances) => [
   {
     title: 'Slack',
     dataIndex: 'instanceId',
@@ -101,7 +109,7 @@ export const configurationsColumns = slackInstances => [
   },
   ssidColumn,
   bssidColumn,
-  ...sharedColumns,
+  ...sharedColumns(saveConfiguration),
 ];
 
 export const tableConfig = {
@@ -123,6 +131,12 @@ export const BssidName = styled.span`
 
   ${props => props.connected && css`
     color: red;
+  `}
+`;
+
+export const Enabled = styled.span`
+  ${({ id }) => id && css`
+    cursor: pointer;
   `}
 `;
 

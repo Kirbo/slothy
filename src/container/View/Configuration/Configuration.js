@@ -64,7 +64,7 @@ const timerFormatter = value => {
 
 const Configuration = () => (
   <Consumer>
-    {({ appConfigurations, configurations, viewType, selectedView, slackInstances, currentSsids, updateAppConfigurations }) => {
+    {({ appConfigurations, configurations, viewType, selectedView, slackInstances, currentSsids, updateAppConfigurations, saveConfiguration }) => {
       const connectedBssids = currentSsids.map(({ bssid }) => bssid.toUpperCase());
       const bssidConfigurations = configurations.filter(({ bssid }) => bssid && connectedBssids.includes(bssid.toUpperCase()));
 
@@ -154,7 +154,7 @@ const Configuration = () => (
               <Panel header="Slack instances" key="configurations">
                 <Table
                   {...tableConfig}
-                  columns={configurationsColumns(slackInstances)}
+                  columns={configurationsColumns(saveConfiguration, slackInstances)}
                   dataSource={dataSource}
                 />
               </Panel>

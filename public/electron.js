@@ -337,10 +337,12 @@ ipc
   .on('getConnections', async (event, data) => sendIfMainWindow('connections', getConnections))
   .on('removeSlackInstance', async (event, data) => sendIfMainWindow('slackInstances', removeSlackInstance, data))
   .on('getConfigurations', async (event, data) => sendIfMainWindow('configurations', getConfigurations))
-  .on('saveConfiguration', async (event, data) => {
+  .on('saveConfiguration', async (event, data, updateNow = true) => {
     await sendIfMainWindow('configurations', saveConfiguration, data);
-    await setTimer('updateStatus', updateStatusesFunction);
-    await sendIfMainWindow('savedConfiguration', () => false);
+    if (updateNow) {
+      await setTimer('updateStatus', updateStatusesFunction);
+      await sendIfMainWindow('savedConfiguration', () => false);
+    }
   })
   .on('removeConfiguration', async (event, data) => {
     await sendIfMainWindow('configurations', removeConfiguration, data);

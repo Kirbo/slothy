@@ -8,7 +8,7 @@ const getWorkspace = ({ token }) => (
     try {
       slack.team.info({ token }, (error, data) => {
         if (error) {
-          throw new Error(error);
+          throw error;
         }
         if (data) {
           const { team } = data;
@@ -29,7 +29,7 @@ const getWorkspaceEmojis = ({ token }) => (
     try {
       slack.emoji.list({ token }, (error, data) => {
         if (error) {
-          throw new Error(error);
+          throw error;
         }
         try {
           const { emoji } = data;
@@ -70,7 +70,7 @@ const getWorkspaces = () => (
           resolve(await storage.set('slackInstances', [...slackInstances]));
         })
         .catch(error => {
-          throw new Error(error);
+          throw error;
         });
     } catch (error) {
       log.error('getWorkspaces', error);

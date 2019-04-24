@@ -82,12 +82,12 @@ class AppProvider extends Component {
         drawerVisible: true,
       });
     },
-    saveConfiguration: configuration => {
+    saveConfiguration: (configuration, updateNow = true) => {
       this.state.setProperty({
         savingConfiguration: true,
         searchEmoji: '',
       });
-      ipcRenderer.send('saveConfiguration', configuration);
+      ipcRenderer.send('saveConfiguration', configuration, updateNow);
     },
     removeConfiguration: id => {
       this.state.setProperty({

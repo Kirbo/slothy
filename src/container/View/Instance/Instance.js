@@ -15,7 +15,7 @@ const { Header, Content } = Layout;
 
 const Instance = () => (
   <Consumer>
-    {({ wifiEnabled, ssidsLoaded, currentSsids, ssids, slackInstances, setStatus, getConnections, selectedView, removeSlackInstance, configurations, expandedRowKeys, handleExpand }) => {
+    {({ wifiEnabled, ssidsLoaded, currentSsids, ssids, slackInstances, setStatus, getConnections, selectedView, removeSlackInstance, configurations, expandedRowKeys, handleExpand, saveConfiguration }) => {
       const instance = slackInstances.find(({ id }) => id === selectedView);
       const { id, profile } = instance;
 
@@ -58,7 +58,7 @@ const Instance = () => (
         return (
           <Table
             {...tableConfig}
-            columns={nestedColumns}
+            columns={nestedColumns(saveConfiguration)}
             dataSource={record.accessPoints}
           />
         );
@@ -81,7 +81,7 @@ const Instance = () => (
           <Content>
             <Table
               {...tableConfig}
-              columns={columns}
+              columns={columns(saveConfiguration)}
               dataSource={data}
               expandedRowKeys={expandedRowKeys}
               onExpand={handleExpand}

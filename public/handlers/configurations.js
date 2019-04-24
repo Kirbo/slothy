@@ -10,6 +10,7 @@ const getConfigurations = () => (
       if (data.length) {
         configurations = data;
       }
+      configurations = configurations.filter(config => !!config.id);
       resolve(configurations);
     } catch (error) {
       log.error('getConfigurations', error);
@@ -89,31 +90,31 @@ const removeConfiguration = ({ id }) => (
 const clearConfigurations = () => (
   new Promise(async (resolve, reject) => {
     try {
-    const promises = [
-      new Promise(async (res, rej) => {
-        try {
-          res(storage.set('configurations', []));
-        } catch (error) {
-          throw new Error(error);
-        }
-      }),
-      new Promise(async (res, rej) => {
-        try {
-          res(storage.set('slackInstances', []));
-        } catch (error) {
-          throw new Error(error);
-        }
-      }),
-    ];
+      const promises = [
+        new Promise(async (res, rej) => {
+          try {
+            res(storage.set('configurations', []));
+          } catch (error) {
+            throw error;
+          }
+        }),
+        new Promise(async (res, rej) => {
+          try {
+            res(storage.set('slackInstances', []));
+          } catch (error) {
+            throw error;
+          }
+        }),
+      ];
 
-    return Promise
-      .all(promises)
-      .then(([configurations, slackInstances]) => {
-        resolve();
-      })
-      .catch(error => {
-        throw new Error(error);
-      });
+      return Promise
+        .all(promises)
+        .then(([configurations, slackInstances]) => {
+          resolve();
+        })
+        .catch(error => {
+          throw error;
+        });
     } catch (error) {
       log.error('clearConfigurations', error);
       reject(error);

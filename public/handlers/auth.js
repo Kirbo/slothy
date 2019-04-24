@@ -22,7 +22,7 @@ const handleAuth = (sendIfMainWindow, uri) => {
         const { ok, access_token } = JSON.parse(body);
         if (!ok) {
           sendIfMainWindow('error', () => 'Error in authentication!');
-          throw new Error(error);
+          throw error;
         } else {
           const token = { token: access_token };
           const profile = await getStatus(token);

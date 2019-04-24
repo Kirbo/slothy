@@ -6,7 +6,7 @@ const getStatus = ({ token }) => (
     try {
       slack.users.profile.get({ token }, (error, data) => {
         if (error) {
-          throw new Error(error);
+          throw error;
         }
         const { profile } = data;
         resolve(profile);
@@ -34,7 +34,7 @@ const setStatus = ({ token, emoji, status }) => (
 
       slack.users.profile.set(payload, async (error, data) => {
         if (error) {
-          throw new Error(error);
+          throw error;
         }
         const { profile } = data;
         await updateSlackInstance({ instance, profile });
