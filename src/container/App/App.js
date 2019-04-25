@@ -7,8 +7,12 @@ import { Consumer } from './Context';
 import NotAuthorized from '../NotAuthorized';
 
 import AppSider from '../../component/AppSider';
-import View from '../../container/View';
+import View from '../View';
 
+/**
+ * Authorized
+ * @returns {jsx}
+ */
 const Authorized = () => (
   <Styled>
     <Layout>
@@ -18,9 +22,13 @@ const Authorized = () => (
   </Styled>
 );
 
+/**
+ * App
+ * @returns {jsx}
+ */
 const App = () => (
   <Consumer>
-    {({ slackInstances }) => slackInstances.length > 0 ? <Authorized /> : <NotAuthorized />}
+    {({ slackInstances }) => (slackInstances.length > 0 ? <Authorized /> : <NotAuthorized />)}
   </Consumer>
 );
 

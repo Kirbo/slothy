@@ -1,3 +1,4 @@
+/* eslint-disable no-use-before-define */
 const wifi = require('node-wifi');
 const log = require('electron-log');
 
@@ -5,6 +6,10 @@ wifi.init({
   iface: null,
 });
 
+/**
+ * Get currently connected ssids.
+ * @returns {array} currentConnections
+ */
 const getCurrentConnections = () => (
   new Promise((resolve, reject) => {
     try {
@@ -13,14 +18,18 @@ const getCurrentConnections = () => (
           throw error;
         }
         resolve(connections);
-      })
+      });
     } catch (error) {
       log.error('getCurrentConnections', error);
       reject(error);
     }
   })
-)
+);
 
+/**
+ * Scan available ssids.
+ * @returns {array} availableConnections
+ */
 const getAvailableConnections = () => (
   new Promise((resolve, reject) => {
     try {
@@ -29,14 +38,18 @@ const getAvailableConnections = () => (
           throw error;
         }
         resolve(connections);
-      })
+      });
     } catch (error) {
       log.error('getAvailableConnections', error);
       reject(error);
     }
   })
-)
+);
 
+/**
+ * Get both connected and available connections.
+ * @returns {object}
+ */
 const getConnections = () => (
   new Promise(async (resolve, reject) => {
     try {
@@ -52,7 +65,7 @@ const getConnections = () => (
           const connections = ssids
             .map(connection => ({
               ...connection,
-              connected: connectedBssids.includes(connection.bssid)
+              connected: connectedBssids.includes(connection.bssid),
             }))
             .sort((a, b) => {
               if (!a.connected && b.connected) {
@@ -77,21 +90,20 @@ const getConnections = () => (
                       {
                         ...item,
                         key: `bssid-${item.bssid}`,
-                      }
-                    ]
+                      },
+                    ],
                   };
-                })
-              } else {
-                return [...result, {
-                  ssid: item.ssid,
-                  key: `group-${item.ssid}`,
-                  connected: item.connected,
-                  accessPoints: [{
-                    ...item,
-                    key: `bssid-${item.bssid}`,
-                  }]
-                }];
+                });
               }
+              return [...result, {
+                ssid: item.ssid,
+                key: `group-${item.ssid}`,
+                connected: item.connected,
+                accessPoints: [{
+                  ...item,
+                  key: `bssid-${item.bssid}`,
+                }],
+              }];
             }, []);
           resolve({
             currentSsids,
@@ -101,6 +113,7 @@ const getConnections = () => (
     } catch (error) {
       log.error('getConnections', error);
       reject(error);
+      return error;
     }
   })
 );

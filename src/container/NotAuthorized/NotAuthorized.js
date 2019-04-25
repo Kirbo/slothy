@@ -4,6 +4,10 @@ import styled from 'styled-components';
 import { Consumer } from '../App/Context';
 import AddInstance from '../../component/AddInstance';
 
+/**
+ * NotAuthorized
+ * @returns {jsx}
+ */
 const NotAuthorized = () => (
   <Consumer>
     {() => (

@@ -1,3 +1,4 @@
+/* eslint-disable no-use-before-define */
 const url = require('url');
 const request = require('request');
 const log = require('electron-log');
@@ -7,6 +8,11 @@ const { getParameterByName } = require('../lib/utils');
 
 const protocol = packageJson.product.Protocol;
 
+/**
+ * Handles authentication.
+ * @param {function} sendIfMainWindow - Callback function.
+ * @param {string} uri - URI.
+ */
 const handleAuth = (sendIfMainWindow, uri) => {
   try {
     const { hostname } = url.parse(uri);
@@ -19,12 +25,14 @@ const handleAuth = (sendIfMainWindow, uri) => {
       };
 
       request(options, async (error, response, body) => {
-        const { ok, access_token } = JSON.parse(body);
+        const { ok, accessToken } = JSON.parse(body);
         if (!ok) {
           sendIfMainWindow('error', () => 'Error in authentication!');
           throw error;
         } else {
-          const token = { token: access_token };
+          const token = {
+            token: accessToken,
+          };
           const profile = await getStatus(token);
           const workspace = await getWorkspace(token);
 
@@ -35,7 +43,7 @@ const handleAuth = (sendIfMainWindow, uri) => {
 
             if (profile) {
               instance = await saveSlackInstance({
-                token: access_token,
+                token: accessToken,
                 profile,
               });
             }
@@ -51,7 +59,7 @@ const handleAuth = (sendIfMainWindow, uri) => {
   } catch (error) {
     log.error('handleAuth', error);
   }
-}
+};
 
 module.exports = {
   handleAuth,

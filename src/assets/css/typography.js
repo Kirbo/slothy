@@ -2,7 +2,7 @@ export const FONT_WEIGHT = {
   light: '300',
   normal: '400',
   bold: '600',
-  thick: '800'
+  thick: '800',
 };
 
 export const FONT_SIZE = {

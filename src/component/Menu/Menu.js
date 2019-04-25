@@ -12,6 +12,10 @@ import Routes from '../../assets/routes';
 
 import { contextMenu } from './MenuConfig';
 
+/**
+ * Icon
+ * @returns {jsx}
+ */
 const AppMenu = () => (
   <Styled>
     <Consumer>
@@ -63,7 +67,7 @@ const Styled = styled.div`
   }
 `;
 const MenuItemName = styled.span`
-  font-weight: ${FONT_WEIGHT['bold']};
+  font-weight: ${FONT_WEIGHT.bold};
   margin-left: ${DIMENSION['0.5x']};
 `;
 

@@ -9,7 +9,9 @@ const storage = require('./lib/storage');
 const menuTemplate = require('./menuTemplate');
 const packageJson = require('../package.json');
 
-const { app, BrowserWindow, Menu, Tray, nativeImage, systemPreferences } = electron;
+const {
+  app, BrowserWindow, Menu, Tray, nativeImage, systemPreferences,
+} = electron;
 
 const { getSlackInstances, removeSlackInstance } = require('./handlers/slackInstances');
 const { getConnections } = require('./handlers/connections');
@@ -24,26 +26,18 @@ const { getAppConfigurations, setAppConfigurations } = require('./handlers/appCo
 
 const protocol = packageJson.product.Protocol;
 
-const resetApp = async () => {
-  mainWindow.close();
-  mainWindow = null;
-  await clearConfigurations();
-  await sendIfMainWindow('configurations', getConfigurations);
-  await sendIfMainWindow('slackInstances', getSlackInstances);
-  Object.keys(cached).forEach(key => {
-    cached[key] = null;
-  });
-  createWindow();
-};
-
-require('dotenv').config({ path: path.join(__dirname, '/../.env') });
+require('dotenv').config({
+  path: path.join(__dirname, '/../.env'),
+});
 
 let mainWindow = null;
 let tray = null;
 let quit = false;
 let computerRunning = true;
-let timers = {};
-let config = {};
+const timers = {
+};
+let config = {
+};
 let cancellationToken = null;
 let saveWindowSettingsTimeout = null;
 
@@ -53,6 +47,9 @@ const cached = {
   slackInstances: null,
 };
 
+/**
+ * Set auto update.
+ */
 const setAutoUpdater = async () => {
   config = await getAppConfigurations();
 
@@ -62,31 +59,47 @@ const setAutoUpdater = async () => {
 
   autoUpdater.logger = log;
   autoUpdater.logger.transports.file.level = 'info';
-}
+};
 
+/**
+ * Hide dock if available.
+ */
 const hideDock = () => {
   if (app.dock) {
     app.dock.hide();
   }
-}
+};
 
+/**
+ * Show dock if available.
+ */
 const showDock = () => {
   if (app.dock) {
     app.dock.show();
   }
-}
+};
 
+/**
+ * Execute callback if computer is not sleeping/hibernating.
+ * @param {function} callback - Function to callback.
+ */
 const ifComputerRunning = async callback => {
   if (computerRunning) {
     await callback();
   }
-}
+};
 
+/**
+ * Send ipc event if mainWindow is available.
+ * @param {string} event - Event to send.
+ * @param {function} callback - Callback function to execute.
+ * @param {any} data - Data to send.
+ */
 const sendIfMainWindow = async (event, callback, data = null) => {
   const cachedEvent = event;
   const value = await callback(data);
 
-  if (cached.hasOwnProperty(cachedEvent)) {
+  if (Object.prototype.hasOwnProperty.call(cached, cachedEvent)) {
     cached[cachedEvent] = value;
   }
 
@@ -97,16 +110,28 @@ const sendIfMainWindow = async (event, callback, data = null) => {
       log.error('sendIfMainwindow', error);
     }
   }
-}
+};
 
+/**
+ * If callback value is cached, use it, either execute callback function
+ * and send as ipc event to mainWindow.
+ * @param {string} event - Event to send.
+ * @param {function} callback - Callback function to execute.
+ */
 const ifCachedSend = async (event, callback) => {
   if (cached[event]) {
     sendIfMainWindow(event, () => cached[event]);
   } else {
     await sendIfMainWindow(event, callback);
   }
-}
+};
 
+/**
+ * Set timer.
+ * @param {string} event - Event for the timer.
+ * @param {function} callback - Callback function to execute.
+ * @param {boolean} [runNow=true] - Whether to execute the callback on setTimer().
+ */
 const setTimer = async (event, callback, runNow = true) => {
   clearInterval(timers[event]);
   const timeout = (await getAppConfigurations()).timers[event];
@@ -114,8 +139,11 @@ const setTimer = async (event, callback, runNow = true) => {
     callback();
   }
   timers[event] = setInterval(callback, timeout * 1000);
-}
+};
 
+/**
+ * If computer not sleeping/hibernating, update status for all Slack instances.
+ */
 const updateStatusesFunction = async () => {
   try {
     await ifComputerRunning(updateStatuses);
@@ -123,14 +151,21 @@ const updateStatusesFunction = async () => {
   } catch (error) {
     log.error('updateStatusesFunction', error);
   }
-}
+};
 
+/**
+ * Set all the timers.
+ * @param {boolean} runNow - Whether to execute the callbacks immediatelly.
+ */
 const startTimers = async (runNow = true) => {
   setTimer('slackInstances', () => ifComputerRunning(() => sendIfMainWindow('slackInstances', getWorkspaces)), runNow);
   setTimer('connections', () => ifComputerRunning(() => sendIfMainWindow('connections', getConnections)), runNow);
   setTimer('updateStatus', updateStatusesFunction, runNow);
-}
+};
 
+/**
+ * Save window settings (position and size).
+ */
 const saveWindowSettings = () => {
   clearTimeout(saveWindowSettingsTimeout);
   saveWindowSettingsTimeout = setTimeout(async () => {
@@ -144,8 +179,12 @@ const saveWindowSettings = () => {
       size,
     });
   }, 250);
-}
+};
 
+/**
+ * Handle quit event.
+ * @param {event} event - Event.
+ */
 const handleQuit = event => {
   if (config.app.closeToTray && !quit) {
     event.preventDefault();
@@ -159,11 +198,30 @@ const handleQuit = event => {
       }
     }
   }
-}
+};
 
+/**
+ * Reset application configurations.
+ */
+const resetApp = async () => {
+  mainWindow.close();
+  mainWindow = null;
+  await clearConfigurations();
+  await sendIfMainWindow('configurations', getConfigurations);
+  await sendIfMainWindow('slackInstances', getSlackInstances);
+  Object.keys(cached).forEach(key => {
+    cached[key] = null;
+  });
+  createWindow(); // eslint-disable-line no-use-before-define
+};
+
+/**
+ * Get application icon.
+ * @returns {path} iconPath
+ */
 const getIcon = () => (
   path.join(__dirname, (process.env.NODE_ENV === 'development' ? '../src/assets' : ''), 'icons', 'fill', 'icon_16x16.png')
-)
+);
 
 if (process.platform === 'darwin') {
   systemPreferences.subscribeNotification('AppleInterfaceThemeChangedNotification', () => {
@@ -181,6 +239,9 @@ if (process.defaultApp && process.argv.length >= 2) {
   app.setAsDefaultProtocolClient(protocol);
 }
 
+/**
+ * Create mainWindow
+ */
 const createWindow = async () => {
   const windowSettings = await storage.get('windowSettings');
 
@@ -204,10 +265,10 @@ const createWindow = async () => {
     // mainWindow.webContents.openDevTools();
   }
 
-  let startUrl = process.env.ELECTRON_START_URL || url.format({
+  const startUrl = process.env.ELECTRON_START_URL || url.format({
     pathname: path.join(__dirname, '/../build/index.html'),
     protocol: 'file:',
-    slashes: true
+    slashes: true,
   });
 
   mainWindow.loadURL(startUrl);
@@ -234,8 +295,11 @@ const createWindow = async () => {
       hideDock();
       return false;
     });
-}
+};
 
+/**
+ * Create tray.
+ */
 const createTray = async () => {
   tray = new Tray(nativeImage.createFromPath(iconPath));
 
@@ -253,28 +317,26 @@ const createTray = async () => {
         } else {
           createWindow();
         }
-      }
+      },
     },
     {
       label: 'Quit',
       click: () => {
         quit = true;
         app.quit();
-      }
+      },
     },
   ]);
   tray.setToolTip(packageJson.productName);
   tray.setContextMenu(contextMenu);
-  tray.on('click', () => {
-    mainWindow.isVisible() ? mainWindow.hide() : mainWindow.show();
-  });
-}
+  tray.on('click', () => (mainWindow.isVisible() ? mainWindow.hide() : mainWindow.show()));
+};
 
 if (!app.requestSingleInstanceLock()) {
   app.quit();
 } else {
   app
-    .on('second-instance', (event, commandLine, workingDirectory) => {
+    .on('second-instance', (event, commandLine) => {
       event.preventDefault();
       handleAuth(sendIfMainWindow, commandLine.slice(-1)[0]);
       if (mainWindow) {
@@ -311,8 +373,8 @@ app
     }
 
     electron.powerMonitor
-      .on('suspend', () => computerRunning = false)
-      .on('resume', () => computerRunning = true);
+      .on('suspend', () => { computerRunning = false; })
+      .on('resume', () => { computerRunning = true; });
   })
   .on('open-url', (event, uri) => {
     event.preventDefault();
@@ -334,9 +396,9 @@ ipc
       autoUpdater.checkForUpdates();
     }
   })
-  .on('getConnections', async (event, data) => sendIfMainWindow('connections', getConnections))
+  .on('getConnections', async () => sendIfMainWindow('connections', getConnections))
   .on('removeSlackInstance', async (event, data) => sendIfMainWindow('slackInstances', removeSlackInstance, data))
-  .on('getConfigurations', async (event, data) => sendIfMainWindow('configurations', getConfigurations))
+  .on('getConfigurations', async () => sendIfMainWindow('configurations', getConfigurations))
   .on('saveConfiguration', async (event, data, updateNow = true) => {
     await sendIfMainWindow('configurations', saveConfiguration, data);
     if (updateNow) {
@@ -376,14 +438,7 @@ ipc
 
     cancellationToken = new CancellationToken();
 
-    autoUpdater
-      .downloadUpdate(cancellationToken)
-      .then((downloadPromise) => {
-        // log.info('downloadPromise', downloadPromise);
-      })
-      .catch(error => {
-        // log.error(error);
-      });
+    autoUpdater.downloadUpdate(cancellationToken);
   })
   .on('cancelUpdate', () => {
     cancellationToken.cancel();
@@ -404,7 +459,9 @@ ipc
 autoUpdater
   .on('checking-for-update', () => {
     // log.info('Checking for updates...');
-    sendIfMainWindow('info', () => ({ message: 'Checking for updates...' }));
+    sendIfMainWindow('info', () => ({
+      message: 'Checking for updates...',
+    }));
   })
   .on('update-available', event => {
     // log.warn('Updates available.', event);
@@ -421,13 +478,18 @@ autoUpdater
     }));
   })
   .on('update-not-available', () => {
-    sendIfMainWindow('success', () => ({ message: 'Software is up-to-date.' }));
+    sendIfMainWindow('success', () => ({
+      message: 'Software is up-to-date.',
+    }));
   })
   .on('error', (event, error) => {
     log.error(error);
-    sendIfMainWindow('error', () => ({ message: 'Error in auto-updater.', error }));
+    sendIfMainWindow('error', () => ({
+      message: 'Error in auto-updater.',
+      error,
+    }));
   })
-  .on('update-cancelled', error => {
+  .on('update-cancelled', () => {
     // log.error('update-cancelled', error);
   })
   .on('download-progress', progress => {
@@ -457,7 +519,7 @@ process
   .on('uncaughtException', error => {
     log.error('uncaughtException', error);
   })
-  .on('warning', (warning) => {
+  .on('warning', warning => {
     log.warn(warning.name);
     log.warn(warning.message);
     log.warn(warning.stack);

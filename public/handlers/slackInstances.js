@@ -1,7 +1,12 @@
+/* eslint-disable no-use-before-define */
 const log = require('electron-log');
 
 const storage = require('../lib/storage');
 
+/**
+ * Get stored Slack instances.
+ * @returns {array} slackInstances
+ */
 const getSlackInstances = () => (
   new Promise(async (resolve, reject) => {
     try {
@@ -18,6 +23,11 @@ const getSlackInstances = () => (
   })
 );
 
+/**
+ * Update Slack instance in store.
+ * @param {object} slackInstance - Slack instance to update in store.
+ * @returns {array} slackInstances
+ */
 const updateSlackInstance = ({ instance, profile }) => (
   new Promise(async (resolve, reject) => {
     try {
@@ -28,7 +38,7 @@ const updateSlackInstance = ({ instance, profile }) => (
         {
           ...instance,
           profile,
-        }
+        },
       ];
 
       resolve(await storage.set('slackInstances', newSlackInstances));
@@ -39,10 +49,17 @@ const updateSlackInstance = ({ instance, profile }) => (
   })
 );
 
-const saveSlackInstance = (instance) => (
+/**
+ * Save Slack instance into store.
+ * @param {Object} instance - Slack instance to store.
+ * @returns {array} slackInstances
+ */
+const saveSlackInstance = instance => (
   new Promise(async (resolve, reject) => {
     try {
-      const token = { token: instance.token };
+      const token = {
+        token: instance.token,
+      };
       const workspace = await getWorkspace(token);
       const newInstance = {
         ...instance,
@@ -63,6 +80,11 @@ const saveSlackInstance = (instance) => (
   })
 );
 
+/**
+ * Remove stored Slack instance.
+ * @param {object} slackInstance - Slack instance to remove.
+ * @returns {array} slackInstances
+ */
 const removeSlackInstance = ({ token }) => (
   new Promise(async (resolve, reject) => {
     try {

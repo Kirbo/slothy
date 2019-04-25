@@ -1,7 +1,12 @@
+/* eslint-disable no-use-before-define */
 const log = require('electron-log');
 
 const storage = require('../lib/storage');
 
+/**
+ * Get configurations.
+ * @returns {array} configurations
+ */
 const getConfigurations = () => (
   new Promise(async (resolve, reject) => {
     try {
@@ -19,6 +24,10 @@ const getConfigurations = () => (
   })
 );
 
+/**
+ * Get enabled configurations.
+ * @returns {array} enabledConfigurations
+ */
 const getEnabledConfigurations = () => (
   new Promise(async (resolve, reject) => {
     try {
@@ -36,9 +45,17 @@ const getEnabledConfigurations = () => (
 
           const connectedSsids = currentConnections.map(({ ssid }) => ssid.toUpperCase());
           const ssidConfigurations = enabledConfigurations.filter(({ bssid, instanceId, ssid }) => {
-            if (bssid && connectedBssids.includes(bssid.toUpperCase()) && !bssidConfigurations.find(config => instanceId === config.instanceId && config.bssid.toUpperCase() === bssid.toUpperCase())) {
+            if (
+              bssid
+              && connectedBssids.includes(bssid.toUpperCase())
+              && !bssidConfigurations.find(config => instanceId === config.instanceId && config.bssid.toUpperCase() === bssid.toUpperCase())
+            ) {
               return true;
-            } else if (!bssid && !bssidConfigurations.find(config => instanceId === config.instanceId && config.ssid.toUpperCase() === ssid.toUpperCase()) && connectedSsids.includes(ssid.toUpperCase())) {
+            } else if (
+              !bssid
+              && !bssidConfigurations.find(config => instanceId === config.instanceId && config.ssid.toUpperCase() === ssid.toUpperCase())
+              && connectedSsids.includes(ssid.toUpperCase())
+            ) {
               return true;
             }
 
@@ -57,14 +74,19 @@ const getEnabledConfigurations = () => (
         })
         .catch(error => {
           reject(error);
-        })
+        });
     } catch (error) {
       log.error('getEnabledConfigurations', error);
       reject(error);
     }
   })
-)
+);
 
+/**
+ * Save configurations.
+ * @param {object} configuration - Configuration to save.
+ * @returns {object} savedConfiguration
+ */
 const saveConfiguration = configuration => (
   new Promise(async (resolve, reject) => {
     try {
@@ -76,6 +98,11 @@ const saveConfiguration = configuration => (
   })
 );
 
+/**
+ * Remove configuration.
+ * @param {object} configuration - Configuration to remove.
+ * @returns {array} configurations
+ */
 const removeConfiguration = ({ id }) => (
   new Promise(async (resolve, reject) => {
     try {
@@ -87,18 +114,21 @@ const removeConfiguration = ({ id }) => (
   })
 );
 
+/**
+ * Clear configurations and slackInstances
+ */
 const clearConfigurations = () => (
   new Promise(async (resolve, reject) => {
     try {
       const promises = [
-        new Promise(async (res, rej) => {
+        new Promise(async res => {
           try {
             res(storage.set('configurations', []));
           } catch (error) {
             throw error;
           }
         }),
-        new Promise(async (res, rej) => {
+        new Promise(async res => {
           try {
             res(storage.set('slackInstances', []));
           } catch (error) {
@@ -109,7 +139,7 @@ const clearConfigurations = () => (
 
       return Promise
         .all(promises)
-        .then(([configurations, slackInstances]) => {
+        .then(() => {
           resolve();
         })
         .catch(error => {
@@ -118,6 +148,7 @@ const clearConfigurations = () => (
     } catch (error) {
       log.error('clearConfigurations', error);
       reject(error);
+      return error;
     }
   })
 );

@@ -1,12 +1,20 @@
+/* eslint-disable no-use-before-define */
 const slack = require('slack');
 const log = require('electron-log');
 
 const storage = require('../lib/storage');
 
+/**
+ * Get workspace from Slack instance.
+ * @param {object} slackInstance - Slack instance to get workspace from.
+ * @returns {object} team
+ */
 const getWorkspace = ({ token }) => (
   new Promise(async (resolve, reject) => {
     try {
-      slack.team.info({ token }, (error, data) => {
+      slack.team.info({
+        token,
+      }, (error, data) => {
         if (error) {
           throw error;
         }
@@ -15,7 +23,8 @@ const getWorkspace = ({ token }) => (
           resolve(team);
         }
 
-        resolve({})
+        resolve({
+        });
       });
     } catch (error) {
       log.error('getWorkspace', error);
@@ -24,18 +33,26 @@ const getWorkspace = ({ token }) => (
   })
 );
 
+/**
+ * Get custom emojis from Slack instance.
+ * @param {object} slackInstance - Slack instance to fetch emojis from.
+ * @returns {object} emojis
+ */
 const getWorkspaceEmojis = ({ token }) => (
   new Promise(async (resolve, reject) => {
     try {
-      slack.emoji.list({ token }, (error, data) => {
-        if (error) {
-          throw error;
+      slack.emoji.list({
+        token,
+      }, (err, data) => {
+        if (err) {
+          throw err;
         }
         try {
           const { emoji } = data;
           resolve(emoji);
         } catch (error) {
-          resolve({});
+          resolve({
+          });
         }
       });
     } catch (error) {
@@ -45,13 +62,19 @@ const getWorkspaceEmojis = ({ token }) => (
   })
 );
 
+/**
+ * Get workspace from all Slack instances.
+ * @returns {array} slackInstances
+ */
 const getWorkspaces = () => (
   new Promise(async (resolve, reject) => {
     try {
       const promises = (await getSlackInstances())
         .map(instance => (
-          new Promise(async (res, rej) => {
-            const token = { token: instance.token };
+          new Promise(async res => {
+            const token = {
+              token: instance.token,
+            };
             const workspace = await getWorkspace(token);
             const newInstance = {
               ...instance,
@@ -75,6 +98,7 @@ const getWorkspaces = () => (
     } catch (error) {
       log.error('getWorkspaces', error);
       reject(error);
+      return error;
     }
   })
 );

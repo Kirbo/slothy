@@ -5,13 +5,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-### Changed
-- (╯°□°）╯︵ ┻━┻ (lots of refactoring 😄).
-- Making application more robust and to log more useful debug data on errors.
-
 ### Added
 - Crash reporter.
-- One click enable/disable configuration, in `Enabled` column.
+
+## [0.5.0] - 2019-04-25
+### Added
+- [Feat #25](https://gitlab.com/kirbo/slothy/issues/25) - One click enable/disable configuration, in `Enabled` column.
+- [Issue #17](https://gitlab.com/kirbo/slothy/issues/17) - Added JSDocs.
+
+### Changed
+- [Feat #25](https://gitlab.com/kirbo/slothy/issues/25) - No longer showing the ❌ in the `Enabled` column for SSIDs/BSSIDs which don't have confirutation yet, as it was misleading.
+- [Issue #14](https://gitlab.com/kirbo/slothy/issues/14) - Making application somewhat more robust and to log more useful debug data on errors.
+- [Issue #14](https://gitlab.com/kirbo/slothy/issues/14) - (╯°□°）╯︵ ┻━┻ ("lots" of refactoring 😄 More to be done).
 
 ## [0.4.0] - 2019-04-23
 ### Added

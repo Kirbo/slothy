@@ -1,10 +1,16 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import styled from 'styled-components';
 
 import { Consumer } from '../../container/App/Context';
 
 import { COLOR } from '../../assets/css';
 
+/**
+ * ModifyButton
+ * @param {object} props - Properties for the component.
+ * @returns {jsx}
+ */
 const ModifyButton = ({ record }) => (
   <Consumer>
     {({ modifyConfiguration }) => (
@@ -16,10 +22,14 @@ const ModifyButton = ({ record }) => (
       </Styled>
     )}
   </Consumer>
-)
+);
+
+ModifyButton.propTypes = {
+  record: PropTypes.object.isRequired,
+};
 
 const Styled = styled.a`
-  color: ${({ existing }) => existing ? COLOR['red'] : COLOR['lightGray']};
+  color: ${({ existing }) => (existing ? COLOR.red : COLOR.lightGray)};
 `;
 
 export default ModifyButton;

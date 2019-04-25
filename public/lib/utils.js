@@ -5,7 +5,7 @@
  */
 const isObject = item => (
   item && typeof item === 'object' && !Array.isArray(item)
-)
+);
 
 /**
  * Deep merge two objects.
@@ -17,30 +17,49 @@ const mergeDeep = (target, ...sources) => {
   const source = sources.shift();
 
   if (isObject(target) && isObject(source)) {
-    for (const key in source) {
+    Object.keys(source).forEach(key => {
       if (isObject(source[key])) {
-        if (!target[key]) Object.assign(target, { [key]: {} });
+        if (!target[key]) {
+          Object.assign(target, {
+            [key]: {
+            },
+          });
+        }
         mergeDeep(target[key], source[key]);
       } else {
-        Object.assign(target, { [key]: source[key] });
+        Object.assign(target, {
+          [key]: source[key],
+        });
       }
-    }
+    });
   }
 
   return mergeDeep(target, ...sources);
-}
+};
 
-const recursiveObject = (config, newConfig) => (
-  Object.keys(config).reduce((newConfigObject, key) => {
-    if (isObject(config[key])) {
-      newConfigObject[key] = recursiveObject(config[key], newConfig[key]);
-      return newConfigObject;
+/**
+ * Recursively merge two objects (based on old object properties).
+ * @param {object} oldObject - Old object to merge into.
+ * @param {object} newObject - New object to merge from.
+ * @returns {object} mergedObject
+ */
+const recursiveObject = (oldObject, newObject) => (
+  Object.keys(oldObject).reduce((mergedObject, key) => {
+    if (isObject(oldObject[key])) {
+      mergedObject[key] = recursiveObject(oldObject[key], newObject[key]);
+      return mergedObject;
     }
-    newConfigObject[key] = newConfig[key];
-    return newConfigObject;
-  }, {})
+    mergedObject[key] = newObject[key];
+    return mergedObject;
+  }, {
+  })
 );
 
+/**
+ * Sort array by property.
+ * @param {string} [property] - Property to sort array by.
+ * @returns {array} sortedArray
+ */
 const sortBy = (property = null) => (a, b) => {
   const leftCompare = property ? a[property] : a;
   const rightCompare = property ? b[property] : b;
@@ -54,12 +73,23 @@ const sortBy = (property = null) => (a, b) => {
   return 0;
 };
 
-const uniqueArray = a => (
-  [...new Set(a.map(o => JSON.stringify(o)))].map(s => JSON.parse(s))
-)
+/**
+ * Get uniques from array.
+ * @param {array} array - Array to filter uniques from.
+ * @returns {array} uniqueArray
+ */
+const uniqueArray = array => (
+  [...new Set(array.map(o => JSON.stringify(o)))].map(s => JSON.parse(s))
+);
 
+/**
+ * Get parameter from URI.
+ * @param {string} uri - URI
+ * @param {string} name - Parameter name to get
+ * @returns {string} parameterValue
+ */
 const getParameterByName = (uri, name) => {
-  var match = RegExp(`[?&]${name}=([^&]*)`).exec(uri);
+  const match = RegExp(`[?&]${name}=([^&]*)`).exec(uri);
   return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
 };
 

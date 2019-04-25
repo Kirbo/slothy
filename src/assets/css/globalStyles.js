@@ -10,7 +10,7 @@ export const GlobalStyles = createGlobalStyle`
     min-height: 100vh;
     margin: 0;
     padding: 0;
-    font-size: ${FONT_SIZE['regular']} !important;
+    font-size: ${FONT_SIZE.regular} !important;
   }
 
   #root {
@@ -31,7 +31,7 @@ export const GlobalStyles = createGlobalStyle`
         width: calc(100% - 30px);
 
         & .title {
-          font-weight: ${FONT_WEIGHT['bold']};
+          font-weight: ${FONT_WEIGHT.bold};
         }
         & .value {
 
@@ -45,8 +45,8 @@ export const GlobalStyles = createGlobalStyle`
         margin-top: ${DIMENSION['0.5x']};
 
         & .title {
-          font-weight: ${FONT_WEIGHT['bold']};
-          border-bottom: ${BORDER['thin']} solid ${COLOR['borderLight']};
+          font-weight: ${FONT_WEIGHT.bold};
+          border-bottom: ${BORDER.thin} solid ${COLOR.borderLight};
         }
         & .value {
           max-height: calc(100vh - 20rem);
@@ -56,9 +56,9 @@ export const GlobalStyles = createGlobalStyle`
           word-break: break-word;
 
           & h2 {
-            font-size: ${FONT_SIZE['m']};
-            font-weight: ${FONT_WEIGHT['thick']};
-            border-top: ${BORDER['thin']} solid ${COLOR['borderLight']};
+            font-size: ${FONT_SIZE.m};
+            font-weight: ${FONT_WEIGHT.thick};
+            border-top: ${BORDER.thin} solid ${COLOR.borderLight};
 
             &:first-child {
               border: none;
@@ -66,8 +66,8 @@ export const GlobalStyles = createGlobalStyle`
           }
 
           & h3 {
-            font-size: ${FONT_SIZE['regular']};
-            font-weight: ${FONT_WEIGHT['bold']};
+            font-size: ${FONT_SIZE.regular};
+            font-weight: ${FONT_WEIGHT.bold};
           }
         }
       }

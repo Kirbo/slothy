@@ -14,6 +14,10 @@ import packageJSON from '../../../package.json';
 
 const { Sider, Footer } = Layout;
 
+/**
+ * AppSider
+ * @returns {jsx}
+ */
 const AppSider = () => (
   <Styled>
     <Sider>
@@ -58,14 +62,14 @@ const Styled = styled.div`
     display: flex;
     position: fixed;
     left: 0;
-    background: ${COLOR['darkBlue']};
+    background: ${COLOR.darkBlue};
     height: 100%;
     flex: 0;
 
     & .ant-menu-dark,
     & .ant-menu-dark
     & .ant-menu-sub {
-      background: ${COLOR['darkBlue']};
+      background: ${COLOR.darkBlue};
     }
 
     & .ant-layout-sider-children {
@@ -78,20 +82,20 @@ const Styled = styled.div`
   & .ant-layout-footer {
     padding: 0;
     margin: 0 ${DIMENSION['0.5x']};
-    background: ${COLOR['darkBlue']};
-    color: ${COLOR['lightGray']};
-    border-top: ${BORDER['thin']} solid ${COLOR['borderDark']};
+    background: ${COLOR.darkBlue};
+    color: ${COLOR.lightGray};
+    border-top: ${BORDER.thin} solid ${COLOR.borderDark};
     justify-content: center;
     flex: 0 0 ${DIMENSION['2.25x']};
     display: flex;
     align-items: center;
-    font-size: ${FONT_SIZE['regular']};
+    font-size: ${FONT_SIZE.regular};
 
     & a {
-      color: ${COLOR['lightGray']};
+      color: ${COLOR.lightGray};
 
       &:hover {
-        color: ${COLOR['red']};
+        color: ${COLOR.red};
       }
     }
   }
