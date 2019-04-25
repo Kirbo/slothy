@@ -24,9 +24,9 @@ cache:
   stage: release
   cache:
     policy: pull
-    paths:
-      - node_modules
+    paths: []
   dependencies:
+    - dependencies
     - react app
   artifacts:
     expire_in: 1 week
