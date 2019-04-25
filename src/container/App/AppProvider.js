@@ -33,8 +33,9 @@ const closeOtherNotifications = (skip = '') => {
 class AppProvider extends Component {
   state = {
     ...INITIAL_STATE,
-    removeSlackInstance: token => {
+    removeSlackInstance: ({ token, id }) => {
       ipcRenderer.send('removeSlackInstance', {
+        id,
         token,
       });
     },

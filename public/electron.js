@@ -400,7 +400,10 @@ ipc
     }
   })
   .on('getConnections', async () => sendIfMainWindow('connections', getConnections))
-  .on('removeSlackInstance', async (event, data) => sendIfMainWindow('slackInstances', removeSlackInstance, data))
+  .on('removeSlackInstance', async (event, data) => {
+    await sendIfMainWindow('slackInstances', removeSlackInstance, data);
+    sendIfMainWindow('configurations', getConfigurations);
+  })
   .on('getConfigurations', async () => sendIfMainWindow('configurations', getConfigurations))
   .on('saveConfiguration', async (event, data, updateNow = true) => {
     await sendIfMainWindow('configurations', saveConfiguration, data);

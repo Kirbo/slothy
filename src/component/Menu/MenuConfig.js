@@ -35,7 +35,7 @@ export const contextMenu = (instance, removeSlackInstance) => (
   <Menu>
     <Menu.Item
       key="remove-instance"
-      onClick={() => showDeleteConfirm(instance.name, () => removeSlackInstance(instance.token))}
+      onClick={() => showDeleteConfirm(instance.name, () => removeSlackInstance(instance))}
     >
       <RemoveInstance>
         <Icon icon={['far', 'trash-alt']} /> Remove {instance.name}
