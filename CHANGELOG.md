@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [Feat #25](https://gitlab.com/kirbo/slothy/issues/25) - No longer showing the ❌ in the `Enabled` column for SSIDs/BSSIDs which don't have confirutation yet, as it was misleading.
 - [Issue #14](https://gitlab.com/kirbo/slothy/issues/14) - Making application somewhat more robust and to log more useful debug data on errors.
 - [Issue #14](https://gitlab.com/kirbo/slothy/issues/14) - (╯°□°）╯︵ ┻━┻ ("lots" of refactoring 😄 More to be done).
-  ![Slightly Refactoring](./markdownFiles/0.5.0-refactoring.png "Slightly Refactoring")
+  ![Slightly Refactoring](https://gitlab.com/kirbo/slothy/raw/master/markdownFiles/0.5.0-refactoring.png "Slightly Refactoring")
 
 ## [0.4.0] - 2019-04-23
 ### Added
