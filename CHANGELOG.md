@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Crash reporter.
 - Ability to downgrade.
 
+## [0.5.2-beta2] - 2019-04-26
+### Fixed
+- Auto updater bug.
+
 ## [0.5.2-beta] - 2019-04-26
 ### Fixed
 - Auto updater bug.
