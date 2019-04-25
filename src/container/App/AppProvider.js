@@ -122,7 +122,7 @@ class AppProvider extends Component {
   };
 
   componentDidMount = () => {
-    const { setProperty, appConfigurations } = this.state;
+    const { setProperty } = this.state;
     ipcRenderer.send('initialize');
 
     ipcRenderer
@@ -240,6 +240,7 @@ class AppProvider extends Component {
         closeOtherNotifications('update-notification');
       })
       .on('update-progress', (event, data) => {
+        const { appConfigurations } = this.state;
         notification[data.type || 'open']({
           message: data.title,
           description: <Progress percent={((data.progress.percent).toFixed(2))} status={data.progress.percent < 100 ? 'active' : 'success'} />,
