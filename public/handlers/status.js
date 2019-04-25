@@ -66,8 +66,8 @@ const setStatus = ({ token, emoji, status }) => (
 /**
  * Update status in all Slack instances.
  */
-const updateStatuses = () => {
-  Promise(async (resolve, reject) => {
+const updateStatuses = () => (
+  new Promise(async (resolve, reject) => {
     try {
       (await getEnabledConfigurations())
         .forEach(({ token, emoji, status }) => {
@@ -82,8 +82,8 @@ const updateStatuses = () => {
       log.error('updateStatuses', error);
       reject(error);
     }
-  });
-};
+  })
+);
 
 module.exports = {
   getStatus,

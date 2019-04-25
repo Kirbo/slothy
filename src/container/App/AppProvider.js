@@ -122,16 +122,22 @@ class AppProvider extends Component {
   };
 
   componentDidMount = () => {
-    const { setProperty, ssids, appConfigurations } = this.state;
+    const { setProperty, appConfigurations } = this.state;
     ipcRenderer.send('initialize');
 
     ipcRenderer
-      .on('connections', (event, { newSsids, currentSsids }) => {
+      .on('connections', (event, props) => {
+        const { ssids } = this.state;
         setProperty({
-          ssids: !!ssids.length && !newSsids.length ? ssids : newSsids,
-          currentSsids,
-          wifiEnabled: !!ssids.length || !!currentSsids.length,
+          ssids: !!ssids.length && !ssids.length ? ssids : props.ssids,
+          currentSsids: props.currentSsids,
+          wifiEnabled: !!ssids.length || !!props.currentSsids.length,
           ssidsLoaded: true,
+        });
+      })
+      .on('scanningConnections', () => {
+        setProperty({
+          ssidsLoaded: false,
         });
       })
       .on('configurations', (event, configurations) => {
@@ -213,10 +219,10 @@ class AppProvider extends Component {
         }
         notification[data.type || 'open']({
           message: data.title,
-          description: <div dangerouslySetInnerHTML={{
+          description: <div dangerouslySetInnerHTML={{ // eslint-disable-line react/no-danger
             __html: description,
           }}
-          />, // eslint-disable-line react/no-danger
+          />,
           duration: 0,
           key: 'update-notification',
           btn: (
@@ -318,6 +324,7 @@ class AppProvider extends Component {
     [
       'appConfigurations',
       'connections',
+      'scanningConnections',
       'configurations',
       'slackInstances',
       'newSlackInstance',

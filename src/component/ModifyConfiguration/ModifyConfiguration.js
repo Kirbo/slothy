@@ -224,7 +224,7 @@ const ModifyConfiguration = ({ form }) => {
                       {getFieldDecorator('enabled', {
                         initialValue: drawerConfig.config
                         && Object.prototype.hasOwnProperty.call(drawerConfig.config, 'enabled')
-                          ? drawerConfig.config.enable
+                          ? drawerConfig.config.enabled
                           : true,
                       })(
                         <Radio.Group buttonStyle="solid">

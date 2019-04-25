@@ -5,8 +5,8 @@ const CopyWebpackPlugin = require('copy-webpack-plugin');
 const { COLOR } = require('./src/assets/css/colors');
 
 module.exports = {
-  webpack: (config, env) => (
-    override(
+  webpack: (config, env) => {
+    const newConfig = override(
       fixBabelImports('import', {
         libraryName: 'antd',
         libraryDirectory: 'es',
@@ -18,30 +18,29 @@ module.exports = {
           '@primary-color': COLOR.red,
         },
       }),
-      process.env.NODE_ENV === 'production'
-        ? () => {
-          if (!config.plugins) {
-            config.plugins = [];
-          }
+    )(config, env);
 
-          config.plugins.push(
-            new CopyWebpackPlugin([
-              {
-                from: 'src/assets/icons',
-                to: 'icons',
-              },
-              {
-                from: 'src/assets/logo-text',
-                to: 'logo-text',
-              },
-            ]),
-          );
+    if (process.env.NODE_ENV === 'production') {
+      if (!newConfig.plugins) {
+        newConfig.plugins = [];
+      }
 
-          return config;
-        }
-        : config,
-    )(config, env)
-  ),
+      newConfig.plugins.push(
+        new CopyWebpackPlugin([
+          {
+            from: 'src/assets/icons',
+            to: 'icons',
+          },
+          {
+            from: 'src/assets/logo-text',
+            to: 'logo-text',
+          },
+        ]),
+      );
+    }
+
+    return newConfig;
+  },
   jest: config => ({
     ...config,
     bail: false,

@@ -8,9 +8,29 @@ const { shell } = electron;
  * Populate application menu
  * @param {object} autoUpdater - autoUpdater object.
  * @param {function} resetApp - resetApp function.
+ * @param {boolean} allowDowngrade - Is downgrade allowed.
  * @returns {array} menuTemplate
  */
+// const menuTemplate = (autoUpdater, resetApp, allowDowngrade) => {
 const menuTemplate = (autoUpdater, resetApp) => {
+  const updateOptions = (
+    // allowDowngrade
+    // TODO: enable downgrade
+    false // eslint-disable-line no-constant-condition
+      ? [{
+        label: 'Check for updates',
+        click: () => { autoUpdater.checkForUpdates(); },
+      },
+      {
+        label: 'Downgrade to latest Stable',
+        click: () => { autoUpdater.checkForUpdates(); },
+      }]
+      : [{
+        label: 'Check for updates',
+        click: () => { autoUpdater.checkForUpdates(); },
+      }]
+  );
+
   const MENU_TEMPLATE = [
     {
       label: 'Edit',
@@ -135,10 +155,7 @@ const menuTemplate = (autoUpdater, resetApp) => {
         {
           type: 'separator',
         },
-        {
-          label: 'Check for updates',
-          click: () => { autoUpdater.checkForUpdates(); },
-        },
+        ...updateOptions,
         {
           role: 'services',
           submenu: [],
@@ -168,10 +185,7 @@ const menuTemplate = (autoUpdater, resetApp) => {
   MENU_TEMPLATE.push({
     role: 'help',
     submenu: [
-      {
-        label: 'Check for updates',
-        click: () => { autoUpdater.checkForUpdates(); },
-      },
+      ...updateOptions,
       {
         label: 'Official website',
         click: () => { shell.openExternal(packageJson.product.Pages); },

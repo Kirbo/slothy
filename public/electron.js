@@ -159,7 +159,10 @@ const updateStatusesFunction = async () => {
  */
 const startTimers = async (runNow = true) => {
   setTimer('slackInstances', () => ifComputerRunning(() => sendIfMainWindow('slackInstances', getWorkspaces)), runNow);
-  setTimer('connections', () => ifComputerRunning(() => sendIfMainWindow('connections', getConnections)), runNow);
+  setTimer('connections', async () => {
+    ifComputerRunning(() => sendIfMainWindow('scanningConnections', () => null));
+    ifComputerRunning(() => sendIfMainWindow('connections', getConnections));
+  }, runNow);
   setTimer('updateStatus', updateStatusesFunction, runNow);
 };
 
@@ -273,7 +276,7 @@ const createWindow = async () => {
 
   mainWindow.loadURL(startUrl);
 
-  Menu.setApplicationMenu(Menu.buildFromTemplate(menuTemplate(autoUpdater, resetApp)));
+  Menu.setApplicationMenu(Menu.buildFromTemplate(menuTemplate(autoUpdater, resetApp, config.updates.allowDowngrade)));
 
   mainWindow
     .once('ready-to-show', () => {
@@ -421,6 +424,7 @@ ipc
       await startTimers(false);
     }
     config = appConfigurations;
+    Menu.setApplicationMenu(Menu.buildFromTemplate(menuTemplate(autoUpdater, resetApp, config.updates.allowDowngrade)));
     setAutoUpdater();
     await sendIfMainWindow('appConfigurations', () => appConfigurations);
   })

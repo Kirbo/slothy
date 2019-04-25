@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - Crash reporter.
+- Ability to downgrade.
+
+## [0.5.1] - 2019-04-25
+### Fixed
+- Bug fixes that made the application to crash, due too heavy refactoring.
+- `Reload` button for connections is disabled when connections are being reloaded via timer.
+- `Enabled`/`Disabled` radio button on modifying existing configuration was not working, due refactoring.
 
 ## [0.5.0] - 2019-04-25
 ### Added
