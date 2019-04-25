@@ -26,7 +26,6 @@ cache:
     policy: pull
     paths: []
   dependencies:
-    - dependencies
     - react app
   artifacts:
     expire_in: 1 week
@@ -130,18 +129,21 @@ mac:
   tags:
     - macos
   script:
+    - yarn
     - yarn dist -m --publish always
 
 linux:
   <<: *release-common
   image: electronuserland/builder:10
   script:
+    - yarn
     - yarn dist -l --publish always
 
 windows:
   <<: *release-common
   image: electronuserland/builder:wine
   script:
+    - yarn
     - yarn dist -w --publish always
 
 pages:
