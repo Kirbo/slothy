@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import moment from 'moment';
 import { Layout, Table, Collapse, Slider, Tooltip, Switch } from 'antd';
 
-import packageJson from '../../../../package.json'
+import packageJson from '../../../../package.json';
 
 import { Consumer } from '../../App/Context';
 import Icon from '../../../component/Icon';
@@ -16,7 +16,7 @@ import { tableConfig, configurationsColumns } from '../Instance/InstanceConfig';
 import { BORDER, COLOR, DIMENSION } from '../../../assets/css';
 
 const { Header, Content } = Layout;
-const Panel = Collapse.Panel;
+const { Panel } = Collapse;
 
 const timerMarks = {
   30: '30s',
@@ -41,6 +41,11 @@ const timerScanMarks = {
   600: '10m',
 };
 
+/**
+ * Time formatter for the slider tooltip.
+ * @param {number} value - Seconds to format.
+ * @returns {string} formattedString
+ */
 const timerFormatter = value => {
   const time = moment.utc(value * 1000);
 
@@ -60,19 +65,33 @@ const timerFormatter = value => {
   }
 
   return returnValue.join(' ');
-}
+};
 
+/**
+ * Configurations
+ * @returns {jsx}
+ */
 const Configuration = () => (
   <Consumer>
-    {({ appConfigurations, configurations, viewType, selectedView, slackInstances, currentSsids, updateAppConfigurations }) => {
+    {({
+      appConfigurations, configurations, slackInstances, currentSsids, updateAppConfigurations, saveConfiguration,
+    }) => {
       const connectedBssids = currentSsids.map(({ bssid }) => bssid.toUpperCase());
       const bssidConfigurations = configurations.filter(({ bssid }) => bssid && connectedBssids.includes(bssid.toUpperCase()));
 
       const connectedSsids = currentSsids.map(({ ssid }) => ssid.toUpperCase());
       const ssidConfigurations = configurations.filter(({ bssid, instanceId, ssid }) => {
-        if (bssid && connectedBssids.includes(bssid.toUpperCase()) && !bssidConfigurations.find(config => instanceId === config.instanceId && config.bssid.toUpperCase() === bssid.toUpperCase())) {
+        if (
+          bssid
+          && connectedBssids.includes(bssid.toUpperCase())
+          && !bssidConfigurations.find(config => instanceId === config.instanceId && config.bssid.toUpperCase() === bssid.toUpperCase())
+        ) {
           return true;
-        } else if (!bssid && !bssidConfigurations.find(config => instanceId === config.instanceId && config.ssid.toUpperCase() === ssid.toUpperCase()) && connectedSsids.includes(ssid.toUpperCase())) {
+        } else if (
+          !bssid
+          && !bssidConfigurations.find(config => instanceId === config.instanceId && config.ssid.toUpperCase() === ssid.toUpperCase())
+          && connectedSsids.includes(ssid.toUpperCase())
+        ) {
           return true;
         }
 
@@ -87,7 +106,7 @@ const Configuration = () => (
       const dataSource = configurations
         .map(config => {
           const instance = slackInstances.find(({ id }) => id === config.instanceId) || {
-            name: 'Unkown - deleted?'
+            name: 'Unkown - deleted?',
           };
           return {
             key: config.id,
@@ -125,25 +144,34 @@ const Configuration = () => (
         tipFormatter: timerFormatter,
       };
 
+      /**
+       * Update Application configurations.
+       * @param {string} property - Property to update.
+       * @param {array} keys - Keys to update with the value
+       * @returns {function} value
+       */
       const updateAppConfiguration = (property, keys) => value => {
         const newValues = keys.reduce((newConfig, key) => {
           newConfig[key] = value;
           return newConfig;
-        }, {});
+        }, {
+
+        });
 
         updateAppConfigurations(property, {
           ...appConfigurations,
           [property]: {
             ...appConfigurations[property],
             ...newValues,
-          }
+          },
         });
-      }
+      };
 
       if (!appConfigurations) {
         return null;
       }
 
+      /* eslint-disable max-len */
       return (
         <Styled>
           <Header>
@@ -154,17 +182,18 @@ const Configuration = () => (
               <Panel header="Slack instances" key="configurations">
                 <Table
                   {...tableConfig}
-                  columns={configurationsColumns(slackInstances)}
+                  columns={configurationsColumns(saveConfiguration, slackInstances)}
                   dataSource={dataSource}
                 />
               </Panel>
 
 
-
               <Panel header="Timers" key="appConfigurations.timers">
                 <ConfigurationSection>
                   <Tooltip placement="right" title="How often do you want your status to be updated in each Slack instance you have defined.">
-                    <ConfigurationTitle>Update status <Icon icon="info-circle" /></ConfigurationTitle>
+                    <ConfigurationTitle>
+                      Update status <Icon icon="info-circle" />
+                    </ConfigurationTitle>
                   </Tooltip>
                   <Slider
                     {...timerConfig}
@@ -175,7 +204,9 @@ const Configuration = () => (
 
                 <ConfigurationSection>
                   <Tooltip placement="right" title="How often do you want your WiFi connections to be scanned.">
-                    <ConfigurationTitle>Scan WiFi connections <Icon icon="info-circle" /></ConfigurationTitle>
+                    <ConfigurationTitle>
+                      Scan WiFi connections <Icon icon="info-circle" />
+                    </ConfigurationTitle>
                   </Tooltip>
                   <Slider
                     {...timerConfig}
@@ -188,7 +219,9 @@ const Configuration = () => (
 
                 <ConfigurationSection>
                   <Tooltip placement="right" title={`How often do you want ${packageJson.productName} to fetch your Slack workspaces (custom emojis, your current status for each Slack instance, etc.).`}>
-                    <ConfigurationTitle>Update Slack workspaces <Icon icon="info-circle" /></ConfigurationTitle>
+                    <ConfigurationTitle>
+                      Update Slack workspaces <Icon icon="info-circle" />
+                    </ConfigurationTitle>
                   </Tooltip>
                   <Slider
                     {...timerConfig}
@@ -199,11 +232,12 @@ const Configuration = () => (
               </Panel>
 
 
-
               <Panel header="Updates" key="appConfigurations.updates">
                 <ConfigurationSection spacer>
                   <Tooltip placement="right" title={`Opt-in if you want ${packageJson.productName} to automatically check updates at launch.`}>
-                    <ConfigurationTitle>Check updates at launch <Icon icon="info-circle" /></ConfigurationTitle>
+                    <ConfigurationTitle>
+                      Check updates at launch <Icon icon="info-circle" />
+                    </ConfigurationTitle>
                   </Tooltip>
                   <Switch
                     checked={appConfigurations.updates.checkUpdatesOnLaunch}
@@ -213,7 +247,9 @@ const Configuration = () => (
 
                 <ConfigurationSection spacer>
                   <Tooltip placement="right" title={`Opt-in if you want ${packageJson.productName} to automatically download new updates.`}>
-                    <ConfigurationTitle>Auto download updates <Icon icon="info-circle" /></ConfigurationTitle>
+                    <ConfigurationTitle>
+                      Auto download updates <Icon icon="info-circle" />
+                    </ConfigurationTitle>
                   </Tooltip>
                   <Switch
                     checked={appConfigurations.updates.autoDownload}
@@ -223,7 +259,9 @@ const Configuration = () => (
 
                 <ConfigurationSection spacer>
                   <Tooltip placement="right" title={`Opt-in if you want ${packageJson.productName} to automatically install new (downloaded) updates on application quit.`}>
-                    <ConfigurationTitle>Install updates automatically on application quit <Icon icon="info-circle" /></ConfigurationTitle>
+                    <ConfigurationTitle>
+                      Install updates automatically on application quit <Icon icon="info-circle" />
+                    </ConfigurationTitle>
                   </Tooltip>
                   <Switch
                     checked={appConfigurations.updates.autoInstallOnAppQuit}
@@ -233,7 +271,9 @@ const Configuration = () => (
 
                 <ConfigurationSection spacer>
                   <Tooltip placement="right" title="Opt-in if you want to get prereleases.">
-                    <ConfigurationTitle>Allow pre-releases <Icon icon="info-circle" /></ConfigurationTitle>
+                    <ConfigurationTitle>
+                      Allow pre-releases <Icon icon="info-circle" />
+                    </ConfigurationTitle>
                   </Tooltip>
                   <Switch
                     checked={appConfigurations.updates.allowPrerelease}
@@ -242,8 +282,10 @@ const Configuration = () => (
                 </ConfigurationSection>
 
                 <ConfigurationSection spacer>
-                  <Tooltip placement="right" title={`Opt-in if you want see full Change Log when there are new updates.`}>
-                    <ConfigurationTitle>Show full Change Log <Icon icon="info-circle" /></ConfigurationTitle>
+                  <Tooltip placement="right" title="Opt-in if you want see full Change Log when there are new updates.">
+                    <ConfigurationTitle>
+                      Show full Change Log <Icon icon="info-circle" />
+                    </ConfigurationTitle>
                   </Tooltip>
                   <Switch
                     checked={appConfigurations.updates.fullChangelog}
@@ -253,11 +295,12 @@ const Configuration = () => (
               </Panel>
 
 
-
               <Panel header="Application" key="appConfigurations.app">
                 <ConfigurationSection spacer>
                   <Tooltip placement="right" title={`Opt-in if you want ${packageJson.productName} to launch minimised.`}>
-                    <ConfigurationTitle>Launch application minimised <Icon icon="info-circle" /></ConfigurationTitle>
+                    <ConfigurationTitle>
+                      Launch application minimised <Icon icon="info-circle" />
+                    </ConfigurationTitle>
                   </Tooltip>
                   <Switch
                     checked={appConfigurations.app.launchMinimised}
@@ -267,7 +310,9 @@ const Configuration = () => (
 
                 <ConfigurationSection spacer>
                   <Tooltip placement="right" title={`Opt-in if you want ${packageJson.productName} to minimise instead of quit.`}>
-                    <ConfigurationTitle>Minimise application on quit <Icon icon="info-circle" /></ConfigurationTitle>
+                    <ConfigurationTitle>
+                      Minimise application on quit <Icon icon="info-circle" />
+                    </ConfigurationTitle>
                   </Tooltip>
                   <Switch
                     checked={appConfigurations.app.closeToTray}
@@ -286,7 +331,7 @@ const Configuration = () => (
 
 const ConfigurationTitle = styled.strong`
   &:hover {
-    color: ${COLOR['red']};
+    color: ${COLOR.red};
     cursor: help;
   }
 `;
@@ -297,7 +342,7 @@ const ConfigurationSection = styled.div`
   ${({ spacer }) => spacer && `
     display: flex;
     justify-content: space-between;
-    border-bottom: ${BORDER['thin']} solid ${COLOR['borderLight']};
+    border-bottom: ${BORDER.thin} solid ${COLOR.borderLight};
   `}
 `;
 

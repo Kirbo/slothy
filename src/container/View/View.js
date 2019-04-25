@@ -6,13 +6,17 @@ import { Consumer } from '../App/Context';
 
 import Instance from './Instance';
 
+/**
+ * AppView.
+ * @returns {jsx}
+ */
 const AppView = () => (
   <Consumer>
     {({ viewType, selectedView }) => {
       let View = Instance;
 
       if (viewType === 'view') {
-        View = require(`./${selectedView}/${selectedView}.js`).default;
+        View = require(`./${selectedView}/${selectedView}.js`).default; // eslint-disable-line
       }
 
       return (

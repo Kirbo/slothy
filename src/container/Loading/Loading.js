@@ -1,55 +1,87 @@
 import React, { Component } from 'react';
+import PropTypes from 'prop-types';
 import styled from 'styled-components';
 
-import { GlobalStyles, FONT_SIZE } from '../../assets/css';
-import { DIMENSION, COLOR } from '../../assets/css';
+import { COLOR, DIMENSION, GlobalStyles, FONT_SIZE } from '../../assets/css';
 
 import Logo from '../../component/Logo';
 
+/**
+ * Loading
+ */
 class Loading extends Component {
-  state = {};
+  state = {
 
+  };
+
+  /**
+   * ComponentDidMount
+   */
   componentDidMount = () => {
     setTimeout(() => {
       document.querySelector('.loading').classList.remove('hidden');
     }, 250);
   }
 
-  componentWillReceiveProps = ({ slackInstancesLoaded, ssidsLoaded, configurationsLoaded, appConfigurationsLoaded, setProperty }, state) => {
+  /**
+   * ComponentWillReceiveProps
+   * @param {object} props - Properties for the component.
+   * @param {object} state - State of the component.
+   * @returns {object} state
+   */
+  componentWillReceiveProps = ({ slackInstancesLoaded, configurationsLoaded, appConfigurationsLoaded, setProperty }, state) => {
     if (slackInstancesLoaded && configurationsLoaded && appConfigurationsLoaded) {
       document.querySelector('.loading').classList.add('loaded');
       setTimeout(() => {
-        setProperty({ hideLoading: true });
+        setProperty({
+          hideLoading: true,
+        });
       }, 400);
       setTimeout(() => {
-        setProperty({ showLoading: false });
+        setProperty({
+          showLoading: false,
+        });
       }, 1500);
     }
     return state;
   }
 
-  render = () => (
-    <React.Fragment>
-      <GlobalStyles />
-      <Styled hideLoading={this.props.hideLoading}>
-        <Layout>
-          <div className="container">
-            <Logo withText />
-            <div className="loading hidden">
+  /**
+   * Duh.
+   */
+  render = () => {
+    const { hideLoading } = this.props;
+    return (
+      <React.Fragment>
+        <GlobalStyles />
+        <Styled hideLoading={hideLoading}>
+          <Layout>
+            <div className="container">
+              <Logo withText />
+              <div className="loading hidden">
               Loading, please standby...
+              </div>
             </div>
-          </div>
-        </Layout>
-      </Styled>
-    </React.Fragment>
-  );
+          </Layout>
+        </Styled>
+      </React.Fragment>
+    );
+  }
 }
+
+Loading.propTypes = {
+  slackInstancesLoaded: PropTypes.bool.isRequired,
+  configurationsLoaded: PropTypes.bool.isRequired,
+  appConfigurationsLoaded: PropTypes.bool.isRequired,
+  hideLoading: PropTypes.bool.isRequired,
+  setProperty: PropTypes.func.isRequired,
+};
 
 const Styled = styled.div`
   position: absolute;
   z-index: 1000;
-  font-size: ${FONT_SIZE['m']};
-  color: ${COLOR['black']};
+  font-size: ${FONT_SIZE.m};
+  color: ${COLOR.black};
   font-family: arial;
   display: flex;
   height: 100vh;
@@ -58,9 +90,9 @@ const Styled = styled.div`
   left: 0;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(${COLOR['darkBlue']}, ${COLOR['black']});
+  background: radial-gradient(${COLOR.darkBlue}, ${COLOR.black});
   transition: all 0.5s ease;
-  opacity: ${({ hideLoading }) => hideLoading ? 0 : 1};
+  opacity: ${({ hideLoading }) => (hideLoading ? 0 : 1)};
 
   & div.logo {
     height: ${DIMENSION['10x']};
@@ -74,7 +106,7 @@ const Styled = styled.div`
     justify-content: center;
 
     & svg.logo-text {
-      fill: ${COLOR['white']};
+      fill: ${COLOR.white};
     }
   }
 `;
@@ -91,7 +123,7 @@ const Layout = styled.div`
   }
 
   & .loading {
-    color: ${COLOR['lightGray']};
+    color: ${COLOR.lightGray};
     opacity: 1;
     height: ${DIMENSION['1.5x']};
     top: calc(50% - ${DIMENSION['1.5x']}/2 + ${DIMENSION['4x']});

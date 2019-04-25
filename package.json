@@ -1,5 +1,5 @@
 {
-  "version": "0.4.0",
+  "version": "0.5.0",
   "name": "slothy",
   "description": "Changes your Slack status based on the SSID you're currently connected to.",
   "productName": "Slothy",
@@ -30,7 +30,11 @@
     "react-build": "cross-env NODE_ENV=production react-app-rewired build",
     "react-test": "react-app-rewired test",
     "react-eject": "react-scripts eject",
-    "create-tag": "export VERSION=$(node -e \"console.log('v'+require('./package.json').version)\") && git tag -a ${VERSION} -m \"Release ${VERSION}\""
+    "create-tag": "export VERSION=$(node -e \"console.log('v'+require('./package.json').version)\") && git tag -a ${VERSION} -m \"Release ${VERSION}\"",
+    "lint": "yarn lint:js",
+    "lint-watch": "nodemon --ignore node_modules --ignore node_modules --exec 'clear && yarn lint:js'",
+    "lint:staged": "lint-staged",
+    "lint:js": "eslint --ext .js ."
   },
   "build": {
     "appId": "com.electron.kirbo.slothy",
@@ -71,29 +75,15 @@
   "eslintConfig": {
     "extends": "react-app"
   },
-  "jest": {
-    "bail": false,
-    "collectCoverage": true,
-    "forceExit": true,
-    "collectCoverageFrom": [
-      "/src/**.js"
-    ],
-    "coverageDirectory": "coverage",
-    "coveragePathIgnorePatterns": [
-      "/src/setupTests.js",
-      "/pages/"
-    ],
-    "coverageReporters": [
-      "text",
-      "html"
-    ],
-    "notify": true,
-    "testMatch": [
-      "/src/**.test.js"
-    ],
-    "testPathIgnorePatterns": [
-      "/node_modules/",
-      "/pages/"
+  "husky": {
+    "hooks": {
+      "pre-commit": "yarn lint:staged"
+    }
+  },
+  "lint-staged": {
+    "*.js": [
+      "yarn lint:js --fix",
+      "git add"
     ]
   },
   "dependencies": {
@@ -113,12 +103,16 @@
     "electron-log": "3.0.5",
     "electron-logger": "0.0.3",
     "electron-updater": "4.0.6",
+    "eslint-config-react-app": "4.0.0",
+    "eslint-plugin-flowtype": "3.6.1",
+    "eslint-plugin-react-hooks": "1.6.0",
     "less": "3.9.0",
     "less-loader": "4.1.0",
     "moment": "2.24.0",
     "node-emoji": "1.10.0",
     "node-wifi": "https://github.com/kirbo/node-wifi#testing",
     "nodemon": "1.18.11",
+    "prop-types": "15.7.2",
     "react": "16.8.6",
     "react-app-rewired": "2.1.1",
     "react-axe": "3.1.0",
@@ -132,7 +126,15 @@
   "devDependencies": {
     "electron": "4.1.4",
     "electron-builder": "20.39.0",
+    "enzyme": "3.9.0",
+    "eslint-config-airbnb": "17.1.0",
+    "eslint-plugin-import": "2.17.2",
+    "eslint-plugin-jsx-a11y": "6.2.1",
+    "eslint-plugin-react": "7.12.4",
     "foreman": "3.0.1",
+    "husky": "2.1.0",
+    "lint-staged": "8.1.5",
+    "react-test-renderer": "16.8.6",
     "typescript": "3.4.3"
   },
   "browserslist": [

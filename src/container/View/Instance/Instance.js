@@ -13,9 +13,15 @@ import { columns, nestedColumns, tableConfig } from './InstanceConfig';
 
 const { Header, Content } = Layout;
 
+/**
+ * Instance
+ * @returns {jsx}
+ */
 const Instance = () => (
   <Consumer>
-    {({ wifiEnabled, ssidsLoaded, currentSsids, ssids, slackInstances, setStatus, getConnections, selectedView, removeSlackInstance, configurations, expandedRowKeys, handleExpand }) => {
+    {({
+      ssidsLoaded, ssids, slackInstances, getConnections, selectedView, configurations, expandedRowKeys, handleExpand, saveConfiguration,
+    }) => {
       const instance = slackInstances.find(({ id }) => id === selectedView);
       const { id, profile } = instance;
 
@@ -27,15 +33,19 @@ const Instance = () => (
             instanceId: id,
             config: (configurations
               .filter(config => !!config[findConfigBy])
-              .find(config =>
-                config.instanceId.toUpperCase() === instance.id.toUpperCase()
+              .find(config => config.instanceId.toUpperCase() === instance.id.toUpperCase()
                 && ssid[findConfigBy]
-                && config[findConfigBy].toUpperCase() === ssid[findConfigBy].toUpperCase()
-              ) || { emoji: '', status: '' }),
+                && config[findConfigBy].toUpperCase() === ssid[findConfigBy].toUpperCase()) || {
+              emoji: '',
+              status: '',
+            }),
             ...ssid,
-            ...((ssid.accessPoints && { accessPoints: sortAndFindConfig(ssid.accessPoints, 'bssid') }) || {}),
-          })
-          )
+            ...((ssid.accessPoints && {
+              accessPoints: sortAndFindConfig(ssid.accessPoints, 'bssid'),
+            }) || {
+
+            }),
+          }))
           .sort((a, b) => {
             if (a.connected > b.connected) {
               return -1;
@@ -50,19 +60,22 @@ const Instance = () => (
             }
             return 0;
           })
-      )
+      );
 
       const data = sortAndFindConfig(ssids, 'ssid');
 
-      const expandedRowRender = (record, index, indent, expanded) => {
-        return (
-          <Table
-            {...tableConfig}
-            columns={nestedColumns}
-            dataSource={record.accessPoints}
-          />
-        );
-      };
+      /**
+       * Expand row.
+       * @param {object} record - Record for the nested table.
+       * @returns {jsx} expandedRow
+       */
+      const expandedRowRender = record => (
+        <Table
+          {...tableConfig}
+          columns={nestedColumns(saveConfiguration)}
+          dataSource={record.accessPoints}
+        />
+      );
 
       return (
         <Styled>
@@ -81,13 +94,13 @@ const Instance = () => (
           <Content>
             <Table
               {...tableConfig}
-              columns={columns}
+              columns={columns(saveConfiguration)}
               dataSource={data}
               expandedRowKeys={expandedRowKeys}
               onExpand={handleExpand}
               expandedRowRender={expandedRowRender}
               locale={{
-                emptyText: <NoConnections />
+                emptyText: <NoConnections />,
               }}
             />
             <Centered>
@@ -119,7 +132,7 @@ export const Styled = styled.div`
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: ${COLOR['white']};
+    background: ${COLOR.white};
     padding: 0;
     position: fixed;
     width: calc(100% - 200px);
@@ -134,11 +147,11 @@ export const Styled = styled.div`
     margin: ${DIMENSION['1.5x']} ${DIMENSION['1x']};
     overflow: initial;
     margin-top: ${ContentTopMargin};
-    font-size: ${FONT_SIZE['regular']};
+    font-size: ${FONT_SIZE.regular};
   }
 
   & .ant-table {
-    font-size: ${FONT_SIZE['regular']};
+    font-size: ${FONT_SIZE.regular};
     max-width: 100%;
     min-width: 100%;
 
@@ -187,11 +200,11 @@ export const Styled = styled.div`
       }
 
       &.config-enabled td.enabled svg {
-        color: ${COLOR['enabled']};
+        color: ${COLOR.enabled};
       }
 
       &.config-disabled td.enabled svg {
-        color: ${COLOR['disabled']};
+        color: ${COLOR.disabled};
       }
     }
   }
@@ -206,7 +219,7 @@ const Centered = styled.div`
 `;
 const Image = styled.div`
   &.round img {
-    border: ${BORDER['thin']} solid ${COLOR['borderLight']};
+    border: ${BORDER.thin} solid ${COLOR.borderLight};
     border-radius: 100%;
     margin-right: ${DIMENSION['0.5x']};
   }

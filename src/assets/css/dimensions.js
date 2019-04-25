@@ -2,6 +2,7 @@ export const BORDER = {
   thin: '0.0625rem',
 };
 
+/* eslint-disable key-spacing */
 export const DIMENSION = {
   '0.125x': '0.125rem',
   '0.25x':  '0.25rem',

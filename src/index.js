@@ -10,19 +10,19 @@ import theme from './assets/theme';
 
 const mount = document.getElementById('root');
 
-const render = (Component, target) => {
+const render = Component => {
   ReactDOMRender(
     <AppProvider theme={theme}>
       <GlobalStyles />
       <Component />
     </AppProvider>,
-    mount
+    mount,
   );
 };
 
 if (module.hot) {
   module.hot.accept();
-  const NextApp = require('./container/App').default;
+  const NextApp = require('./container/App').default; // eslint-disable-line global-require
   render(NextApp);
 }
 

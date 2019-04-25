@@ -1,47 +1,45 @@
 const electron = require('electron');
 const path = require('path');
-const fs = require('fs');
 const url = require('url');
-const os = require('os');
 const ipc = require('electron').ipcMain;
 const { autoUpdater, CancellationToken } = require('electron-updater');
 const log = require('electron-log');
-const storage = require('electron-json-storage');
 
+const storage = require('./lib/storage');
+const menuTemplate = require('./menuTemplate');
 const packageJson = require('../package.json');
 
-const { app, BrowserWindow, Menu, Tray, nativeImage, systemPreferences, shell } = electron;
-
 const {
-  getSlackInstances,
-  removeSlackInstance,
-  getConnections,
-  setStatus,
-  getWorkspaces,
-  getConfigurations,
-  saveConfiguration,
-  removeConfiguration,
-  clearConfigurations,
-  handleAuth,
-  getAppConfigurations,
-  setAppConfigurations,
-  updateStatuses,
-  // crashReporter,
-} = require('./lib/helpers');
+  app, BrowserWindow, Menu, Tray, nativeImage, systemPreferences,
+} = electron;
+
+const { getSlackInstances, removeSlackInstance } = require('./handlers/slackInstances');
+const { getConnections } = require('./handlers/connections');
+const { setStatus, updateStatuses } = require('./handlers/status');
+const { getWorkspaces } = require('./handlers/workspaces');
+const { getConfigurations, saveConfiguration, removeConfiguration, clearConfigurations } = require('./handlers/configurations');
+const { handleAuth } = require('./handlers/auth');
+const { getAppConfigurations, setAppConfigurations } = require('./handlers/appConfigurations');
+// const { crashReporter } = require('./handlers/crashReporter');
 
 // crashReporter();
 
 const protocol = packageJson.product.Protocol;
 
-require('dotenv').config({ path: path.join(__dirname, '/../.env') });
+require('dotenv').config({
+  path: path.join(__dirname, '/../.env'),
+});
 
 let mainWindow = null;
 let tray = null;
 let quit = false;
 let computerRunning = true;
-let timers = {};
-let config = {};
+const timers = {
+};
+let config = {
+};
 let cancellationToken = null;
+let saveWindowSettingsTimeout = null;
 
 const cached = {
   configurations: null,
@@ -49,6 +47,9 @@ const cached = {
   slackInstances: null,
 };
 
+/**
+ * Set auto update.
+ */
 const setAutoUpdater = async () => {
   config = await getAppConfigurations();
 
@@ -58,31 +59,47 @@ const setAutoUpdater = async () => {
 
   autoUpdater.logger = log;
   autoUpdater.logger.transports.file.level = 'info';
-}
+};
 
+/**
+ * Hide dock if available.
+ */
 const hideDock = () => {
   if (app.dock) {
     app.dock.hide();
   }
-}
+};
 
+/**
+ * Show dock if available.
+ */
 const showDock = () => {
   if (app.dock) {
     app.dock.show();
   }
-}
+};
 
+/**
+ * Execute callback if computer is not sleeping/hibernating.
+ * @param {function} callback - Function to callback.
+ */
 const ifComputerRunning = async callback => {
   if (computerRunning) {
     await callback();
   }
-}
+};
 
+/**
+ * Send ipc event if mainWindow is available.
+ * @param {string} event - Event to send.
+ * @param {function} callback - Callback function to execute.
+ * @param {any} data - Data to send.
+ */
 const sendIfMainWindow = async (event, callback, data = null) => {
   const cachedEvent = event;
   const value = await callback(data);
 
-  if (cached.hasOwnProperty(cachedEvent)) {
+  if (Object.prototype.hasOwnProperty.call(cached, cachedEvent)) {
     cached[cachedEvent] = value;
   }
 
@@ -90,19 +107,31 @@ const sendIfMainWindow = async (event, callback, data = null) => {
     try {
       mainWindow.webContents.send(event, value);
     } catch (error) {
-      throw new Error(error);
+      log.error('sendIfMainwindow', error);
     }
   }
-}
+};
 
+/**
+ * If callback value is cached, use it, either execute callback function
+ * and send as ipc event to mainWindow.
+ * @param {string} event - Event to send.
+ * @param {function} callback - Callback function to execute.
+ */
 const ifCachedSend = async (event, callback) => {
   if (cached[event]) {
     sendIfMainWindow(event, () => cached[event]);
   } else {
     await sendIfMainWindow(event, callback);
   }
-}
+};
 
+/**
+ * Set timer.
+ * @param {string} event - Event for the timer.
+ * @param {function} callback - Callback function to execute.
+ * @param {boolean} [runNow=true] - Whether to execute the callback on setTimer().
+ */
 const setTimer = async (event, callback, runNow = true) => {
   clearInterval(timers[event]);
   const timeout = (await getAppConfigurations()).timers[event];
@@ -110,22 +139,89 @@ const setTimer = async (event, callback, runNow = true) => {
     callback();
   }
   timers[event] = setInterval(callback, timeout * 1000);
-}
+};
 
+/**
+ * If computer not sleeping/hibernating, update status for all Slack instances.
+ */
 const updateStatusesFunction = async () => {
-  await ifComputerRunning(updateStatuses);
-  ifComputerRunning(() => sendIfMainWindow('slackInstances', getWorkspaces));
-}
+  try {
+    await ifComputerRunning(updateStatuses);
+    ifComputerRunning(() => sendIfMainWindow('slackInstances', getWorkspaces));
+  } catch (error) {
+    log.error('updateStatusesFunction', error);
+  }
+};
 
+/**
+ * Set all the timers.
+ * @param {boolean} runNow - Whether to execute the callbacks immediatelly.
+ */
 const startTimers = async (runNow = true) => {
   setTimer('slackInstances', () => ifComputerRunning(() => sendIfMainWindow('slackInstances', getWorkspaces)), runNow);
   setTimer('connections', () => ifComputerRunning(() => sendIfMainWindow('connections', getConnections)), runNow);
   setTimer('updateStatus', updateStatusesFunction, runNow);
-}
+};
 
+/**
+ * Save window settings (position and size).
+ */
+const saveWindowSettings = () => {
+  clearTimeout(saveWindowSettingsTimeout);
+  saveWindowSettingsTimeout = setTimeout(async () => {
+    const windowSettings = await storage.get('windowSettings');
+    const position = mainWindow.getPosition();
+    const size = mainWindow.getSize();
+
+    await storage.set('windowSettings', {
+      ...windowSettings,
+      position,
+      size,
+    });
+  }, 250);
+};
+
+/**
+ * Handle quit event.
+ * @param {event} event - Event.
+ */
+const handleQuit = event => {
+  if (config.app.closeToTray && !quit) {
+    event.preventDefault();
+
+    if (mainWindow) {
+      mainWindow.hide();
+      hideDock();
+
+      if (process.env.NODE_ENV === 'development') {
+        mainWindow.webContents.closeDevTools();
+      }
+    }
+  }
+};
+
+/**
+ * Reset application configurations.
+ */
+const resetApp = async () => {
+  mainWindow.close();
+  mainWindow = null;
+  await clearConfigurations();
+  await sendIfMainWindow('configurations', getConfigurations);
+  await sendIfMainWindow('slackInstances', getSlackInstances);
+  Object.keys(cached).forEach(key => {
+    cached[key] = null;
+  });
+  createWindow(); // eslint-disable-line no-use-before-define
+};
+
+/**
+ * Get application icon.
+ * @returns {path} iconPath
+ */
 const getIcon = () => (
   path.join(__dirname, (process.env.NODE_ENV === 'development' ? '../src/assets' : ''), 'icons', 'fill', 'icon_16x16.png')
-)
+);
 
 if (process.platform === 'darwin') {
   systemPreferences.subscribeNotification('AppleInterfaceThemeChangedNotification', () => {
@@ -137,36 +233,18 @@ startTimers();
 
 const iconPath = getIcon();
 
-if (process.defaultApp) {
-  if (process.argv.length >= 2) {
-    app.setAsDefaultProtocolClient(protocol, process.execPath, [path.resolve(process.argv[1])]);
-  }
+if (process.defaultApp && process.argv.length >= 2) {
+  app.setAsDefaultProtocolClient(protocol, process.execPath, [path.resolve(process.argv[1])]);
 } else {
   app.setAsDefaultProtocolClient(protocol);
 }
 
+/**
+ * Create mainWindow
+ */
 const createWindow = async () => {
-  if (process.env.NODE_ENV === 'development' && !BrowserWindow.getDevToolsExtensions().hasOwnProperty('React Developer Tools')) {
-    let extensionPath;
-    if (process.platform === 'darwin') {
-      const baseDir = path.join(os.homedir(), '/Library/Application Support/Google/Chrome/Default/Extensions/fmkadmapgofadopljbjfkapdkoienihi');
-      const folder = fs.readdirSync(baseDir)[0];
-      extensionPath = path.join(baseDir, folder);
-    }
+  const windowSettings = await storage.get('windowSettings');
 
-    if (extensionPath) {
-      BrowserWindow.addDevToolsExtension(extensionPath);
-    }
-  }
-
-  const windowSettings = await new Promise((resolve, reject) => {
-    storage.get('windowSettings', (error, data) => {
-      if (error) {
-        reject(error);
-      }
-      resolve(data);
-    });
-  });
   const [x, y] = windowSettings.position || [null, null];
   const [width, height] = windowSettings.size || [950, 600];
 
@@ -183,209 +261,82 @@ const createWindow = async () => {
     y,
   });
 
-  let startUrl = process.env.ELECTRON_START_URL || url.format({
+  if (process.env.NODE_ENV === 'development') {
+    // mainWindow.webContents.openDevTools();
+  }
+
+  const startUrl = process.env.ELECTRON_START_URL || url.format({
     pathname: path.join(__dirname, '/../build/index.html'),
     protocol: 'file:',
-    slashes: true
+    slashes: true,
   });
 
   mainWindow.loadURL(startUrl);
-  showDock();
 
-  if (process.env.NODE_ENV === 'development') {
-    mainWindow.webContents.openDevTools();
-  }
-
-  const MENU_TEMPLATE = [
-    {
-      label: 'Edit',
-      submenu: [
-        { label: 'Undo', accelerator: 'CmdOrCtrl+Z', selector: 'undo:' },
-        { label: 'Redo', accelerator: 'Shift+CmdOrCtrl+Z', selector: 'redo:' },
-        { type: 'separator' },
-        { label: 'Cut', accelerator: 'CmdOrCtrl+X', selector: 'cut:' },
-        { label: 'Copy', accelerator: 'CmdOrCtrl+C', selector: 'copy:' },
-        { label: 'Paste', accelerator: 'CmdOrCtrl+V', selector: 'paste:' },
-        { label: 'Select All', accelerator: 'CmdOrCtrl+A', selector: 'selectAll:' },
-      ],
-    },
-    {
-      role: 'window',
-      submenu: [
-        { role: 'zoomIn' },
-        { role: 'zoomOut' },
-        { role: 'resetZoom' },
-        { type: 'separator' },
-        { role: 'reload' },
-        { role: 'forcereload' },
-        { type: 'separator' },
-        { role: 'close' },
-        { role: 'minimize' },
-      ],
-    },
-  ];
-
-  if (process.platform === 'darwin') {
-    // Window menu
-    MENU_TEMPLATE[1].submenu = [
-      { role: 'zoomIn' },
-      { role: 'zoomOut' },
-      { role: 'resetZoom' },
-      { type: 'separator' },
-      { role: 'reload' },
-      { role: 'forcereload' },
-      { type: 'separator' },
-      { role: 'close' },
-      { role: 'minimize' },
-      { role: 'zoom' },
-      { type: 'separator' },
-      { role: 'front' },
-    ];
-  }
-
-  if (process.platform === 'darwin') {
-    MENU_TEMPLATE.unshift({
-      label: packageJson.productName,
-      submenu: [
-        { role: 'about' },
-        { type: 'separator' },
-        {
-          label: 'Check for updates',
-          click: () => { autoUpdater.checkForUpdates(); },
-        },
-        { role: 'services', submenu: [] },
-        { type: 'separator' },
-        { role: 'hide' },
-        { role: 'hideothers' },
-        { role: 'unhide' },
-        { type: 'separator' },
-        { role: 'quit' },
-      ],
-    });
-  }
-
-  MENU_TEMPLATE.push({
-    role: 'help',
-    submenu: [
-      {
-        label: 'Check for updates',
-        click: () => { autoUpdater.checkForUpdates(); },
-      },
-      {
-        label: 'Official website',
-        click: () => { shell.openExternal(packageJson.product.Pages); },
-      },
-      {
-        label: 'Join Slothy Slack',
-        click: () => { shell.openExternal(packageJson.product.Slack); },
-      },
-      { type: 'separator' },
-      { role: 'toggleDevTools' },
-      {
-        label: 'Reset app',
-        click: async () => {
-          mainWindow.close();
-          mainWindow = null;
-          await sendIfMainWindow('configurations', clearConfigurations);
-          Object.keys(cached).forEach(key => {
-            cached[key] = null;
-          });
-          createWindow();
-        },
-      },
-    ],
-  });
-  Menu.setApplicationMenu(Menu.buildFromTemplate(MENU_TEMPLATE));
+  Menu.setApplicationMenu(Menu.buildFromTemplate(menuTemplate(autoUpdater, resetApp)));
 
   mainWindow
     .once('ready-to-show', () => {
-      mainWindow.show();
-      showDock();
+      if (!config.app.launchMinimised) {
+        mainWindow.show();
+        showDock();
+      }
     })
-    .on('move', () => {
-      storage.get('windowSettings', (error, data) => {
-        const position = mainWindow.getPosition();
-
-        storage.set('windowSettings', {
-          ...data,
-          position,
-        });
-      });
-    })
-    .on('resize', () => {
-      storage.get('windowSettings', (error, data) => {
-        const size = mainWindow.getSize();
-
-        storage.set('windowSettings', {
-          ...data,
-          size,
-        });
-      });
-    })
+    .on('move', saveWindowSettings)
+    .on('resize', saveWindowSettings)
     .on('minimize', event => {
       event.preventDefault();
       mainWindow.hide();
     })
-    .on('close', event => {
-      if (config.app.closeToTray && !quit) {
-        event.preventDefault();
-      }
-      if (mainWindow) {
-        mainWindow.hide();
-        hideDock();
-
-        if (process.env.NODE_ENV === 'development') {
-          mainWindow.webContents.closeDevTools();
-        }
-      }
-    })
+    .on('close', handleQuit)
     .on('closed', event => {
       event.preventDefault();
       mainWindow = null;
       hideDock();
       return false;
     });
-}
+};
 
+/**
+ * Create tray.
+ */
 const createTray = async () => {
-  if (!tray) {
-    tray = new Tray(nativeImage.createFromPath(iconPath));
+  tray = new Tray(nativeImage.createFromPath(iconPath));
 
-    const contextMenu = Menu.buildFromTemplate([
-      {
-        label: `Open ${packageJson.productName}`, click: () => {
-          if (mainWindow) {
-            if (mainWindow.isMinimized()) {
-              mainWindow.restore();
-            }
-            mainWindow.show();
-            mainWindow.focus();
-            showDock();
-          } else {
-            createWindow();
+  const contextMenu = Menu.buildFromTemplate([
+    {
+      label: `Open ${packageJson.productName}`,
+      click: () => {
+        if (mainWindow) {
+          if (mainWindow.isMinimized()) {
+            mainWindow.restore();
           }
+          mainWindow.show();
+          mainWindow.focus();
+          showDock();
+        } else {
+          createWindow();
         }
       },
-      {
-        label: 'Quit', click: () => {
-          quit = true;
-          app.quit();
-        }
+    },
+    {
+      label: 'Quit',
+      click: () => {
+        quit = true;
+        app.quit();
       },
-    ]);
-    tray.setToolTip(packageJson.productName);
-    tray.setContextMenu(contextMenu);
-    tray.on('click', () => {
-      mainWindow.isVisible() ? mainWindow.hide() : mainWindow.show();
-    });
-  }
-}
+    },
+  ]);
+  tray.setToolTip(packageJson.productName);
+  tray.setContextMenu(contextMenu);
+  tray.on('click', () => (mainWindow.isVisible() ? mainWindow.hide() : mainWindow.show()));
+};
 
 if (!app.requestSingleInstanceLock()) {
   app.quit();
 } else {
   app
-    .on('second-instance', (event, commandLine, workingDirectory) => {
+    .on('second-instance', (event, commandLine) => {
       event.preventDefault();
       handleAuth(sendIfMainWindow, commandLine.slice(-1)[0]);
       if (mainWindow) {
@@ -415,15 +366,15 @@ app
     config = await getAppConfigurations();
     setAutoUpdater();
 
-    if (!config.app.launchMinimised) {
-      createWindow();
-    } else {
+    createWindow();
+
+    if (config.app.launchMinimised) {
       hideDock();
     }
 
     electron.powerMonitor
-      .on('suspend', () => computerRunning = false)
-      .on('resume', () => computerRunning = true);
+      .on('suspend', () => { computerRunning = false; })
+      .on('resume', () => { computerRunning = true; });
   })
   .on('open-url', (event, uri) => {
     event.preventDefault();
@@ -432,23 +383,7 @@ app
   .on('window-all-closed', () => {
     hideDock();
   })
-  .on('will-quit', event => {
-    if (config.app.closeToTray && !quit) {
-      event.preventDefault();
-
-      if (mainWindow) {
-        mainWindow.hide();
-        hideDock();
-
-        if (process.env.NODE_ENV === 'development') {
-          mainWindow.webContents.closeDevTools();
-        }
-
-        mainWindow = null;
-        return false;
-      }
-    }
-  });
+  .on('will-quit', handleQuit);
 
 ipc
   .on('initialize', async () => {
@@ -461,13 +396,15 @@ ipc
       autoUpdater.checkForUpdates();
     }
   })
-  .on('getConnections', async (event, data) => sendIfMainWindow('connections', getConnections))
+  .on('getConnections', async () => sendIfMainWindow('connections', getConnections))
   .on('removeSlackInstance', async (event, data) => sendIfMainWindow('slackInstances', removeSlackInstance, data))
-  .on('getConfigurations', async (event, data) => sendIfMainWindow('configurations', getConfigurations))
-  .on('saveConfiguration', async (event, data) => {
+  .on('getConfigurations', async () => sendIfMainWindow('configurations', getConfigurations))
+  .on('saveConfiguration', async (event, data, updateNow = true) => {
     await sendIfMainWindow('configurations', saveConfiguration, data);
-    await setTimer('updateStatus', updateStatusesFunction);
-    await sendIfMainWindow('savedConfiguration', () => false);
+    if (updateNow) {
+      await setTimer('updateStatus', updateStatusesFunction);
+      await sendIfMainWindow('savedConfiguration', () => false);
+    }
   })
   .on('removeConfiguration', async (event, data) => {
     await sendIfMainWindow('configurations', removeConfiguration, data);
@@ -501,14 +438,7 @@ ipc
 
     cancellationToken = new CancellationToken();
 
-    autoUpdater
-    .downloadUpdate(cancellationToken)
-    .then((downloadPromise) => {
-      // log.info('downloadPromise', downloadPromise);
-    })
-    .catch(error => {
-      // log.error(error);
-    });
+    autoUpdater.downloadUpdate(cancellationToken);
   })
   .on('cancelUpdate', () => {
     cancellationToken.cancel();
@@ -529,7 +459,9 @@ ipc
 autoUpdater
   .on('checking-for-update', () => {
     // log.info('Checking for updates...');
-    sendIfMainWindow('info', () => ({ message: 'Checking for updates...' }));
+    sendIfMainWindow('info', () => ({
+      message: 'Checking for updates...',
+    }));
   })
   .on('update-available', event => {
     // log.warn('Updates available.', event);
@@ -546,13 +478,18 @@ autoUpdater
     }));
   })
   .on('update-not-available', () => {
-    sendIfMainWindow('success', () => ({ message: 'Software is up-to-date.' }));
+    sendIfMainWindow('success', () => ({
+      message: 'Software is up-to-date.',
+    }));
   })
   .on('error', (event, error) => {
     log.error(error);
-    sendIfMainWindow('error', () => ({ message: 'Error in auto-updater.', error }));
+    sendIfMainWindow('error', () => ({
+      message: 'Error in auto-updater.',
+      error,
+    }));
   })
-  .on('update-cancelled', error => {
+  .on('update-cancelled', () => {
     // log.error('update-cancelled', error);
   })
   .on('download-progress', progress => {
@@ -582,7 +519,7 @@ process
   .on('uncaughtException', error => {
     log.error('uncaughtException', error);
   })
-  .on('warning', (warning) => {
+  .on('warning', warning => {
     log.warn(warning.name);
     log.warn(warning.message);
     log.warn(warning.stack);

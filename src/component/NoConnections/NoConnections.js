@@ -4,25 +4,29 @@ import { Empty } from 'antd';
 
 import { Consumer } from '../../container/App/Context';
 
-
+/**
+ * NoConnections
+ * @returns {jsx}
+ */
 const NoConnections = () => (
   <Consumer>
-    {({ getConnections, ssidsLoaded }) => (
+    {() => (
       <Styled>
         <Empty
           image={Empty.PRESENTED_IMAGE_SIMPLE}
-          description={
+          description={(
             <span>
-              No connections found.<br />
+              No connections found.
+              <br />
               Is Wi-Fi enabled?
             </span>
-          }>
-        </Empty>
+          )}
+        />
       </Styled>
     )}
   </Consumer>
-)
+);
 
 const Styled = styled.div``;
 
-export default NoConnections
+export default NoConnections;

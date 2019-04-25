@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import PropTypes from 'prop-types';
 import { message, notification, Button, Progress } from 'antd';
 import uuid from 'uuid/v4';
 
@@ -25,14 +26,17 @@ const closeOtherNotifications = (skip = '') => {
     .filter(key => key !== skip)
     .forEach(key => {
       notification.close(key);
-    })
-}
+    });
+};
 
+/* eslint-disable react/no-unused-state */
 class AppProvider extends Component {
   state = {
     ...INITIAL_STATE,
     removeSlackInstance: token => {
-      ipcRenderer.send('removeSlackInstance', { token });
+      ipcRenderer.send('removeSlackInstance', {
+        token,
+      });
     },
     setProperty: newState => {
       this.setState(prevState => ({
@@ -41,98 +45,116 @@ class AppProvider extends Component {
       }));
     },
     getConnections: () => {
+      const { setProperty } = this.state;
       clearTimeout(connectionsTimeout);
-      this.state.setProperty({ ssidsLoaded: false });
+      setProperty({
+        ssidsLoaded: false,
+      });
       ipcRenderer.send('getConnections');
     },
     setStatus: ({ emoji, status, token }) => {
-      ipcRenderer.send('setStatus', { emoji, status, token });
+      ipcRenderer.send('setStatus', {
+        emoji,
+        status,
+        token,
+      });
     },
     selectView: ({ key, item }) => {
+      const { setProperty } = this.state;
       const { type } = item.props;
-      this.state.setProperty({
+      setProperty({
         viewType: type,
         selectedView: key,
       });
     },
     handleExpand: (expanded, record) => {
+      const { setProperty, expandedRowKeys } = this.state;
       if (expanded) {
-        this.state.setProperty({
+        setProperty({
           expandedRowKeys: [
-            ...this.state.expandedRowKeys,
+            ...expandedRowKeys,
             record.key,
           ],
         });
       } else {
-        this.state.setProperty({
-          expandedRowKeys: this.state.expandedRowKeys.filter(key => key !== record.key),
+        setProperty({
+          expandedRowKeys: expandedRowKeys.filter(key => key !== record.key),
         });
       }
     },
     modifyConfiguration: record => {
-      this.state.setProperty({
+      const { setProperty } = this.state;
+      setProperty({
         drawerConfig: {
           ...record,
           config: {
             ...record.config,
             instanceId: record.instanceId,
             id: record.config.id || uuid(),
-          }
+          },
         },
         drawerVisible: true,
       });
     },
-    saveConfiguration: configuration => {
-      this.state.setProperty({
+    saveConfiguration: (configuration, updateNow = true) => {
+      const { setProperty } = this.state;
+      setProperty({
         savingConfiguration: true,
         searchEmoji: '',
       });
-      ipcRenderer.send('saveConfiguration', configuration);
+      ipcRenderer.send('saveConfiguration', configuration, updateNow);
     },
     removeConfiguration: id => {
-      this.state.setProperty({
+      const { setProperty } = this.state;
+      setProperty({
         removingConfiguration: true,
       });
-      ipcRenderer.send('removeConfiguration', { id });
+      ipcRenderer.send('removeConfiguration', {
+        id,
+      });
     },
     updateAppConfigurations: (property, appConfigurations) => {
-      ipcRenderer.send('saveAppConfigurations', { property, appConfigurations });
-    }
+      ipcRenderer.send('saveAppConfigurations', {
+        property,
+        appConfigurations,
+      });
+    },
   };
 
   componentDidMount = () => {
+    const { setProperty, ssids, appConfigurations } = this.state;
     ipcRenderer.send('initialize');
 
     ipcRenderer
-      .on('connections', (event, { ssids, currentSsids }) => {
-        this.state.setProperty({
-          ssids: !!this.state.ssids.length && !ssids.length ? this.state.ssids : ssids,
+      .on('connections', (event, { newSsids, currentSsids }) => {
+        setProperty({
+          ssids: !!ssids.length && !newSsids.length ? ssids : newSsids,
           currentSsids,
           wifiEnabled: !!ssids.length || !!currentSsids.length,
           ssidsLoaded: true,
         });
       })
       .on('configurations', (event, configurations) => {
-        this.state.setProperty({
+        setProperty({
           configurationsLoaded: true,
           configurations,
         });
       })
-      .on('appConfigurations', (event, appConfigurations) => {
-        this.state.setProperty({
+      .on('appConfigurations', (event, newAppConfigurations) => {
+        setProperty({
           appConfigurationsLoaded: true,
-          appConfigurations,
+          appConfigurations: newAppConfigurations,
         });
       })
       .on('savedConfiguration', (event, value) => {
-        this.state.setProperty({
+        setProperty({
           savingConfiguration: value,
           drawerVisible: false,
         });
         message.success('Configuration succesfully saved.');
       })
       .on('removedConfiguration', (event, value) => {
-        this.state.setProperty({
+        setProperty({
           removingConfiguration: value,
           drawerVisible: false,
         });
@@ -159,7 +181,7 @@ class AppProvider extends Component {
         message.loading(data.message);
       })
       .on('update-notification', (event, data) => {
-        let message = `
+        let description = `
           <div class="version">
             <span class="title">Current version</span>
             <span class="value">${data.updates.currentVersion}</span>
@@ -170,20 +192,31 @@ class AppProvider extends Component {
           </div>
         `;
         if (data.updates.releaseDate) {
-          message = `${message}<div class="release"><span class="title">Release date</span><span class="value">${new Date(data.updates.releaseDate)}</span></div>`;
+          description = `${description}
+            <div class="release">
+              <span class="title">Release date</span>
+              <span class="value">${new Date(data.updates.releaseDate)}</span>
+            </div>`;
         }
         if (typeof data.updates.releaseNotes === 'string' && data.updates.releaseNotes.trim()) {
-          message = `${message}<div class="release"><span class="title">Release notes</span><span class="value">${data.updates.releaseNotes}</span></div>`;
+          description = `${description}
+            <div class="release">
+              <span class="title">Release notes</span>
+              <span class="value">${data.updates.releaseNotes}</span>
+            </div>`;
         } else if (typeof data.updates.releaseNotes === 'object') {
-          message = `${message}<div class="release"><span class="title">Release notes</span><span class="value">`;
+          description = `${description}<div class="release"><span class="title">Release notes</span><span class="value">`;
           Object.values(data.updates.releaseNotes).forEach(releaseNote => {
-            message = `${message}<h2>Version ${releaseNote.version}</h2>${releaseNote.note}`;
+            description = `${description}<h2>Version ${releaseNote.version}</h2>${releaseNote.note}`;
           });
-          message = `${message}</span></div>`;
+          description = `${description}</span></div>`;
         }
         notification[data.type || 'open']({
           message: data.title,
-          description: <div dangerouslySetInnerHTML={{ __html: message }} />,
+          description: <div dangerouslySetInnerHTML={{
+            __html: description,
+          }}
+          />, // eslint-disable-line react/no-danger
           duration: 0,
           key: 'update-notification',
           btn: (
@@ -206,7 +239,7 @@ class AppProvider extends Component {
           description: <Progress percent={((data.progress.percent).toFixed(2))} status={data.progress.percent < 100 ? 'active' : 'success'} />,
           duration: 0,
           key: 'update-progress',
-          btn: !this.state.appConfigurations.updates.autoDownload && (
+          btn: !appConfigurations.updates.autoDownload && (
             <React.Fragment>
               <Button type="default" size="small" onClick={() => ipcRenderer.send(data.onCancel)}>
                 {data.cancel}
@@ -261,16 +294,17 @@ class AppProvider extends Component {
         console.log('newSlackInstance', data);
       })
       .on('slackInstances', (event, slackInstances) => {
-        let { viewType, selectedView } = this.state;
+        const { viewType } = this.state;
+        let { selectedView } = this.state;
 
         if (
           (viewType === 'instance' && !selectedView && slackInstances.length)
-          || (viewType === 'instance' && selectedView && slackInstances.length && !slackInstances.find(({ id }) => id === this.state.selectedView))
+          || (viewType === 'instance' && selectedView && slackInstances.length && !slackInstances.find(({ id }) => id === selectedView))
         ) {
           selectedView = slackInstances.sort(sortBy('name'))[0].id;
         }
 
-        this.state.setProperty({
+        setProperty({
           slackInstancesLoaded: true,
           slackInstances,
           selectedView,
@@ -301,22 +335,36 @@ class AppProvider extends Component {
     });
   }
 
-  render = () => (
-    <React.Fragment>
-      {this.state.showLoading && (
+  render = () => {
+    const {
+      showLoading, appConfigurationsLoaded, configurationsLoaded, slackInstancesLoaded, ssidsLoaded, hideLoading, setProperty, connected,
+    } = this.state;
+    const { children } = this.props;
+
+    return (
+      <React.Fragment>
+        {showLoading && (
         <Loading
-          appConfigurationsLoaded={this.state.appConfigurationsLoaded}
-          configurationsLoaded={this.state.configurationsLoaded}
-          slackInstancesLoaded={this.state.slackInstancesLoaded}
-          ssidsLoaded={this.state.ssidsLoaded}
-          hideLoading={this.state.hideLoading}
-          setProperty={this.state.setProperty}
-          connected={this.state.connected}
+          appConfigurationsLoaded={appConfigurationsLoaded}
+          configurationsLoaded={configurationsLoaded}
+          slackInstancesLoaded={slackInstancesLoaded}
+          ssidsLoaded={ssidsLoaded}
+          hideLoading={hideLoading}
+          setProperty={setProperty}
+          connected={connected}
         />
-      )}
-      <Provider value={this.state}>{this.props.children}</Provider>
-    </React.Fragment>
-  )
+        )}
+        <Provider value={this.state}>{children}</Provider>
+      </React.Fragment>
+    );
+  }
 }
+
+AppProvider.propTypes = {
+  children: PropTypes.oneOfType([
+    PropTypes.arrayOf(PropTypes.node),
+    PropTypes.node,
+  ]).isRequired,
+};
 
 export default AppProvider;

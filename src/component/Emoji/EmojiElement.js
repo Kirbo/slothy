@@ -1,38 +1,43 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import emoji from 'node-emoji';
+import nodeEmoji from 'node-emoji';
 import styled from 'styled-components';
 
 import { FONT_SIZE, DIMENSION } from '../../assets/css';
 
-const EmojiElement = (props) => {
-  const strippedEmoji = props.emoji.replace(/:/g, '');
-  let source = props.emojis[strippedEmoji];
+/**
+ * EmojiElement
+ * @param {object} props - Properties for the component.
+ * @returns {jsx}
+ */
+const EmojiElement = ({ emoji, emojis, size }) => {
+  const strippedEmoji = emoji.replace(/:/g, '');
+  let source = emojis[strippedEmoji];
 
   const regex = new RegExp(/^alias:(.*)/i);
   const matches = regex.exec(source);
 
   let findAlias;
   if (matches && matches[1]) {
-    findAlias = matches[1];
+    findAlias = matches[1]; // eslint-disable-line prefer-destructuring
   }
 
-  if (emoji.hasEmoji(props.emoji)) {
-    return <Span size={props.size}>{emoji.get(props.emoji)}</Span>;
-  } else if (findAlias && emoji.hasEmoji(findAlias)) {
-    return <Span size={props.size}>{emoji.get(findAlias)}</Span>;
+  if (nodeEmoji.hasEmoji(emoji)) {
+    return <Span size={size}>{nodeEmoji.get(emoji)}</Span>;
+  } else if (findAlias && nodeEmoji.hasEmoji(findAlias)) {
+    return <Span size={size}>{nodeEmoji.get(findAlias)}</Span>;
   } else if (matches) {
-    source = props.emojis[matches[1]];
+    source = emojis[matches[1]];
 
     if (source) {
       return (
-        <Img src={source} alt="" size={props.size} />
+        <Img src={source} alt="" size={size} />
       );
     }
   }
 
   return (
-    <Img src={source} alt="" size={props.size} />
+    <Img src={source} alt="" size={size} />
   );
 };
 

@@ -1,5 +1,7 @@
 global.window.require = () => ({
   remote: {
-    require: () => ({})
-  }
+    require: () => ({
+
+    }),
+  },
 });
