@@ -69,10 +69,14 @@ class Loading extends Component {
   }
 }
 
+Loading.defaultProps = {
+  appConfigurationsLoaded: false,
+};
+
 Loading.propTypes = {
   slackInstancesLoaded: PropTypes.bool.isRequired,
   configurationsLoaded: PropTypes.bool.isRequired,
-  appConfigurationsLoaded: PropTypes.bool.isRequired,
+  appConfigurationsLoaded: PropTypes.bool,
   hideLoading: PropTypes.bool.isRequired,
   setProperty: PropTypes.func.isRequired,
 };

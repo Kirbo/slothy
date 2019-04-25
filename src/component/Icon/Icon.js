@@ -20,7 +20,10 @@ const Icon = ({ icon, size }) => (
 );
 
 Icon.propTypes = {
-  icon: PropTypes.string.isRequired,
+  icon: PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.array,
+  ]).isRequired,
   size: PropTypes.oneOf(Object.keys(DIMENSION)),
 };
 
