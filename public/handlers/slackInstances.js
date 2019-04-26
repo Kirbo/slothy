@@ -85,10 +85,13 @@ const saveSlackInstance = instance => (
  * @param {object} slackInstance - Slack instance to remove.
  * @returns {array} slackInstances
  */
-const removeSlackInstance = ({ token }) => (
+const removeSlackInstance = ({ id, token }) => (
   new Promise(async (resolve, reject) => {
     try {
-      resolve(await storage.set('slackInstances', (await getSlackInstances()).filter(instance => instance.token !== token)));
+      const slackInstances = await getSlackInstances();
+      await storage.set('configurations', (await getConfigurations()).filter(({ instanceId }) => instanceId !== id));
+      const filteredSlackInstances = slackInstances.filter(instance => instance.token !== token);
+      resolve(await storage.set('slackInstances', filteredSlackInstances));
     } catch (error) {
       log.error('removeSlackInstance', error);
       reject(error);
@@ -103,4 +106,5 @@ module.exports = {
   removeSlackInstance,
 };
 
+const { getConfigurations } = require('./configurations');
 const { getWorkspace, getWorkspaceEmojis } = require('./workspaces');

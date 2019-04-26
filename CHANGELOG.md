@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Crash reporter.
 - Ability to downgrade.
 
+## [0.5.2-beta3] - 2019-04-26
+### Fixed
+- Adding new Slack instance (authorisation) was broken (again).
+- When removing a Slack instance, removes also the configurations for it.
+
 ## [0.5.2-beta2] - 2019-04-26
 ### Fixed
 - Auto updater bug.

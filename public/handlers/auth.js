@@ -25,13 +25,13 @@ const handleAuth = (sendIfMainWindow, uri) => {
       };
 
       request(options, async (error, response, body) => {
-        const { ok, accessToken } = JSON.parse(body);
+        const { ok, access_token } = JSON.parse(body); // eslint-disable-line camelcase
         if (!ok) {
           sendIfMainWindow('error', () => 'Error in authentication!');
           throw error;
         } else {
           const token = {
-            token: accessToken,
+            token: access_token,
           };
           const profile = await getStatus(token);
           const workspace = await getWorkspace(token);
@@ -43,7 +43,7 @@ const handleAuth = (sendIfMainWindow, uri) => {
 
             if (profile) {
               instance = await saveSlackInstance({
-                token: accessToken,
+                token: access_token,
                 profile,
               });
             }
