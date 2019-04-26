@@ -9,26 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Crash reporter.
 - Ability to downgrade.
 
-## [0.5.2-beta3] - 2019-04-26
-### Fixed
-- Adding new Slack instance (authorisation) was broken (again).
+## [0.5.1] - 2019-04-25
+### Changed
 - When removing a Slack instance, removes also the configurations for it.
 
-## [0.5.2-beta2] - 2019-04-26
-### Fixed
-- Auto updater bug.
-
-## [0.5.2-beta] - 2019-04-26
-### Fixed
-- Auto updater bug.
-
-## [0.5.1-beta] - 2019-04-25
 ### Fixed
 - Bug fixes that made the application to crash, due too heavy refactoring.
 - `Reload` button for connections is disabled when connections are being reloaded via timer.
 - `Enabled`/`Disabled` radio button on modifying existing configuration was not working, due refactoring.
+- Auto updater bug.
+- Adding new Slack instance (authorisation) was broken, thanks `eslint`.
 
-## [0.5.0-beta] - 2019-04-25
+## [0.5.0] - 2019-04-25
 ### Added
 - [Feat #25](https://gitlab.com/kirbo/slothy/issues/25) - One click enable/disable configuration, in `Enabled` column.
 - [Docs #17](https://gitlab.com/kirbo/slothy/issues/17) - Added JSDocs.
