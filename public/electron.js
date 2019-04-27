@@ -376,8 +376,14 @@ app
     }
 
     electron.powerMonitor
-      .on('suspend', () => { computerRunning = false; })
-      .on('resume', () => { computerRunning = true; });
+      .on('suspend', () => {
+        log.info('Power suspended');
+        computerRunning = false;
+      })
+      .on('resume', () => {
+        log.info('Power resumed');
+        computerRunning = true;
+      });
   })
   .on('open-url', (event, uri) => {
     event.preventDefault();
