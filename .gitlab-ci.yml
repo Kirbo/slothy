@@ -135,8 +135,6 @@ mac:
 linux:
   <<: *release-common
   image: electronuserland/builder:10
-  variables:
-    NODE_ENV: 10.17
   script:
     - yarn
     - yarn dist -l --publish always
@@ -144,8 +142,6 @@ linux:
 windows:
   <<: *release-common
   image: electronuserland/builder:wine
-  variables:
-    NODE_ENV: 10.17
   script:
     - yarn
     - yarn dist -w --publish always
