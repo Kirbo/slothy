@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Crash reporter.
 - Ability to downgrade.
 
+## [0.5.2-beta1] - 2020-02-04
+### Changed
+- Updated packages.
+
+### Fixed
+- Bug fixes for Node-Wifi, detecting BSSID on Mac.
+
 ## [0.5.1] - 2019-04-25
 ### Changed
 - When removing a Slack instance, removes also the configurations for it.

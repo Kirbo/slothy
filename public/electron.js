@@ -257,6 +257,9 @@ const createWindow = async () => {
     icon: iconPath,
     autoHideMenuBar: true,
     show: false,
+    webPreferences: {
+      nodeIntegration: true
+    },
     title: packageJson.productName,
     width,
     height,
