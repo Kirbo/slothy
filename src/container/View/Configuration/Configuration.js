@@ -153,7 +153,7 @@ const Configuration = () => (
       const updateAppConfiguration = (property, keys) => value => {
         const newValues = keys.reduce((newConfig, key) => {
           if (key === 'allowDowngrade') {
-            newConfig[key] = !value;
+            newConfig[key] = true;
           } else {
             newConfig[key] = value;
           }
@@ -281,7 +281,7 @@ const Configuration = () => (
                   </Tooltip>
                   <Switch
                     checked={appConfigurations.updates.allowPrerelease}
-                    onChange={updateAppConfiguration('updates', ['allowPrerelease', 'allowDowngrade'])}
+                    onChange={updateAppConfiguration('updates', ['allowPrerelease'])}
                   />
                 </ConfigurationSection>
 
