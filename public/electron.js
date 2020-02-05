@@ -258,7 +258,7 @@ const createWindow = async () => {
     autoHideMenuBar: true,
     show: false,
     webPreferences: {
-      nodeIntegration: true
+      nodeIntegration: true,
     },
     title: packageJson.productName,
     width,

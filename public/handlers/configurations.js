@@ -125,6 +125,7 @@ const clearConfigurations = () => (
           try {
             res(storage.set('configurations', []));
           } catch (error) {
+            reject(error);
             throw error;
           }
         }),
@@ -132,6 +133,7 @@ const clearConfigurations = () => (
           try {
             res(storage.set('slackInstances', []));
           } catch (error) {
+            reject(error);
             throw error;
           }
         }),

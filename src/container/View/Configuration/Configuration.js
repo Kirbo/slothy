@@ -152,7 +152,11 @@ const Configuration = () => (
        */
       const updateAppConfiguration = (property, keys) => value => {
         const newValues = keys.reduce((newConfig, key) => {
-          newConfig[key] = value;
+          if (key === 'allowDowngrade') {
+            newConfig[key] = !value;
+          } else {
+            newConfig[key] = value;
+          }
           return newConfig;
         }, {
 
