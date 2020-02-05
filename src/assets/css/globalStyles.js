@@ -83,4 +83,11 @@ export const GlobalStyles = createGlobalStyle`
       width: 100%;
     }
   }
+
+  .ant-table-thead > tr:last-child,
+  .ant-table-tbody > tr:last-child {
+    & > td {
+      border-bottom: none;
+    }
+  }
 `;
