@@ -14,7 +14,7 @@
     "Protocol": "slothy",
     "CrashReportUrl": ""
   },
-  "author": "Kirbo (https://gitlab.com/kirbo)",
+  "author": "Kirbo <kirbo@kirbo-designs.com> (https://gitlab.com/kirbo)",
   "private": true,
   "main": "public/electron.js",
   "scripts": {
@@ -56,8 +56,9 @@
     "linux": {
       "target": [
         "AppImage",
-        "snap",
-        "zip"
+        "tar.gz",
+        "deb",
+        "apk"
       ],
       "icon": "build/icons/fill/logo.icns"
     },
