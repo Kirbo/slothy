@@ -134,14 +134,14 @@ mac:
 
 linux:
   <<: *release-common
-  image: electronuserland/builder:10
+  image: kirbownz/electron-builder-node:latest
   script:
     - yarn
     - yarn dist -l --publish always
 
 windows:
   <<: *release-common
-  image: electronuserland/builder:wine
+  image: kirbownz/electron-builder-wine:latest
   script:
     - yarn
     - yarn dist -w --publish always
