@@ -4,11 +4,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Work in progress]
+### Added
+- Crash reporter.
+
 ## [Unreleased]
+
+## [0.5.3-beta2] - 2020-02-05
+### Changed
+- `allowDowngrade` is always `true`, so if you have opt enabled pre-releases and want to switch back to latest stable, just
+  disable `Allow pre-releases`, check updates, install and restart the app and you're back in the latest stable version.
+  Also if I have accidentally published buggy version of the app and want to relete the release (and you have already updated),
+  you would have in-app option to downgrade into latest stable version with ease.
+
+### Fixed
+- Fixed changelog, since Crash reporter was not finished yet (it's been too long since the last time I opened this project,
+  so I thought it was ready, because it was listed in Changelog).
 
 ## [0.5.3-beta1] - 2020-02-05
 ### Added
-- Crash reporter.
 - Ability to downgrade.
 
 ### Changed
@@ -38,7 +52,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [Docs #17](https://gitlab.com/kirbo/slothy/issues/17) - Added JSDocs.
 
 ### Fixed
-- [Bug #26](https://gitlab.com/kirbo/slothy/issues/26) - No longer showing the ❌ in the `Enabled` column for SSIDs/BSSIDs which don't have confirutation yet, as it was misleading.
+- [Bug #26](https://gitlab.com/kirbo/slothy/issues/26) - No longer showing the ❌ in the `Enabled` column for SSIDs/BSSIDs which don't have configuration yet, as it was misleading.
 
 ### Changed
 - [Refactoring #14](https://gitlab.com/kirbo/slothy/issues/14) - Making application somewhat more robust and to log more useful debug data on errors.
