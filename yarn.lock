@@ -8554,10 +8554,9 @@ node-releases@^1.1.47:
   dependencies:
     semver "^6.3.0"
 
-node-wifi@2.0.12:
+"node-wifi@https://github.com/kirbo/node-wifi#testing":
   version "2.0.12"
-  resolved "https://registry.npmjs.org/node-wifi/-/node-wifi-2.0.12.tgz#46be2e58cb24f27b1fcac34b92cebaee3970c0b8"
-  integrity sha512-fYQkKjXhctYF5Tx/oYL2dSmbPhTZyIcmBtdN4iwRDSuDX92mY+5XRVCPVLCQLA5PrEYOYi4CL1veL3ayZjiZ6Q==
+  resolved "https://github.com/kirbo/node-wifi#d60fcbb2260974de4fd269265e22e6898750213e"
   dependencies:
     command-line-args "^3.0.1"
     command-line-usage "^5.0.5"

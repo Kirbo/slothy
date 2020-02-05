@@ -11,24 +11,12 @@ const { shell } = electron;
  * @param {boolean} allowDowngrade - Is downgrade allowed.
  * @returns {array} menuTemplate
  */
-// const menuTemplate = (autoUpdater, resetApp, allowDowngrade) => {
 const menuTemplate = (autoUpdater, resetApp) => {
   const updateOptions = (
-    // allowDowngrade
-    // TODO: enable downgrade
-    false // eslint-disable-line no-constant-condition
-      ? [{
-        label: 'Check for updates',
-        click: () => { autoUpdater.checkForUpdates(); },
-      },
-      {
-        label: 'Downgrade to latest Stable',
-        click: () => { autoUpdater.checkForUpdates(); },
-      }]
-      : [{
-        label: 'Check for updates',
-        click: () => { autoUpdater.checkForUpdates(); },
-      }]
+    [{
+      label: 'Check for updates',
+      click: () => { autoUpdater.checkForUpdates(); },
+    }]
   );
 
   const MENU_TEMPLATE = [
