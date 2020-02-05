@@ -348,6 +348,10 @@ const ConfigurationSection = styled.div`
     justify-content: space-between;
     border-bottom: ${BORDER.thin} solid ${COLOR.borderLight};
   `}
+
+  &:last-child {
+    border-bottom: none;
+  }
 `;
 
 export default Configuration;
