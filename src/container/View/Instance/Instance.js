@@ -215,7 +215,6 @@ const Centered = styled.div`
   flex: 1 1 100%;
   justify-content: center;
   margin: ${DIMENSION['1x']} 0;
-  width: calc(100vw - 200px);
 `;
 const Image = styled.div`
   &.round img {

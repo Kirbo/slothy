@@ -18,11 +18,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed `border-bottom` from `:last-child`.
 - Uses modified Node-Wifi, for Windows compatibility.
 - `allowDowngrade` is always `true`, so if you have enabled pre-releases and want to switch back to latest stable, just disable `Allow pre-releases`, check updates, install and restart the app and you're back in the latest stable version. Also if I have accidentally published a buggy version of the app and want to delete the release (and you have already updated), you would have in-app option to downgrade into latest stable version with ease.
+- Disabled Auto Update on Windows and Linux, since it is not working yet.
 
 ### Fixed
 - Fixed couple of typos in changelog.
 - Bug fixes for Node-Wifi, detecting BSSID on Mac.
 - A bug on Node-Wifi in Windows.
+- Removed unwanted scrolls.
+
+## [0.5.3-beta5] - 2020-02-06
+### Fixed
+- Removed unwanted scrolls.
+
+### Changed
+- Disabled Auto Update on Windows and Linux, since it is not working yet.
 
 ## [0.5.3-beta4] - 2020-02-06
 ### Fixed

@@ -7,7 +7,8 @@ import INITIAL_STATE from './InitialState';
 import { Provider } from './Context';
 import Loading from '../Loading';
 
-import { sortBy } from '../../assets/utils';
+import { sortBy, openExternal } from '../../assets/utils';
+import { RELEASES_URL } from '../../assets/constants';
 
 const electron = window.require('electron');
 const { ipcRenderer } = electron;
@@ -136,6 +137,11 @@ class AppProvider extends Component {
           ssidsLoaded: true,
         });
       })
+      .on('setOs', (event, value) => {
+        setProperty({
+          os: value,
+        });
+      })
       .on('scanningConnections', () => {
         setProperty({
           ssidsLoaded: false,
@@ -188,6 +194,7 @@ class AppProvider extends Component {
         message.loading(data.message);
       })
       .on('update-notification', (event, data) => {
+        const { os } = this.state;
         let description = `
           <div class="version">
             <span class="title">Current version</span>
@@ -227,14 +234,30 @@ class AppProvider extends Component {
           duration: 0,
           key: 'update-notification',
           btn: (
-            <React.Fragment>
+            <>
               <Button type="default" size="small" onClick={() => notification.close('update-notification')}>
                 {data.cancel}
               </Button>
-              <Button type="primary" onClick={() => ipcRenderer.send(data.onConfirm)}>
-                {data.confirm}
-              </Button>
-            </React.Fragment>
+              {
+                os === 'darwin'
+                  ? (
+                    <Button type="primary" onClick={() => ipcRenderer.send(data.onConfirm)}>
+                      {data.confirm}
+                    </Button>
+                  )
+                  : (
+                    <Button
+                      type="primary"
+                      onClick={() => {
+                        openExternal(`${RELEASES_URL}/tag/v${data.updates.version}`);
+                        notification.close('update-notification');
+                      }}
+                    >
+                      Download manually
+                    </Button>
+                  )
+              }
+            </>
           ),
           onClose: () => notification.close('update-notification'),
         });
@@ -248,11 +271,11 @@ class AppProvider extends Component {
           duration: 0,
           key: 'update-progress',
           btn: !appConfigurations.updates.autoDownload && (
-            <React.Fragment>
+            <>
               <Button type="default" size="small" onClick={() => ipcRenderer.send(data.onCancel)}>
                 {data.cancel}
               </Button>
-            </React.Fragment>
+            </>
           ),
           onClose: () => notification.close('update-progress'),
         });
@@ -265,14 +288,14 @@ class AppProvider extends Component {
           duration: 0,
           key: 'update-downloaded',
           btn: (
-            <React.Fragment>
+            <>
               <Button type="default" size="small" onClick={() => notification.close('update-downloaded')}>
                 {data.cancel}
               </Button>
               <Button type="primary" size="small" onClick={() => ipcRenderer.send(data.onConfirm)}>
                 {data.confirm}
               </Button>
-            </React.Fragment>
+            </>
           ),
           onClose: () => notification.close('update-downloaded'),
         });
@@ -285,14 +308,14 @@ class AppProvider extends Component {
           duration: 0,
           key: 'update-cancelled',
           btn: (
-            <React.Fragment>
+            <>
               <Button type="default" size="small" onClick={() => notification.close('update-cancelled')}>
                 {data.cancel}
               </Button>
               <Button type="primary" size="small" onClick={() => ipcRenderer.send(data.onConfirm)}>
                 {data.confirm}
               </Button>
-            </React.Fragment>
+            </>
           ),
           onClose: () => notification.close('update-notification'),
         });
@@ -351,20 +374,20 @@ class AppProvider extends Component {
     const { children } = this.props;
 
     return (
-      <React.Fragment>
+      <>
         {showLoading && (
-        <Loading
-          appConfigurationsLoaded={appConfigurationsLoaded}
-          configurationsLoaded={configurationsLoaded}
-          slackInstancesLoaded={slackInstancesLoaded}
-          ssidsLoaded={ssidsLoaded}
-          hideLoading={hideLoading}
-          setProperty={setProperty}
-          connected={connected}
-        />
+          <Loading
+            appConfigurationsLoaded={appConfigurationsLoaded}
+            configurationsLoaded={configurationsLoaded}
+            slackInstancesLoaded={slackInstancesLoaded}
+            ssidsLoaded={ssidsLoaded}
+            hideLoading={hideLoading}
+            setProperty={setProperty}
+            connected={connected}
+          />
         )}
         <Provider value={this.state}>{children}</Provider>
-      </React.Fragment>
+      </>
     );
   }
 }

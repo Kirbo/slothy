@@ -14,12 +14,16 @@ import View from '../View';
  * @returns {jsx}
  */
 const Authorized = () => (
-  <Styled>
-    <Layout>
-      <AppSider />
-      <View />
-    </Layout>
-  </Styled>
+  <Consumer>
+    {({ showLoading }) => (
+      <Styled showLoading={showLoading}>
+        <Layout>
+          <AppSider />
+          <View />
+        </Layout>
+      </Styled>
+    )}
+  </Consumer>
 );
 
 /**
@@ -36,6 +40,11 @@ const Styled = styled.div`
   width: 100%;
   min-height: 100vh;
   overflow: hidden;
+
+  ${({ showLoading }) => showLoading && `
+    width: 100vw;
+    height: 100vh;
+  `}
 
   & .ant-layout {
     min-height: 100vh;
