@@ -27,11 +27,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed unwanted scrolls.
 
 ## [0.5.3-beta5] - 2020-02-06
-### Fixed
-- Removed unwanted scrolls.
-
 ### Changed
 - Disabled Auto Update on Windows and Linux, since it is not working yet.
+
+### Fixed
+- Removed unwanted scrolls.
 
 ## [0.5.3-beta4] - 2020-02-06
 ### Fixed
