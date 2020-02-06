@@ -34,7 +34,9 @@ const StyledView = styled.div`
   display: flex;
   flex: 1 1 100%;
   max-width: calc(100vw - 200px);
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
+
 
   & .ant-layout {
     max-width: 100%;
