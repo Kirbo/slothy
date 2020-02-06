@@ -26,6 +26,7 @@ const INITIAL_STATE = {
   ssids: [],
   viewType: type,
   wifiEnabled: false,
+  os: '',
 };
 
 export default INITIAL_STATE;

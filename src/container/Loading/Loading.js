@@ -52,19 +52,19 @@ class Loading extends Component {
   render = () => {
     const { hideLoading } = this.props;
     return (
-      <React.Fragment>
+      <>
         <GlobalStyles />
         <Styled hideLoading={hideLoading}>
           <Layout>
             <div className="container">
               <Logo withText />
               <div className="loading hidden">
-              Loading, please standby...
+                Loading, please standby...
               </div>
             </div>
           </Layout>
         </Styled>
-      </React.Fragment>
+      </>
     );
   }
 }
@@ -96,6 +96,7 @@ const Styled = styled.div`
   justify-content: center;
   background: radial-gradient(${COLOR.darkBlue}, ${COLOR.black});
   transition: all 0.5s ease;
+  z-index: 10000;
   opacity: ${({ hideLoading }) => (hideLoading ? 0 : 1)};
 
   & div.logo {

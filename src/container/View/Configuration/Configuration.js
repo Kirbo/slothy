@@ -74,7 +74,7 @@ const timerFormatter = value => {
 const Configuration = () => (
   <Consumer>
     {({
-      appConfigurations, configurations, slackInstances, currentSsids, updateAppConfigurations, saveConfiguration,
+      os, appConfigurations, configurations, slackInstances, currentSsids, updateAppConfigurations, saveConfiguration,
     }) => {
       const connectedBssids = currentSsids.map(({ bssid }) => bssid.toUpperCase());
       const bssidConfigurations = configurations.filter(({ bssid }) => bssid && connectedBssids.includes(bssid.toUpperCase()));
@@ -249,29 +249,33 @@ const Configuration = () => (
                   />
                 </ConfigurationSection>
 
-                <ConfigurationSection spacer>
-                  <Tooltip placement="right" title={`Opt-in if you want ${packageJson.productName} to automatically download new updates.`}>
-                    <ConfigurationTitle>
-                      Auto download updates <Icon icon="info-circle" />
-                    </ConfigurationTitle>
-                  </Tooltip>
-                  <Switch
-                    checked={appConfigurations.updates.autoDownload}
-                    onChange={updateAppConfiguration('updates', ['autoDownload'])}
-                  />
-                </ConfigurationSection>
+                {os === 'darwin' && (
+                  <>
+                    <ConfigurationSection spacer>
+                      <Tooltip placement="right" title={`Opt-in if you want ${packageJson.productName} to automatically download new updates.`}>
+                        <ConfigurationTitle>
+                          Auto download updates <Icon icon="info-circle" />
+                        </ConfigurationTitle>
+                      </Tooltip>
+                      <Switch
+                        checked={appConfigurations.updates.autoDownload}
+                        onChange={updateAppConfiguration('updates', ['autoDownload'])}
+                      />
+                    </ConfigurationSection>
 
-                <ConfigurationSection spacer>
-                  <Tooltip placement="right" title={`Opt-in if you want ${packageJson.productName} to automatically install new (downloaded) updates on application quit.`}>
-                    <ConfigurationTitle>
-                      Install updates automatically on application quit <Icon icon="info-circle" />
-                    </ConfigurationTitle>
-                  </Tooltip>
-                  <Switch
-                    checked={appConfigurations.updates.autoInstallOnAppQuit}
-                    onChange={updateAppConfiguration('updates', ['autoInstallOnAppQuit'])}
-                  />
-                </ConfigurationSection>
+                    <ConfigurationSection spacer>
+                      <Tooltip placement="right" title={`Opt-in if you want ${packageJson.productName} to automatically install new (downloaded) updates on application quit.`}>
+                        <ConfigurationTitle>
+                          Install updates automatically on application quit <Icon icon="info-circle" />
+                        </ConfigurationTitle>
+                      </Tooltip>
+                      <Switch
+                        checked={appConfigurations.updates.autoInstallOnAppQuit}
+                        onChange={updateAppConfiguration('updates', ['autoInstallOnAppQuit'])}
+                      />
+                    </ConfigurationSection>
+                  </>
+                )}
 
                 <ConfigurationSection spacer>
                   <Tooltip placement="right" title="Opt-in if you want to get prereleases.">

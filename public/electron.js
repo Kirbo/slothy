@@ -4,6 +4,7 @@ const url = require('url');
 const ipc = require('electron').ipcMain;
 const { autoUpdater, CancellationToken } = require('electron-updater');
 const log = require('electron-log');
+const os = require('os');
 
 const storage = require('./lib/storage');
 const menuTemplate = require('./menuTemplate');
@@ -404,6 +405,7 @@ ipc
     ifCachedSend('configurations', getConfigurations);
     ifCachedSend('connections', getConnections);
     ifCachedSend('slackInstances', getSlackInstances);
+    sendIfMainWindow('setOs', () => os.platform());
     if (appConfigurations.updates.checkUpdatesOnLaunch) {
       autoUpdater.checkForUpdates();
     }
