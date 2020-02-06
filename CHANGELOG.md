@@ -22,6 +22,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Fixed couple of typos in changelog.
 - Bug fixes for Node-Wifi, detecting BSSID on Mac.
+- A bug on Node-Wifi in Windows.
+
+## [0.5.3-beta4] - 2020-02-06
+### Fixed
+- A bug on Node-Wifi in Windows.
 
 ## [0.5.3-beta3] - 2020-02-05
 ### Changed
