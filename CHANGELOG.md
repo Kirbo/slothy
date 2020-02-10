@@ -9,7 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Crash reporter.
 
 ## [Unreleased]
-## [0.5.3] - 2020-02-05
+
+## [0.5.3] - 2020-02-10
 ### Added
 - Ability to downgrade.
 
