@@ -109,7 +109,7 @@
     "eslint-plugin-react-hooks": "2.3.0",
     "less": "3.10.3",
     "less-loader": "5.0.0",
-    "moment": "2.24.0",
+    "moment": "2.29.4",
     "node-emoji": "1.10.0",
     "node-wifi": "https://github.com/kirbo/node-wifi#testing",
     "nodemon": "2.0.2",
